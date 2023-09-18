@@ -1,0 +1,15 @@
+package main
+
+import (
+	"github.com/dfirebaugh/ggez"
+	"golang.org/x/image/colornames"
+)
+
+func update() {
+	ggez.Clear(colornames.Grey)
+}
+
+func main() {
+	ggez.SetScreenSize(200, 200)
+	ggez.Update(update)
+}

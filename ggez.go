@@ -57,7 +57,7 @@ func Update(updateFn func()) {
 		fps := fpsCounter.GetFPS()
 		title := windowTitle
 		if fps != 0 && fpsEnabled {
-			windowTitle = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
+			title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
 		}
 		graphicsBackend.SetWindowTitle(title)
 

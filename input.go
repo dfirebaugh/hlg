@@ -98,6 +98,7 @@ type InputDevice struct {
 }
 
 func NewInputDevice() *InputDevice {
+	ensureSetupCompletion()
 	return &InputDevice{
 		keys:    make(map[uint32]*Key),
 		buttons: make(map[uint8]*Button),

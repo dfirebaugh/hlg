@@ -37,6 +37,8 @@ const (
 )
 
 func setupDefaultInput() {
+	ensureSetupCompletion()
+
 	DefaultInput = &InputDevice{
 		keys:    make(map[uint32]*Key),
 		buttons: make(map[uint8]*Button),

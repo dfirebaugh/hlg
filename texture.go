@@ -33,12 +33,14 @@ func (t *Texture) Image() image.Image {
 }
 
 func CreateTexture(x, y, w, h int) (*Texture, error) {
+	ensureSetupCompletion()
 	img := image.NewRGBA(image.Rect(x, y, w, h))
 	return CreateTextureFromImage(img)
 }
 
 // CreateTextureFromImage creates an SDL texture from an image.Image.
 func CreateTextureFromImage(img image.Image) (*Texture, error) {
+	ensureSetupCompletion()
 	var err error
 
 	// Convert img to RGBA, this ensures the texture always works with an RGBA image.
@@ -74,6 +76,7 @@ func (t *Texture) SetFlip(flip FlipType) {
 
 // Render renders a texture to the screen considering the scale factor.
 func (t Texture) Render() {
+	ensureSetupCompletion()
 	renderW := int(float64(t.W) * t.ScaleX)
 	renderH := int(float64(t.H) * t.ScaleY)
 	graphicsBackend.RenderTexture(t.ptr, t.X, t.Y, renderW, renderH, t.Angle, t.Center.X, t.Center.Y, int(t.Flip))
@@ -81,5 +84,6 @@ func (t Texture) Render() {
 
 // Destroy removes the texture from the renderer
 func (t Texture) Destroy() {
+	ensureSetupCompletion()
 	graphicsBackend.DestroyTexture(t.ptr)
 }

@@ -24,20 +24,53 @@ var (
 	windowTitle string
 	uifb        = fb.New(defaultWidth, defaultHeight)
 	uiTexture   uintptr
+
+	ConfiguredRenderer RendererType
+
+	hasSetupCompleted = false
 )
 
-func init() {
+type RendererType uint
+
+const (
+	// SDLAutoRenderer let's SDL pick the appropriate renderer
+	SDLAutoRenderer = iota
+	// Uses OpenGL Renderer
+	GLRenderer
+)
+
+func SetRenderer(t RendererType) {
+	ConfiguredRenderer = t
+}
+
+func Setup(t RendererType) {
+	SetRenderer(t)
 	runtime.LockOSThread()
-	graphicsBackend, _ = renderer.New()
+
+	switch ConfiguredRenderer {
+	case SDLAutoRenderer:
+		graphicsBackend, _ = renderer.New()
+	case GLRenderer:
+		graphicsBackend, _ = renderer.NewGLRenderer()
+	}
+	hasSetupCompleted = true
 
 	SetTitle("ggez")
 	SetScreenSize(defaultWidth, defaultHeight)
 	setupDefaultInput()
 
 	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
+
+}
+
+func ensureSetupCompletion() {
+	if !hasSetupCompleted {
+		Setup(ConfiguredRenderer)
+	}
 }
 
 func Update(updateFn func()) {
+	ensureSetupCompletion()
 	defer close()
 	fpsCounter := NewFPSCounter()
 	for {
@@ -70,14 +103,17 @@ func close() {
 }
 
 func Clear(c color.RGBA) {
+	ensureSetupCompletion()
 	graphicsBackend.Clear(c)
 }
 
 func SetTitle(title string) {
+	ensureSetupCompletion()
 	windowTitle = title
 }
 
 func SetScreenSize(width, height int) {
+	ensureSetupCompletion()
 	graphicsBackend.SetScreenSize(width, height)
 }
 

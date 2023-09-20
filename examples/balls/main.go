@@ -26,6 +26,8 @@ func update() {
 }
 
 func main() {
+	ggez.Setup(ggez.GLRenderer)
+
 	numBalls := 100
 	balls = make([]Ball, numBalls)
 	for i := 0; i < numBalls; i++ {

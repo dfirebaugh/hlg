@@ -8,7 +8,6 @@ import (
 
 	"github.com/dfirebaugh/ggez/pkg/fb"
 	"github.com/dfirebaugh/ggez/pkg/renderer"
-	"github.com/dfirebaugh/ggez/pkg/renderer/sdl"
 )
 
 type Runner struct {
@@ -21,14 +20,15 @@ const (
 
 var (
 	graphicsBackend renderer.GraphicsBackend
-	windowTitle     string
-	uifb            = fb.New(defaultWidth, defaultHeight)
-	uiTexture       uintptr
+
+	windowTitle string
+	uifb        = fb.New(defaultWidth, defaultHeight)
+	uiTexture   uintptr
 )
 
 func init() {
 	runtime.LockOSThread()
-	graphicsBackend, _ = sdl.New()
+	graphicsBackend, _ = renderer.New()
 
 	SetTitle("ggez")
 	SetScreenSize(defaultWidth, defaultHeight)

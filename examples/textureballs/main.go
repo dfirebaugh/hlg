@@ -26,7 +26,7 @@ const (
 
 var (
 	balls        []Ball
-	numBalls     = 6200
+	numBalls     = 500
 	circleRadius = 4
 )
 

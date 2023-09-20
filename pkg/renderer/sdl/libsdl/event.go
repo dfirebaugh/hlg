@@ -1,4 +1,4 @@
-package sdl
+package libsdl
 
 import (
 	"unsafe"
@@ -9,7 +9,32 @@ import (
 
 type SDL_Event struct {
 	Type uint32
-	_    [52]byte // padding to match the size of SDL_Event in SDL2
+	// common   SDL_CommonEvent
+	// display  SDL_DisplayEvent
+	Window SDL_WindowEvent
+	Key    SDL_KeyboardEvent
+	// edit     SDL_TextEditingEvent
+	// text     SDL_TextInputEvent
+	Motion SDL_MouseMotionEvent
+	Button SDL_MouseButtonEvent
+	// wheel    SDL_MouseWheelEvent
+	// jaxis    SDL_JoyAxisEvent
+	// jball    SDL_JoyBallEvent
+	// jhat     SDL_JoyHatEvent
+	// jbutton  SDL_JoyButtonEvent
+	// jdevice  SDL_JoyDeviceEvent
+	// caxis    SDL_ControllerAxisEvent
+	// cbutton  SDL_ControllerButtonEvent
+	// cdevice  SDL_ControllerDeviceEvent
+	// adevice  SDL_AudioDeviceEvent
+	// quit     SDL_QuitEvent
+	// user     SDL_UserEvent
+	// syswm    SDL_SysWMEvent
+	// tfinger  SDL_TouchFingerEvent
+	// mgesture SDL_MultiGestureEvent
+	// dgesture SDL_DollarGestureEvent
+	// drop     SDL_DropEvent
+	_ [52]byte // padding to match the size of SDL_Event in SDL2
 }
 
 type SDL_WindowEvent struct {
@@ -21,6 +46,28 @@ type SDL_WindowEvent struct {
 	Data1     int32
 	Data2     int32
 }
+
+type SDL_WindowEventID int
+
+const (
+	SDL_WINDOWEVENT_NONE SDL_WindowEventID = iota
+	SDL_WINDOWEVENT_SHOWN
+	SDL_WINDOWEVENT_HIDDEN
+	SDL_WINDOWEVENT_EXPOSED
+	SDL_WINDOWEVENT_MOVED
+	SDL_WINDOWEVENT_RESIZED
+	SDL_WINDOWEVENT_SIZE_CHANGED
+	SDL_WINDOWEVENT_MINIMIZED
+	SDL_WINDOWEVENT_MAXIMIZED
+	SDL_WINDOWEVENT_RESTORED
+	SDL_WINDOWEVENT_ENTER
+	SDL_WINDOWEVENT_LEAVE
+	SDL_WINDOWEVENT_FOCUS_GAINED
+	SDL_WINDOWEVENT_FOCUS_LOST
+	SDL_WINDOWEVENT_CLOSE
+	SDL_WINDOWEVENT_TAKE_FOCUS
+	SDL_WINDOWEVENT_HIT_TEST
+)
 
 // Additional event structures if necessary, e.g.,
 type SDL_KeyboardEvent struct {

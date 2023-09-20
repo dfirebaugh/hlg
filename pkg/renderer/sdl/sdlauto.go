@@ -1,4 +1,4 @@
-package renderer
+package sdl
 
 import (
 	"fmt"
@@ -7,13 +7,14 @@ import (
 	"unsafe"
 
 	"github.com/dfirebaugh/ggez/pkg/input"
-	"github.com/dfirebaugh/ggez/pkg/renderer/sdl"
+	"github.com/dfirebaugh/ggez/pkg/renderer"
+	"github.com/dfirebaugh/ggez/pkg/renderer/sdl/libsdl"
 )
 
 // SDLAutoRenderer automatically determines what backend graphics api to use
 type SDLAutoRenderer struct {
-	WindowManager
-	EventManager
+	renderer.WindowManager
+	renderer.EventManager
 	screenHeight        int
 	screenWidth         int
 	RendererHandle      uintptr
@@ -21,7 +22,7 @@ type SDLAutoRenderer struct {
 }
 
 func New() (*SDLAutoRenderer, error) {
-	sdl.SDL_Init(sdl.SDL_INIT_VIDEO)
+	libsdl.SDL_Init(libsdl.SDL_INIT_VIDEO)
 	g := &SDLAutoRenderer{}
 
 	g.CreateWindow("ggez", 800, 600)
@@ -32,7 +33,7 @@ func New() (*SDLAutoRenderer, error) {
 func (g *SDLAutoRenderer) Close() {
 	g.DestroyWindow()
 	g.DestroyRenderer()
-	sdl.SDL_Quit()
+	libsdl.SDL_Quit()
 }
 
 func (g *SDLAutoRenderer) PrintPlatformAndVersion() {
@@ -40,27 +41,27 @@ func (g *SDLAutoRenderer) PrintPlatformAndVersion() {
 }
 
 func (g *SDLAutoRenderer) createRenderer() error {
-	r := sdl.SDL_CreateRenderer(g.WindowManagerHandle, 0xFFFFFFFF, sdl.SDL_RENDERER_ACCELERATED)
+	r := libsdl.SDL_CreateRenderer(g.WindowManagerHandle, 0xFFFFFFFF, libsdl.SDL_RENDERER_ACCELERATED)
 	if r == 0 {
-		return fmt.Errorf("sdl.SDL_CreateRenderer failed")
+		return fmt.Errorf("libsdl.SDL_CreateRenderer failed")
 	}
 	g.RendererHandle = r
 	g.SetScreenSize(g.screenWidth, g.screenHeight)
 	return nil
 }
 
-func (g *SDLAutoRenderer) RenderPresent() {
-	sdl.SDL_RenderPresent(g.RendererHandle)
+func (g *SDLAutoRenderer) Render() {
+	libsdl.SDL_RenderPresent(g.RendererHandle)
 }
 
 func (g *SDLAutoRenderer) DestroyRenderer() {
-	sdl.SDL_DestroyRenderer(g.RendererHandle)
+	libsdl.SDL_DestroyRenderer(g.RendererHandle)
 }
 
 func (g *SDLAutoRenderer) PrintRendererInfo() {
-	var info sdl.SDL_RendererInfo
+	var info libsdl.SDL_RendererInfo
 
-	sdl.SDL_GetRendererInfo(g.RendererHandle, &info)
+	libsdl.SDL_GetRendererInfo(g.RendererHandle, &info)
 
 	rendererName := goStringFromCString(info.Name)
 	fmt.Printf("Backend: %s\n", rendererName)
@@ -68,16 +69,16 @@ func (g *SDLAutoRenderer) PrintRendererInfo() {
 
 func (g *SDLAutoRenderer) Clear(c color.Color) {
 	g.setRenderDrawColor(c)
-	sdl.SDL_RenderClear(g.RendererHandle)
+	libsdl.SDL_RenderClear(g.RendererHandle)
 }
 
 func (w *SDLAutoRenderer) CreateWindow(title string, width, height int) (uintptr, error) {
-	window := sdl.SDL_CreateWindow(
+	window := libsdl.SDL_CreateWindow(
 		title,
-		sdl.SDL_WINDOWPOS_CENTERED, sdl.SDL_WINDOWPOS_CENTERED, width, height, sdl.SDL_WINDOW_SHOWN|sdl.SDL_WINDOW_RESIZABLE,
+		libsdl.SDL_WINDOWPOS_CENTERED, libsdl.SDL_WINDOWPOS_CENTERED, width, height, libsdl.SDL_WINDOW_SHOWN|libsdl.SDL_WINDOW_RESIZABLE,
 	)
 	if window == 0 {
-		return 0, fmt.Errorf("sdl.SDL_CreateWindow failed")
+		return 0, fmt.Errorf("libsdl.SDL_CreateWindow failed")
 	}
 
 	w.WindowManagerHandle = window
@@ -93,30 +94,34 @@ func (w *SDLAutoRenderer) SetWindowTitle(title string) {
 	if w.WindowManagerHandle == 0 {
 		return
 	}
-	sdl.SDL_SetWindowTitle(w.WindowManagerHandle, title)
+	libsdl.SDL_SetWindowTitle(w.WindowManagerHandle, title)
+}
+
+func (w *SDLAutoRenderer) SetScaleFactor(f int) {
+
 }
 
 func (w *SDLAutoRenderer) DestroyWindow() {
-	sdl.SDL_DestroyWindow(w.WindowManagerHandle)
+	libsdl.SDL_DestroyWindow(w.WindowManagerHandle)
 }
 
 func (gb *SDLAutoRenderer) setRenderDrawColor(c color.Color) {
 	r, g, b, a := rgbaFromColor(c)
-	sdl.SDL_SetRenderDrawColor(gb.RendererHandle, r, g, b, a)
+	libsdl.SDL_SetRenderDrawColor(gb.RendererHandle, r, g, b, a)
 }
 
 func (g *SDLAutoRenderer) SetScreenSize(width, height int) {
-	sdl.SDL_RenderSetLogicalSize(g.RendererHandle, width, height)
+	libsdl.SDL_RenderSetLogicalSize(g.RendererHandle, width, height)
 }
 
 func (g SDLAutoRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	g.setRenderDrawColor(c)
-	sdl.SDL_RenderDrawLine(g.RendererHandle, x1, y1, x2, y2)
+	libsdl.SDL_RenderDrawLine(g.RendererHandle, x1, y1, x2, y2)
 }
 
 func (g SDLAutoRenderer) DrawPoint(x, y int, c color.Color) {
 	g.setRenderDrawColor(c)
-	sdl.SDL_RenderDrawPoint(g.RendererHandle, x, y)
+	libsdl.SDL_RenderDrawPoint(g.RendererHandle, x, y)
 }
 
 func (g SDLAutoRenderer) FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
@@ -159,7 +164,7 @@ func (g SDLAutoRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
 	for x := xMin; x <= xMax; x++ {
 		for y := yMin; y <= yMax; y++ {
 			if g.pointInPolygon(x, y, xPoints, yPoints) {
-				sdl.SDL_RenderDrawPoint(g.RendererHandle, x, y)
+				libsdl.SDL_RenderDrawPoint(g.RendererHandle, x, y)
 			}
 		}
 	}
@@ -175,7 +180,7 @@ func (g SDLAutoRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 
 	for i := 0; i < numPoints; i++ {
 		nextIndex := (i + 1) % numPoints
-		sdl.SDL_RenderDrawLine(g.RendererHandle, xPoints[i], yPoints[i], xPoints[nextIndex], yPoints[nextIndex])
+		libsdl.SDL_RenderDrawLine(g.RendererHandle, xPoints[i], yPoints[i], xPoints[nextIndex], yPoints[nextIndex])
 	}
 }
 
@@ -198,26 +203,26 @@ func (g SDLAutoRenderer) pointInPolygon(x, y int, xPoints, yPoints []int) bool {
 
 func (g SDLAutoRenderer) FillRect(x, y, width, height int, c color.Color) {
 	g.setRenderDrawColor(c)
-	rect := &sdl.SDL_Rect{
+	rect := &libsdl.SDL_Rect{
 		X: int32(x),
 		Y: int32(y),
 		W: int32(width),
 		H: int32(height),
 	}
-	sdl.SDL_RenderFillRect(g.RendererHandle, rect)
+	libsdl.SDL_RenderFillRect(g.RendererHandle, rect)
 }
 
 func (g SDLAutoRenderer) DrawRect(x, y, width, height int, c color.Color) {
 	g.setRenderDrawColor(c)
 
 	// Top side
-	sdl.SDL_RenderDrawLine(g.RendererHandle, x, y, x+width, y)
+	libsdl.SDL_RenderDrawLine(g.RendererHandle, x, y, x+width, y)
 	// Bottom side
-	sdl.SDL_RenderDrawLine(g.RendererHandle, x, y+height, x+width, y+height)
+	libsdl.SDL_RenderDrawLine(g.RendererHandle, x, y+height, x+width, y+height)
 	// Left side
-	sdl.SDL_RenderDrawLine(g.RendererHandle, x, y, x, y+height)
+	libsdl.SDL_RenderDrawLine(g.RendererHandle, x, y, x, y+height)
 	// Right side
-	sdl.SDL_RenderDrawLine(g.RendererHandle, x+width, y, x+width, y+height)
+	libsdl.SDL_RenderDrawLine(g.RendererHandle, x+width, y, x+width, y+height)
 }
 
 func (g SDLAutoRenderer) FillCirc(x, y, radius int, c color.Color) {
@@ -291,12 +296,12 @@ func (g *SDLAutoRenderer) CreateTextureFromImage(img image.Image) (uintptr, erro
 		return 0, fmt.Errorf("unsupported image type: %T", img)
 	}
 
-	texture := sdl.SDL_CreateTexture(g.RendererHandle, pixelFormat, 1, img.Bounds().Dx(), img.Bounds().Dy())
+	texture := libsdl.SDL_CreateTexture(g.RendererHandle, pixelFormat, 1, img.Bounds().Dx(), img.Bounds().Dy())
 	if texture == 0 {
 		return 0, fmt.Errorf("failed to create texture")
 	}
 
-	sdl.SDL_SetTextureBlendMode(texture, sdl.SDL_BLENDMODE_BLEND)
+	libsdl.SDL_SetTextureBlendMode(texture, libsdl.SDL_BLENDMODE_BLEND)
 
 	var pixels *uint8
 	switch pImg := img.(type) {
@@ -309,45 +314,45 @@ func (g *SDLAutoRenderer) CreateTextureFromImage(img image.Image) (uintptr, erro
 	}
 
 	pitch := img.Bounds().Dx() * 4 // 4 bytes per pixel for RGBA
-	sdl.SDL_UpdateTexture(texture, nil, pixels, pitch)
+	libsdl.SDL_UpdateTexture(texture, nil, pixels, pitch)
 
 	return texture, nil
 }
 
 func (g *SDLAutoRenderer) RenderTextureAt(texture uintptr, x, y, w, h int) {
-	dstRect := &sdl.SDL_Rect{
+	dstRect := &libsdl.SDL_Rect{
 		X: int32(x),
 		Y: int32(y),
 		W: int32(w),
 		H: int32(h),
 	}
 
-	sdl.SDL_RenderCopy(texture, nil, dstRect)
+	libsdl.SDL_RenderCopy(texture, nil, dstRect)
 }
 
 func (g *SDLAutoRenderer) RenderTexture(texture uintptr, x, y, w, h int, angle float64, centerX, centerY int, flipType int) {
-	dstRect := &sdl.SDL_Rect{
+	dstRect := &libsdl.SDL_Rect{
 		X: int32(x),
 		Y: int32(y),
 		W: int32(w),
 		H: int32(h),
 	}
 
-	sdl.SDL_RenderCopyEx(
+	libsdl.SDL_RenderCopyEx(
 		uintptr(g.RendererHandle),
 		uintptr(texture),
 		uintptr(unsafe.Pointer(nil)),
 		uintptr(unsafe.Pointer(dstRect)),
 		uintptr(*(*int)(unsafe.Pointer(&angle))),
-		uintptr(unsafe.Pointer(&sdl.SDL_Point{X: int32(centerX), Y: int32(centerY)})),
+		uintptr(unsafe.Pointer(&libsdl.SDL_Point{X: int32(centerX), Y: int32(centerY)})),
 		flipType,
 	)
 }
 
 func (g *SDLAutoRenderer) DestroyTexture(texture uintptr) {
-	sdl.SDL_DestroyTexture(texture)
+	libsdl.SDL_DestroyTexture(texture)
 }
 
 func (g *SDLAutoRenderer) PollEvents(inputDevice input.InputDevice) bool {
-	return sdl.PollEvents(inputDevice)
+	return libsdl.PollEvents(inputDevice)
 }

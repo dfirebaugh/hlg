@@ -1,6 +1,6 @@
 //go:build darwin || freebsd || linux
 
-package sdl
+package libsdl
 
 import "github.com/ebitengine/purego"
 

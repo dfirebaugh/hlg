@@ -20,14 +20,14 @@ type GraphicsBackend interface {
 type Renderer interface {
 	PrintRendererInfo()
 	Clear(c color.Color)
-	RenderPresent()
+	Render()
 }
 
 type WindowManager interface {
-	CreateWindow(title string, width int, height int) (uintptr, error)
 	SetWindowTitle(title string)
 	DestroyWindow()
 	SetScreenSize(width int, height int)
+	SetScaleFactor(f int)
 	Renderer
 }
 
@@ -52,6 +52,7 @@ type EventManager interface {
 }
 
 type ShapeRenderer interface {
+	SetScreenSize(width int, height int)
 	DrawLine(x1, y1, x2, y2 int, c color.Color)
 	FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color)
 	DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color)

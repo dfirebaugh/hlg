@@ -1,4 +1,4 @@
-package sdl
+package libsdl
 
 import "github.com/ebitengine/purego"
 
@@ -34,10 +34,14 @@ var (
 	SDL_CreateWindow   func(title string, x int, y int, w int, h int, flags uint32) uintptr
 	SDL_DestroyWindow  func(window uintptr)
 	SDL_SetWindowTitle func(window uintptr, title string)
+	SDL_GetWindowSize  func(window uintptr, w *int, h *int)
+	SDL_SetWindowSize  func(window uintptr, w int, h int)
 )
 
 func registerWindowFuncs() {
 	purego.RegisterLibFunc(&SDL_CreateWindow, libSDL, "SDL_CreateWindow")
 	purego.RegisterLibFunc(&SDL_DestroyWindow, libSDL, "SDL_DestroyWindow")
 	purego.RegisterLibFunc(&SDL_SetWindowTitle, libSDL, "SDL_SetWindowTitle")
+	purego.RegisterLibFunc(&SDL_GetWindowSize, libSDL, "SDL_GetWindowSize")
+	purego.RegisterLibFunc(&SDL_SetWindowSize, libSDL, "SDL_SetWindowSize")
 }

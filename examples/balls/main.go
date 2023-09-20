@@ -9,29 +9,25 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-const (
-	screenWidth  = 800
-	screenHeight = 600
-)
-
 var balls []Ball
 
 func update() {
 	ggez.Clear(colornames.Grey)
 
 	for i := range balls {
-		balls[i].Update(screenWidth, screenHeight)
+		balls[i].Update()
 		balls[i].Render()
 	}
 }
 
 func main() {
 	ggez.Setup(ggez.GLRenderer)
+	ggez.SetScreenSize(960, 640)
 
-	numBalls := 100
+	numBalls := 900
 	balls = make([]Ball, numBalls)
 	for i := 0; i < numBalls; i++ {
-		balls[i] = NewBall(screenWidth, screenHeight)
+		balls[i] = NewBall()
 	}
 
 	ggez.Update(update)
@@ -47,25 +43,25 @@ func (b *Ball) Render() {
 	ggez.FillCircle(int(b.X), int(b.Y), int(b.R), b.Color)
 }
 
-func (b *Ball) Update(screenWidth, screenHeight float64) {
+func (b *Ball) Update() {
 	// Update the position
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
 	// Boundary checks - Bounce off the edges
-	if b.X < 0 || b.X > screenWidth {
+	if b.X < 0 || b.X > float64(ggez.ScreenWidth()) {
 		b.Velocity.X = -b.Velocity.X
 	}
 
-	if b.Y < 0 || b.Y > screenHeight {
+	if b.Y < 0 || b.Y > float64(ggez.ScreenHeight()) {
 		b.Velocity.Y = -b.Velocity.Y
 	}
 }
 
-func NewBall(screenWidth, screenHeight float64) Ball {
+func NewBall() Ball {
 	return Ball{
 		Circle: geom.Circle{
-			X: rand.Float64() * screenWidth, Y: rand.Float64() * screenHeight,
+			X: rand.Float64() * float64(ggez.ScreenWidth()), Y: rand.Float64() * float64(ggez.ScreenHeight()),
 			R: 50,
 		},
 		Velocity: geom.Point{X: rand.Float64()*4 - 2, Y: rand.Float64()*4 - 2}, // random velocity between -2 to 2

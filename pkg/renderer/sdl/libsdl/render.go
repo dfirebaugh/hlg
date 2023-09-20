@@ -1,4 +1,4 @@
-package sdl
+package libsdl
 
 import (
 	"github.com/ebitengine/purego"

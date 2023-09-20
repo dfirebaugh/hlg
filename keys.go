@@ -1,39 +1,39 @@
 package ggez
 
-import "github.com/dfirebaugh/ggez/pkg/renderer/sdl"
+import "github.com/dfirebaugh/ggez/pkg/renderer/sdl/libsdl"
 
 // Keyboard Keys
 const (
-	KeyW      = sdl.SDL_SCANCODE_W
-	KeyA      = sdl.SDL_SCANCODE_A
-	KeyS      = sdl.SDL_SCANCODE_S
-	KeyD      = sdl.SDL_SCANCODE_D
-	KeySPACE  = sdl.SDL_SCANCODE_SPACE
-	KeyLCTRL  = sdl.SDL_SCANCODE_LCTRL
-	KeyLSHIFT = sdl.SDL_SCANCODE_LSHIFT
-	KeyUP     = sdl.SDL_SCANCODE_UP
-	KeyDOWN   = sdl.SDL_SCANCODE_DOWN
-	KeyLEFT   = sdl.SDL_SCANCODE_LEFT
-	KeyRIGHT  = sdl.SDL_SCANCODE_RIGHT
-	KeyE      = sdl.SDL_SCANCODE_E
-	KeyQ      = sdl.SDL_SCANCODE_Q
-	Key1      = sdl.SDL_SCANCODE_1
-	Key2      = sdl.SDL_SCANCODE_2
-	Key3      = sdl.SDL_SCANCODE_3
-	Key4      = sdl.SDL_SCANCODE_4
-	Key5      = sdl.SDL_SCANCODE_5
-	Key6      = sdl.SDL_SCANCODE_6
-	Key7      = sdl.SDL_SCANCODE_7
-	Key8      = sdl.SDL_SCANCODE_8
-	Key9      = sdl.SDL_SCANCODE_9
-	Key0      = sdl.SDL_SCANCODE_0
+	KeyW      = libsdl.SDL_SCANCODE_W
+	KeyA      = libsdl.SDL_SCANCODE_A
+	KeyS      = libsdl.SDL_SCANCODE_S
+	KeyD      = libsdl.SDL_SCANCODE_D
+	KeySPACE  = libsdl.SDL_SCANCODE_SPACE
+	KeyLCTRL  = libsdl.SDL_SCANCODE_LCTRL
+	KeyLSHIFT = libsdl.SDL_SCANCODE_LSHIFT
+	KeyUP     = libsdl.SDL_SCANCODE_UP
+	KeyDOWN   = libsdl.SDL_SCANCODE_DOWN
+	KeyLEFT   = libsdl.SDL_SCANCODE_LEFT
+	KeyRIGHT  = libsdl.SDL_SCANCODE_RIGHT
+	KeyE      = libsdl.SDL_SCANCODE_E
+	KeyQ      = libsdl.SDL_SCANCODE_Q
+	Key1      = libsdl.SDL_SCANCODE_1
+	Key2      = libsdl.SDL_SCANCODE_2
+	Key3      = libsdl.SDL_SCANCODE_3
+	Key4      = libsdl.SDL_SCANCODE_4
+	Key5      = libsdl.SDL_SCANCODE_5
+	Key6      = libsdl.SDL_SCANCODE_6
+	Key7      = libsdl.SDL_SCANCODE_7
+	Key8      = libsdl.SDL_SCANCODE_8
+	Key9      = libsdl.SDL_SCANCODE_9
+	Key0      = libsdl.SDL_SCANCODE_0
 )
 
 // Mouse Buttons
 const (
-	MouseButtonLeft   uint8 = sdl.SDL_BUTTON_LEFT
-	MouseButtonRight  uint8 = sdl.SDL_BUTTON_RIGHT
-	MouseButtonMiddle uint8 = sdl.SDL_BUTTON_MIDDLE
+	MouseButtonLeft   uint8 = libsdl.SDL_BUTTON_LEFT
+	MouseButtonRight  uint8 = libsdl.SDL_BUTTON_RIGHT
+	MouseButtonMiddle uint8 = libsdl.SDL_BUTTON_MIDDLE
 )
 
 func setupDefaultInput() {

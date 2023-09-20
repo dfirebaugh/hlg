@@ -123,6 +123,7 @@ func (c *Cube) Update() {
 }
 
 func main() {
+	ggez.Setup(ggez.GLRenderer)
 	ggez.SetTitle("3D Cube")
 	ggez.SetScreenSize(screenWidth, screenHeight)
 

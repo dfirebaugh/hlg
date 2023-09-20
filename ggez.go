@@ -8,21 +8,23 @@ import (
 
 	"github.com/dfirebaugh/ggez/pkg/fb"
 	"github.com/dfirebaugh/ggez/pkg/renderer"
+	"github.com/dfirebaugh/ggez/pkg/renderer/gl"
+	"github.com/dfirebaugh/ggez/pkg/renderer/sdl"
 )
 
 type Runner struct {
 }
 
-const (
-	defaultWidth  = 800
-	defaultHeight = 600
+var (
+	screenWidth  = 240
+	screenHeight = 160
 )
 
 var (
 	graphicsBackend renderer.GraphicsBackend
 
 	windowTitle string
-	uifb        = fb.New(defaultWidth, defaultHeight)
+	uifb        = fb.New(screenWidth, screenHeight)
 	uiTexture   uintptr
 
 	ConfiguredRenderer RendererType
@@ -49,18 +51,18 @@ func Setup(t RendererType) {
 
 	switch ConfiguredRenderer {
 	case SDLAutoRenderer:
-		graphicsBackend, _ = renderer.New()
+		graphicsBackend, _ = sdl.New()
 	case GLRenderer:
-		graphicsBackend, _ = renderer.NewGLRenderer()
+		graphicsBackend, _ = gl.New()
 	}
 	hasSetupCompleted = true
 
 	SetTitle("ggez")
-	SetScreenSize(defaultWidth, defaultHeight)
+	SetScreenSize(screenWidth, screenHeight)
 	setupDefaultInput()
+	SetScaleFactor(3)
 
 	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
-
 }
 
 func ensureSetupCompletion() {
@@ -80,9 +82,9 @@ func Update(updateFn func()) {
 		updateFn()
 
 		uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
-		graphicsBackend.RenderTexture(uiTexture, 0, 0, defaultWidth, defaultHeight, 0, 0, 0, 0)
+		graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
 
-		graphicsBackend.RenderPresent()
+		graphicsBackend.Render()
 
 		graphicsBackend.DestroyTexture(uiTexture)
 
@@ -94,7 +96,9 @@ func Update(updateFn func()) {
 		}
 		graphicsBackend.SetWindowTitle(title)
 
-		time.Sleep(5 * time.Millisecond)
+		if ConfiguredRenderer == SDLAutoRenderer {
+			time.Sleep(5 * time.Millisecond)
+		}
 	}
 }
 
@@ -114,12 +118,20 @@ func SetTitle(title string) {
 
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
-	graphicsBackend.SetScreenSize(width, height)
+
+	screenWidth = width
+	screenHeight = width
+
+	graphicsBackend.SetScreenSize(screenWidth, screenHeight)
 }
 
 func ScreenWidth() int {
-	return defaultWidth
+	return screenWidth
 }
 func ScreenHeight() int {
-	return defaultHeight
+	return screenHeight
+}
+
+func SetScaleFactor(f int) {
+	graphicsBackend.SetScaleFactor(f)
 }

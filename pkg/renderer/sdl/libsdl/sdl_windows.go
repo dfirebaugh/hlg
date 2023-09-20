@@ -1,6 +1,6 @@
 //go:build windows
 
-package sdl
+package libsdl
 
 import "golang.org/x/sys/windows"
 

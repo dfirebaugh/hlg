@@ -3,7 +3,7 @@ package ggez
 import (
 	"time"
 
-	"github.com/dfirebaugh/ggez/pkg/renderer/sdl"
+	"github.com/dfirebaugh/ggez/pkg/renderer/sdl/libsdl"
 )
 
 type Pressable interface {
@@ -16,7 +16,7 @@ type Positionable interface {
 }
 
 func GetMousePosition() (int, int) {
-	return sdl.MouseX, sdl.MouseY
+	return libsdl.MouseX, libsdl.MouseY
 }
 
 var DefaultInput *InputDevice

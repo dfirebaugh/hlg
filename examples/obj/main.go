@@ -3,8 +3,10 @@ package main
 import (
 	"image"
 	"os"
+	"strings"
 
 	"github.com/dfirebaugh/ggez"
+	"github.com/dfirebaugh/ggez/assets"
 	"github.com/dfirebaugh/ggez/pkg/load"
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
 	"golang.org/x/image/colornames"
@@ -30,7 +32,8 @@ func main() {
 
 	ggez.SetScreenSize(240*2, 160*2)
 
-	teapot, err = load.LoadOBJModel("assets/models/the-utah-teapot/source/teapot.obj")
+	reader := strings.NewReader(assets.TeaPot)
+	teapot, err = load.LoadOBJModelFromReader("teapot", reader)
 	if err != nil {
 		panic(err)
 	}

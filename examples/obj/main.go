@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"image"
-	"os"
 	"strings"
 
 	"github.com/dfirebaugh/ggez"
@@ -37,13 +37,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	imgFile, err := os.Open("assets/models/the-utah-teapot/source/default.png")
-	if err != nil {
-		panic(err)
-	}
-
-	img, _, err := image.Decode(imgFile)
+	imgReader := bytes.NewReader(assets.DefaultTextureImage)
+	img, _, err := image.Decode(imgReader)
 	if err != nil {
 		panic(err)
 	}

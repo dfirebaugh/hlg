@@ -1,74 +1,145 @@
 package ggez
 
-import "github.com/dfirebaugh/ggez/pkg/renderer/sdl/libsdl"
+type Key int
 
-// Keyboard Keys
 const (
-	KeyW      = libsdl.SDL_SCANCODE_W
-	KeyA      = libsdl.SDL_SCANCODE_A
-	KeyS      = libsdl.SDL_SCANCODE_S
-	KeyD      = libsdl.SDL_SCANCODE_D
-	KeySPACE  = libsdl.SDL_SCANCODE_SPACE
-	KeyLCTRL  = libsdl.SDL_SCANCODE_LCTRL
-	KeyLSHIFT = libsdl.SDL_SCANCODE_LSHIFT
-	KeyUP     = libsdl.SDL_SCANCODE_UP
-	KeyDOWN   = libsdl.SDL_SCANCODE_DOWN
-	KeyLEFT   = libsdl.SDL_SCANCODE_LEFT
-	KeyRIGHT  = libsdl.SDL_SCANCODE_RIGHT
-	KeyE      = libsdl.SDL_SCANCODE_E
-	KeyQ      = libsdl.SDL_SCANCODE_Q
-	Key1      = libsdl.SDL_SCANCODE_1
-	Key2      = libsdl.SDL_SCANCODE_2
-	Key3      = libsdl.SDL_SCANCODE_3
-	Key4      = libsdl.SDL_SCANCODE_4
-	Key5      = libsdl.SDL_SCANCODE_5
-	Key6      = libsdl.SDL_SCANCODE_6
-	Key7      = libsdl.SDL_SCANCODE_7
-	Key8      = libsdl.SDL_SCANCODE_8
-	Key9      = libsdl.SDL_SCANCODE_9
-	Key0      = libsdl.SDL_SCANCODE_0
+	KeyUnknown      Key = -0x1
+	Key0            Key = 0x30
+	Key1            Key = 0x31
+	Key2            Key = 0x32
+	Key3            Key = 0x33
+	Key4            Key = 0x34
+	Key5            Key = 0x35
+	Key6            Key = 0x36
+	Key7            Key = 0x37
+	Key8            Key = 0x38
+	Key9            Key = 0x39
+	KeyA            Key = 0x41
+	KeyApostrophe   Key = 0x27
+	KeyB            Key = 0x42
+	KeyBackSlash    Key = 0x5c
+	KeyBackSpace    Key = 0x103
+	KeyC            Key = 0x43
+	KeyCapsLock     Key = 0x118
+	KeyComma        Key = 0x2c
+	KeyD            Key = 0x44
+	KeyDelete       Key = 0x105
+	KeyDown         Key = 0x108
+	KeyE            Key = 0x45
+	KeyEnd          Key = 0x10d
+	KeyEnter        Key = 0x101
+	KeyEqual        Key = 0x3d
+	KeyEscape       Key = 0x100
+	KeyF            Key = 0x46
+	KeyF1           Key = 0x122
+	KeyF10          Key = 0x12b
+	KeyF11          Key = 0x12c
+	KeyF12          Key = 0x12d
+	KeyF13          Key = 0x12e
+	KeyF14          Key = 0x12f
+	KeyF15          Key = 0x130
+	KeyF16          Key = 0x131
+	KeyF17          Key = 0x132
+	KeyF18          Key = 0x133
+	KeyF19          Key = 0x134
+	KeyF2           Key = 0x123
+	KeyF20          Key = 0x135
+	KeyF21          Key = 0x136
+	KeyF22          Key = 0x137
+	KeyF23          Key = 0x138
+	KeyF24          Key = 0x139
+	KeyF25          Key = 0x13a
+	KeyF3           Key = 0x124
+	KeyF4           Key = 0x125
+	KeyF5           Key = 0x126
+	KeyF6           Key = 0x127
+	KeyF7           Key = 0x128
+	KeyF8           Key = 0x129
+	KeyF9           Key = 0x12a
+	KeyG            Key = 0x47
+	KeyGraveAccent  Key = 0x60
+	KeyH            Key = 0x48
+	KeyHome         Key = 0x10c
+	KeyI            Key = 0x49
+	KeyInsert       Key = 0x104
+	KeyJ            Key = 0x4a
+	KeyK            Key = 0x4b
+	KeyKP0          Key = 0x140
+	KeyKP1          Key = 0x141
+	KeyKP2          Key = 0x142
+	KeyKP3          Key = 0x143
+	KeyKP4          Key = 0x144
+	KeyKP5          Key = 0x145
+	KeyKP6          Key = 0x146
+	KeyKP7          Key = 0x147
+	KeyKP8          Key = 0x148
+	KeyKP9          Key = 0x149
+	KeyKPAdd        Key = 0x14e
+	KeyKPDecimal    Key = 0x14a
+	KeyKPDivide     Key = 0x14b
+	KeyKPEnter      Key = 0x14f
+	KeyKPEqual      Key = 0x150
+	KeyKPMultiply   Key = 0x14c
+	KeyKPSubtract   Key = 0x14d
+	KeyL            Key = 0x4c
+	KeyLast         Key = 0x15c
+	KeyLeft         Key = 0x107
+	KeyLeftAlt      Key = 0x156
+	KeyLeftBracket  Key = 0x5b
+	KeyLeftControl  Key = 0x155
+	KeyLeftShift    Key = 0x154
+	KeyLeftSuper    Key = 0x157
+	KeyM            Key = 0x4d
+	KeyMenu         Key = 0x15c
+	KeyMinus        Key = 0x2d
+	KeyN            Key = 0x4e
+	KeyNumLock      Key = 0x11a
+	KeyO            Key = 0x4f
+	KeyP            Key = 0x50
+	KeyPageDown     Key = 0x10b
+	KeyPageUp       Key = 0x10a
+	KeyPause        Key = 0x11c
+	KeyPeriod       Key = 0x2e
+	KeyPrintScreen  Key = 0x11b
+	KeyQ            Key = 0x51
+	KeyR            Key = 0x52
+	KeyRight        Key = 0x106
+	KeyRightAlt     Key = 0x15a
+	KeyRightBracket Key = 0x5d
+	KeyRightControl Key = 0x159
+	KeyRightShift   Key = 0x158
+	KeyRightSuper   Key = 0x15b
+	KeyS            Key = 0x53
+	KeyScrollLock   Key = 0x119
+	KeySemicolon    Key = 0x3b
+	KeySLASH        Key = 0x2f
+	KeySpace        Key = 0x20
+	KeyT            Key = 0x54
+	KeyTab          Key = 0x102
+	KeyU            Key = 0x55
+	KeyUp           Key = 0x109
+	KeyV            Key = 0x56
+	KeyW            Key = 0x57
+	KeyWorld1       Key = 0xa1
+	KeyWorld2       Key = 0xa2
+	KeyX            Key = 0x58
+	KeyY            Key = 0x59
+	KeyZ            Key = 0x5a
 )
 
-// Mouse Buttons
+type MouseButton int
+
 const (
-	MouseButtonLeft   uint8 = libsdl.SDL_BUTTON_LEFT
-	MouseButtonRight  uint8 = libsdl.SDL_BUTTON_RIGHT
-	MouseButtonMiddle uint8 = libsdl.SDL_BUTTON_MIDDLE
+	MouseButton1      MouseButton = 0x0
+	MouseButton2      MouseButton = 0x1
+	MouseButton3      MouseButton = 0x2
+	MouseButton4      MouseButton = 0x3
+	MouseButton5      MouseButton = 0x4
+	MouseButton6      MouseButton = 0x5
+	MouseButton7      MouseButton = 0x6
+	MouseButton8      MouseButton = 0x7
+	MouseButtonLAST   MouseButton = 0x7
+	MouseButtonLEFT   MouseButton = 0x0
+	MouseButtonMIDDLE MouseButton = 0x2
+	MouseButtonRIGHT  MouseButton = 0x1
 )
-
-func setupDefaultInput() {
-	ensureSetupCompletion()
-
-	DefaultInput = &InputDevice{
-		keys:    make(map[uint32]*Key),
-		buttons: make(map[uint8]*Button),
-	}
-
-	DefaultInput.keys[KeyW] = NewKey()
-	DefaultInput.keys[KeyA] = NewKey()
-	DefaultInput.keys[KeyS] = NewKey()
-	DefaultInput.keys[KeyD] = NewKey()
-	DefaultInput.keys[KeySPACE] = NewKey()
-	DefaultInput.keys[KeyLCTRL] = NewKey()
-	DefaultInput.keys[KeyLSHIFT] = NewKey()
-	DefaultInput.keys[KeyUP] = NewKey()
-	DefaultInput.keys[KeyDOWN] = NewKey()
-	DefaultInput.keys[KeyLEFT] = NewKey()
-	DefaultInput.keys[KeyRIGHT] = NewKey()
-	DefaultInput.keys[KeyE] = NewKey()
-	DefaultInput.keys[KeyQ] = NewKey()
-	DefaultInput.keys[Key1] = NewKey()
-	DefaultInput.keys[Key2] = NewKey()
-	DefaultInput.keys[Key3] = NewKey()
-	DefaultInput.keys[Key4] = NewKey()
-	DefaultInput.keys[Key5] = NewKey()
-	DefaultInput.keys[Key6] = NewKey()
-	DefaultInput.keys[Key7] = NewKey()
-	DefaultInput.keys[Key8] = NewKey()
-	DefaultInput.keys[Key9] = NewKey()
-	DefaultInput.keys[Key0] = NewKey()
-
-	DefaultInput.buttons[MouseButtonLeft] = NewButton()
-	DefaultInput.buttons[MouseButtonRight] = NewButton()
-	DefaultInput.buttons[MouseButtonMiddle] = NewButton()
-}

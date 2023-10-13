@@ -43,6 +43,21 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 	ensureSetupCompletion()
 	var err error
 
+	t := Texture{}
+	rgba := t.SetPixelsFromImage(img)
+	t.ptr, err = graphicsBackend.CreateTextureFromImage(rgba)
+	return &t, err
+}
+
+func (t *Texture) Handle() uintptr {
+	return t.ptr
+}
+
+func (t *Texture) UpdateTextureFromImage(img image.Image) {
+	graphicsBackend.UpdateTextureFromImage(t.ptr, img)
+}
+
+func (t *Texture) SetPixelsFromImage(img image.Image) *image.RGBA {
 	// Convert img to RGBA, this ensures the texture always works with an RGBA image.
 	rgba := image.NewRGBA(img.Bounds())
 	for y := 0; y < rgba.Bounds().Dy(); y++ {
@@ -50,15 +65,12 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 			rgba.Set(x, y, img.At(x, y))
 		}
 	}
-
-	t := Texture{}
 	t.img = rgba
 	t.W = rgba.Bounds().Max.X
 	t.H = rgba.Bounds().Max.Y
 	t.ScaleX = 1.0
 	t.ScaleY = 1.0
-	t.ptr, err = graphicsBackend.CreateTextureFromImage(rgba)
-	return &t, err
+	return rgba
 }
 
 func (t *Texture) SetScale(scaleX, scaleY float64) {
@@ -75,7 +87,10 @@ func (t *Texture) SetFlip(flip FlipType) {
 }
 
 // Render renders a texture to the screen considering the scale factor.
-func (t Texture) Render() {
+func (t *Texture) Render() {
+	if t == nil {
+		return
+	}
 	ensureSetupCompletion()
 	renderW := int(float64(t.W) * t.ScaleX)
 	renderH := int(float64(t.H) * t.ScaleY)

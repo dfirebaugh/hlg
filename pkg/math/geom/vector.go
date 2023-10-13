@@ -47,3 +47,25 @@ func (v Vector) Multiply(other Vector) Vector {
 func (v Vector) Divide(other Vector) Vector {
 	return MakeVector(v[0]/other[0], v[1]/other[1])
 }
+
+type Vector3D [3]float64
+
+func MakeVector3D(x, y, z float64) Vector3D {
+	return Vector3D{x, y, z}
+}
+
+func (v Vector3D) ToPoint3D() Point3D {
+	return MakePoint3D(v[0], v[1], v[2])
+}
+
+func (v Vector3D) Subtract(other Vector3D) Vector3D {
+	return MakeVector3D(v[0]-other[0], v[1]-other[1], v[2]-other[2])
+}
+
+func (v Vector3D) Add(other Vector3D) Vector3D {
+	return MakeVector3D(v[0]+other[0], v[1]+other[1], v[2]+other[2])
+}
+
+func (v Vector3D) DistanceTo(other Vector3D) float64 {
+	return math.Sqrt(math.Pow(v[0]-other[0], 2) + math.Pow(v[1]-other[1], 2) + math.Pow(v[2]-other[2], 2))
+}

@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"image/color"
 	"runtime"
-	"time"
 
 	"github.com/dfirebaugh/ggez/pkg/fb"
-	"github.com/dfirebaugh/ggez/pkg/renderer"
-	"github.com/dfirebaugh/ggez/pkg/renderer/gl"
-	"github.com/dfirebaugh/ggez/pkg/renderer/sdl"
+	"github.com/dfirebaugh/ggez/pkg/graphics"
+	"github.com/dfirebaugh/ggez/pkg/graphics/gl"
 )
 
 type Runner struct {
@@ -21,7 +19,7 @@ var (
 )
 
 var (
-	graphicsBackend renderer.GraphicsBackend
+	graphicsBackend graphics.GraphicsBackend
 
 	windowTitle string
 	uifb        = fb.New(screenWidth, screenHeight)
@@ -30,6 +28,7 @@ var (
 	ConfiguredRenderer RendererType
 
 	hasSetupCompleted = false
+	fpsCounter        *FPSCounter
 )
 
 type RendererType uint
@@ -49,17 +48,11 @@ func Setup(t RendererType) {
 	SetRenderer(t)
 	runtime.LockOSThread()
 
-	switch ConfiguredRenderer {
-	case SDLAutoRenderer:
-		graphicsBackend, _ = sdl.New()
-	case GLRenderer:
-		graphicsBackend, _ = gl.New()
-	}
+	graphicsBackend, _ = gl.New()
 	hasSetupCompleted = true
 
 	SetTitle("ggez")
 	SetScreenSize(screenWidth, screenHeight)
-	setupDefaultInput()
 	SetScaleFactor(3)
 
 	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
@@ -74,32 +67,30 @@ func ensureSetupCompletion() {
 func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
-	fpsCounter := NewFPSCounter()
+	fpsCounter = NewFPSCounter()
+	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
 	for {
-		if !graphicsBackend.PollEvents(DefaultInput) {
+		if !graphicsBackend.PollEvents() {
 			break
 		}
 		updateFn()
 
-		uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
-		graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
-
+		// graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
 		graphicsBackend.Render()
 
-		graphicsBackend.DestroyTexture(uiTexture)
-
-		fpsCounter.Frame()
-		fps := fpsCounter.GetFPS()
-		title := windowTitle
-		if fps != 0 && fpsEnabled {
-			title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
-		}
-		graphicsBackend.SetWindowTitle(title)
-
-		if ConfiguredRenderer == SDLAutoRenderer {
-			time.Sleep(5 * time.Millisecond)
-		}
+		calculateFPS()
 	}
+	graphicsBackend.DestroyTexture(uiTexture)
+}
+
+func calculateFPS() {
+	fpsCounter.Frame()
+	fps := fpsCounter.GetFPS()
+	title := windowTitle
+	if fps != 0 && fpsEnabled {
+		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
+	}
+	graphicsBackend.SetWindowTitle(title)
 }
 
 func close() {
@@ -134,4 +125,8 @@ func ScreenHeight() int {
 
 func SetScaleFactor(f int) {
 	graphicsBackend.SetScaleFactor(f)
+}
+
+func ToggleWireFrame() {
+	graphicsBackend.ToggleWireframeMode()
 }

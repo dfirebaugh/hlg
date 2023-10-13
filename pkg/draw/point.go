@@ -6,6 +6,10 @@ import (
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
 )
 
+type Point3D struct {
+	X, Y, Z float64
+}
+
 type Point geom.Point
 
 func (p Point) Draw(d displayer, c color.Color) {

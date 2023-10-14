@@ -67,8 +67,6 @@ type ShapeRenderer interface {
 	FillCirc(x, y, radius int, c color.Color)
 	DrawCirc(xCenter, yCenter, radius int, c color.Color)
 	DrawPoint(x, y int, c color.Color)
-	DrawCube(x, y, z, size int, c color.Color)
-	FillCube(x, y, z, size int, c color.Color)
 }
 
 type Model interface {
@@ -96,6 +94,7 @@ type Shader interface {
 }
 
 type ShaderProgram interface {
+	Handle() uint32
 	Attach(shaders ...Shader)
 	Delete()
 	GetUniformLocation(name string) int32

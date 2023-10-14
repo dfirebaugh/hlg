@@ -9,7 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -49,8 +49,8 @@ func New() (*GLRenderer, error) {
 		log.Fatalf("could not initialize GLFW: %v", err)
 	}
 
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
@@ -141,6 +141,8 @@ func (g *GLRenderer) setupShaders() error {
 	if err != nil {
 		return err
 	}
+	g.programs = append(g.programs, g.modelProgram)
+
 	return nil
 }
 
@@ -168,13 +170,7 @@ func (g *GLRenderer) Close() {
 	if g.textureProgram != nil {
 		g.textureProgram.Delete()
 	}
-	// for _, prog := range programs {
-	// 	if prog == nil {
-	// 		continue
-	// 	}
-	// 	prog.Delete()
-	// }
-	// glfw.Terminate()
+
 	checkGLError()
 }
 
@@ -191,37 +187,37 @@ func (g *GLRenderer) SetWindowTitle(title string) {
 
 func (g *GLRenderer) DestroyWindow() {
 	g.window.Destroy()
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) PrintPlatformAndVersion() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version:", version)
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) PrintRendererInfo() {
 	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
 	fmt.Println("Renderer:", renderer)
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) Clear(c color.Color) {
 	r, green, b, a := c.RGBA()
 	gl.ClearColor(float32(r)/0xffff, float32(green)/0xffff, float32(b)/0xffff, float32(a)/0xffff)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) Render() {
 	g.window.SwapBuffers()
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) SetScreenSize(w int, h int) {
 	// Shapegraphics.SetScreenSize(w, h)
 	g.SetWindowSize(w, h)
-	checkGLError()
+	// checkGLError()
 }
 
 func (g *GLRenderer) SetWindowSize(width, height int) {
@@ -233,7 +229,7 @@ func (g *GLRenderer) SetWindowSize(width, height int) {
 	g.window.SetSize(width, height)
 
 	g.resizeCallback(g.window, width, height)
-	checkGLError()
+	// checkGLError()
 }
 
 func min(a, b float32) float32 {
@@ -271,7 +267,7 @@ func (g *GLRenderer) CreateTextureFromImage(img image.Image) (uintptr, error) {
 
 	t, err := NewTexture(img)
 	if err != nil {
-		panic(err.Error())
+		return 0, err // Return an error instead of panicking
 	}
 	if textures == nil {
 		textures = make(map[uintptr]*Texture)
@@ -281,7 +277,9 @@ func (g *GLRenderer) CreateTextureFromImage(img image.Image) (uintptr, error) {
 	t.Height = img.Bounds().Dy()
 	t.VAO = createVAO(vertices, indices)
 	textures[uintptr(unsafe.Pointer(t))] = t
+	checkGLError()
 
+	// Return the texture instance as a uintptr
 	return uintptr(unsafe.Pointer(t)), nil
 }
 
@@ -296,10 +294,21 @@ func (g *GLRenderer) UpdateTextureFromImage(textureInstance uintptr, img image.I
 		int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y),
 		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix),
 	)
+
+	// Check for OpenGL errors
+	if err := gl.GetError(); err != gl.NO_ERROR {
+		log.Printf("OpenGL error: %s\n", err)
+	}
+
 	// Unbind the texture
 	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	gl.GenerateMipmap(gl.TEXTURE_2D)
-	checkGLError()
+
+	// Check for OpenGL errors after generating mipmaps
+	if err := gl.GetError(); err != gl.NO_ERROR {
+		log.Printf("OpenGL error after generating mipmaps: %s\n", err)
+	}
 }
 
 func createVAO(vertices []float32, indices []uint32) uint32 {
@@ -348,16 +357,21 @@ func createVAO(vertices []float32, indices []uint32) uint32 {
 
 	return VAO
 }
-
 func (g *GLRenderer) RenderTexture(textureInstance uintptr, x int, y int, w int, h int, angle float64, centerX int, centerY int, flipType int) {
 	g.textureProgram.Use()
+	defer g.textureProgram.Delete()
 
-	texture0 := textures[textureInstance]
+	// Retrieve the texture associated with the provided textureInstance
+	texture0, exists := textures[textureInstance]
+	if !exists {
+		return // Texture not found, exit early
+	}
 
 	// Calculate the scale based on the image's width and height
 	imgScaleWidth := float32(w) / float32(texture0.Width)
 	imgScaleHeight := float32(h) / float32(texture0.Height)
 
+	// Set uniform variables in the shader program
 	gl.Uniform2f(g.textureProgram.GetUniformLocation("positionOffset"), float32(x+(w/2)), float32(y+(w/2)))
 	gl.Uniform1i(g.textureProgram.GetUniformLocation("windowWidth"), int32(g.screenWidth))
 	gl.Uniform1i(g.textureProgram.GetUniformLocation("windowHeight"), int32(g.screenHeight))
@@ -371,15 +385,17 @@ func (g *GLRenderer) RenderTexture(textureInstance uintptr, x int, y int, w int,
 	location := g.textureProgram.GetUniformLocation("desiredAspectRatio")
 	gl.Uniform1f(location, aspectRatio)
 
+	// Activate the texture unit and bind the texture
 	gl.ActiveTexture(gl.TEXTURE0)
 	texture0.Bind(gl.TEXTURE0)
 	defer texture0.UnBind()
 
-	texture0.SetUniform(g.textureProgram.GetUniformLocation("ourTexture"))
-
+	// Bind the VAO associated with the texture
 	gl.BindVertexArray(texture0.VAO)
+	defer gl.BindVertexArray(0) // Unbind the VAO after rendering
+
+	// Draw the texture using triangles
 	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, unsafe.Pointer(nil))
-	gl.BindVertexArray(0)
 }
 
 func (g *GLRenderer) DestroyTexture(textureInstance uintptr) {

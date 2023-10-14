@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"image"
+	"math"
 	"strings"
+	"time"
 
 	"github.com/dfirebaugh/ggez"
 	"github.com/dfirebaugh/ggez/assets"
@@ -13,18 +15,49 @@ import (
 )
 
 var (
-	teapot *geom.Model
-	t      *ggez.Texture
+	teapot         *geom.Model
+	t              *ggez.Texture
+	mouseX         int
+	rotationSpeed  float32
+	lastUpdateTime time.Time
+)
+
+const (
+	rotationDecayRate = 0.10
+	minRotationSpeed  = 0.05
+	maxRotationSpeed  = 1.0
 )
 
 func update() {
 	ggez.Clear(colornames.Black)
-	teapot.Rotate(.3, geom.Vector3{0, 1, 0})
 	ggez.DrawModel(teapot, t)
 
 	if ggez.IsKeyJustPressed(ggez.KeyZ) {
 		ggez.ToggleWireFrame()
 	}
+
+	if !ggez.IsButtonPressed(ggez.MouseButton1) {
+		// Gradually decrease the rotation speed
+		elapsed := time.Since(lastUpdateTime).Seconds()
+		rotationSpeed *= float32(math.Pow(rotationDecayRate, elapsed))
+		if math.Abs(float64(rotationSpeed)) < minRotationSpeed {
+			rotationSpeed = minRotationSpeed
+		}
+	}
+
+	if ggez.IsButtonPressed(ggez.MouseButton1) {
+		prevX, _ := ggez.GetCursorPosition()
+		if prevX < mouseX {
+			rotationSpeed = float32(mouseX - prevX)
+		}
+		if prevX > mouseX {
+			rotationSpeed = -float32(prevX - mouseX)
+		}
+		mouseX = prevX
+	}
+
+	teapot.Rotate(rotationSpeed, geom.Vector3{0, 1, 0})
+	lastUpdateTime = time.Now()
 }
 
 func main() {
@@ -49,7 +82,9 @@ func main() {
 	}
 
 	teapot.ScaleFactor = 0.01
-	teapot.Position.Y = -.5
+	teapot.Position.Y = -0.5
+
+	rotationSpeed = 0
 
 	ggez.Update(update)
 }

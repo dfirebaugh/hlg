@@ -3,7 +3,7 @@ package gl
 import (
 	"github.com/dfirebaugh/ggez/pkg/graphics"
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ModelRenderer struct {

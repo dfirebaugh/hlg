@@ -23,7 +23,7 @@ var (
 
 	windowTitle string
 	uifb        = fb.New(screenWidth, screenHeight)
-	uiTexture   uintptr
+	uiTexture   *Texture
 
 	ConfiguredRenderer RendererType
 
@@ -50,37 +50,45 @@ func Setup(t RendererType) {
 
 	graphicsBackend, _ = gl.New()
 	hasSetupCompleted = true
+}
 
-	SetTitle("ggez")
+func initWindow() {
 	SetScreenSize(screenWidth, screenHeight)
 	SetScaleFactor(3)
-
-	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
+	SetTitle("ggez")
 }
 
 func ensureSetupCompletion() {
-	if !hasSetupCompleted {
-		Setup(ConfiguredRenderer)
+	if hasSetupCompleted {
+		return
 	}
+	Setup(ConfiguredRenderer)
+	initWindow()
 }
 
 func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
 	fpsCounter = NewFPSCounter()
-	uiTexture, _ = graphicsBackend.CreateTextureFromImage(uifb.ToImage())
+	// var err error
+	// uiTexture, err = CreateTextureFromImage(uifb.ToImage())
+	// if err != nil {
+	// 	panic(err)
+	// }
 	for {
 		if !graphicsBackend.PollEvents() {
 			break
 		}
 		updateFn()
 
-		// graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
 		graphicsBackend.Render()
+		// graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
+		// uiTexture.Render()
 
 		calculateFPS()
 	}
-	graphicsBackend.DestroyTexture(uiTexture)
+	// graphicsBackend.DestroyTexture(uiTexture)
+	// uiTexture.Destroy()
 }
 
 func calculateFPS() {

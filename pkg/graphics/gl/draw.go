@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ShapeRenderer struct {
@@ -62,8 +62,11 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	gl.EnableVertexAttribArray(1)
 	gl.DrawArrays(gl.LINES, 0, 2)
 
+	checkGLError()
+
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.DeleteBuffers(1, &vbo)
+	checkGLError()
 }
 
 func (s ShapeRenderer) FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
@@ -94,6 +97,7 @@ func (s ShapeRenderer) FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.DeleteBuffers(1, &vbo)
+	checkGLError()
 }
 
 func (s ShapeRenderer) DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
@@ -124,6 +128,7 @@ func (s ShapeRenderer) DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.DeleteBuffers(1, &vbo)
+	checkGLError()
 }
 
 func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {}
@@ -218,10 +223,10 @@ func (s ShapeRenderer) simpleDrawCirc(xCenter, yCenter, radius int, c color.Colo
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
 	gl.EnableVertexAttribArray(0)
 
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
+	gl.VertexAttribPointerWithOffset(1, 4, gl.FLOAT, false, 6*4, uintptr(2*4))
 	gl.EnableVertexAttribArray(1)
 
-	gl.DrawArrays(gl.LINES, 0, int32(2*segments))
+	gl.DrawArrays(gl.LINES, 0, int32(len(vertices)/6))
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.DeleteBuffers(1, &vbo)
@@ -251,38 +256,4 @@ func (s ShapeRenderer) DrawPoint(x, y int, c color.Color) {
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.DeleteBuffers(1, &vbo)
-}
-
-func (s ShapeRenderer) DrawCube(x, y, z, size int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
-
-	// 8 points of the cube
-	p1 := [2]int{x, y}
-	p2 := [2]int{x + size, y}
-	p3 := [2]int{x, y + size}
-	p4 := [2]int{x + size, y + size}
-	p5 := [2]int{x, y}
-	p6 := [2]int{x + size, y}
-	p7 := [2]int{x, y + size}
-	p8 := [2]int{x + size, y + size}
-
-	// 12 edges of the cube
-	edges := [][2][2]int{{p1, p2}, {p1, p3}, {p2, p4}, {p3, p4},
-		{p1, p5}, {p2, p6}, {p3, p7}, {p4, p8},
-		{p5, p6}, {p5, p7}, {p6, p8}, {p7, p8}}
-
-	for _, edge := range edges {
-		s.DrawLine(edge[0][0], edge[0][1], edge[1][0], edge[1][1], c)
-	}
-}
-
-func (s ShapeRenderer) FillCube(x, y, z, size int, c color.Color) {
-	// Since this is an orthographic projection in 2D, we'll just draw 6 rectangles.
-	s.FillRect(x, y, size, size, c)        // Bottom
-	s.FillRect(x, y+size, size, size, c)   // Top
-	s.FillRect(x, y, size, z+size, c)      // Front
-	s.FillRect(x+size, y, size, z+size, c) // Back
-	s.FillRect(x, y, z+size, size, c)      // Left
-	s.FillRect(x, y+size, z+size, size, c) // Right
 }

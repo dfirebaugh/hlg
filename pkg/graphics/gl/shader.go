@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 
 	_ "image/png"
 
@@ -42,6 +42,10 @@ func (prog *Program) Attach(shaders ...graphics.Shader) {
 		gl.AttachShader(prog.handle, shader.Handle())
 		prog.shaders = append(prog.shaders, shader)
 	}
+}
+
+func (prog *Program) Handle() uint32 {
+	return prog.handle
 }
 
 func (prog *Program) Use() {

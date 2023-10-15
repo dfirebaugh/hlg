@@ -64,8 +64,8 @@ type ShapeRenderer interface {
 	DrawPolygon(xPoints, yPoints []int, c color.Color)
 	FillRect(x, y, width, height int, c color.Color)
 	DrawRect(x, y, width, height int, c color.Color)
-	FillCirc(x, y, radius int, c color.Color)
-	DrawCirc(xCenter, yCenter, radius int, c color.Color)
+	FillCircle(x, y, radius int, c color.Color)
+	DrawCircle(xCenter, yCenter, radius int, c color.Color)
 	DrawPoint(x, y int, c color.Color)
 }
 

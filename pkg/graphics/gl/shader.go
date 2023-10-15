@@ -62,6 +62,10 @@ func (prog *Program) GetUniformLocation(name string) int32 {
 	return gl.GetUniformLocation(prog.handle, gl.Str(name+"\x00"))
 }
 
+func (prog *Program) GetAttribLocation(name string) int32 {
+	return gl.GetAttribLocation(prog.handle, gl.Str(name+"\x00"))
+}
+
 func NewProgram(shaders ...graphics.Shader) (*Program, error) {
 	prog := &Program{handle: gl.CreateProgram()}
 	prog.Attach(shaders...)

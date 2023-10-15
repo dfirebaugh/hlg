@@ -14,12 +14,6 @@ var ShapeVert string
 //go:embed shaders/shape.frag
 var ShapeFrag string
 
-//go:embed shaders/cube.vert
-var CubeVert string
-
-//go:embed shaders/cube.frag
-var CubeFrag string
-
 //go:embed shaders/mesh.vert
 var MeshVert string
 

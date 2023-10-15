@@ -16,7 +16,6 @@ import (
 type GLRenderer struct {
 	window           *glfw.Window
 	programs         []*Program
-	shapeProgram     *Program
 	modelProgram     *Program
 	textureProgram   *Program
 	scaleFactor      int
@@ -86,7 +85,7 @@ func New() (*GLRenderer, error) {
 	g.PrintRendererInfo()
 
 	g.ModelRenderer = NewModelRenderer(g.modelProgram)
-	g.ShapeRenderer = NewShapeRenderer(g.shapeProgram)
+	g.ShapeRenderer = NewShapeRenderer()
 	g.InputManager = NewInputDeviceGlfw(g.window)
 
 	checkGLError()
@@ -95,22 +94,6 @@ func New() (*GLRenderer, error) {
 }
 
 func (g *GLRenderer) setupShaders() error {
-	vertexShader, err := NewShader(ShapeVert, gl.VERTEX_SHADER)
-	if err != nil {
-		return err
-	}
-
-	fragmentShader, err := NewShader(ShapeFrag, gl.FRAGMENT_SHADER)
-	if err != nil {
-		return err
-	}
-
-	g.shapeProgram, err = NewProgram(vertexShader, fragmentShader)
-	if err != nil {
-		return err
-	}
-	g.programs = append(g.programs, g.shapeProgram)
-
 	textureVertexShader, err := NewShader(BasicVert, gl.VERTEX_SHADER)
 	if err != nil {
 		return err

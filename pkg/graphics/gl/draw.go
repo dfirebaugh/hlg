@@ -4,19 +4,34 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/dfirebaugh/ggez/pkg/graphics"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ShapeRenderer struct {
 	ScreenWidth  int
 	ScreenHeight int
-	program      graphics.ShaderProgram
+	shapeProgram *Program
+	// polygonProgram *Program
 }
 
-func NewShapeRenderer(program graphics.ShaderProgram) *ShapeRenderer {
+func NewShapeRenderer() *ShapeRenderer {
+	shapeVertShader, err := NewShader(ShapeVert, gl.VERTEX_SHADER)
+	if err != nil {
+		panic(err)
+	}
+
+	shapeFragShader, err := NewShader(ShapeFrag, gl.FRAGMENT_SHADER)
+	if err != nil {
+		panic(err)
+	}
+
+	shapeProgram, err := NewProgram(shapeVertShader, shapeFragShader)
+	if err != nil {
+		panic(err)
+	}
+
 	return &ShapeRenderer{
-		program: program,
+		shapeProgram: shapeProgram,
 	}
 }
 
@@ -29,231 +44,246 @@ func (s ShapeRenderer) colorToNormalizedRGBA(c color.Color) (r, g, b, a float32)
 	return r, g, b, a
 }
 
-func (s ShapeRenderer) toClipSpace(x int, y int) (float32, float32) {
-	return float32(2*x)/float32(s.ScreenWidth) - 1.0, float32(2*y)/float32(s.ScreenHeight) - 1.0
-}
-
-func (s *ShapeRenderer) SetScreenSize(width int, height int) {
-	s.ScreenHeight = height
-	s.ScreenWidth = width
-}
-
-func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
-
-	x1f, y1f := s.toClipSpace(x1, y1)
-	x2f, y2f := s.toClipSpace(x2, y2)
-
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
-
+func (s ShapeRenderer) createTriangleVAO(x1, y1, x2, y2, x3, y3 int) uint32 {
 	vertices := []float32{
-		x1f, y1f, rf, gf, bf, af,
-		x2f, y2f, rf, gf, bf, af,
+		float32(x1)/float32(windowWidth)*2 - 1.0, -float32(y1)/float32(windowHeight)*2 + 1.0, 0.0,
+		float32(x2)/float32(windowWidth)*2 - 1.0, -float32(y2)/float32(windowHeight)*2 + 1.0, 0.0,
+		float32(x3)/float32(windowWidth)*2 - 1.0, -float32(y3)/float32(windowHeight)*2 + 1.0, 0.0,
 	}
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	var VAO uint32
+	gl.GenVertexArrays(1, &VAO)
+
+	var VBO uint32
+	gl.GenBuffers(1, &VBO)
+
+	gl.BindVertexArray(VAO)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
+
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 3*4, uintptr(0))
 	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(1)
-	gl.DrawArrays(gl.LINES, 0, 2)
 
-	checkGLError()
+	gl.BindVertexArray(0)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
-	checkGLError()
+	return VAO
 }
 
 func (s ShapeRenderer) FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
+	VAO := s.createTriangleVAO(x1, y1, x2, y2, x3, y3)
+	s.shapeProgram.Use()
+	defer s.shapeProgram.Delete()
 
-	x1f, y1f := s.toClipSpace(x1, y1)
-	x2f, y2f := s.toClipSpace(x2, y2)
-	x3f, y3f := s.toClipSpace(x3, y3)
+	gl.BindVertexArray(VAO)
 
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
+	// Set the uniform color variable in the fragment shader
+	triangleColor := s.shapeProgram.GetUniformLocation("shapeColor")
 
-	vertices := []float32{
-		x1f, y1f, rf, gf, bf, af,
-		x2f, y2f, rf, gf, bf, af,
-		x3f, y3f, rf, gf, bf, af,
-	}
+	r, g, b, a := s.colorToNormalizedRGBA(c)
+	gl.Uniform4f(triangleColor, r, g, b, a)
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(1)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
-	checkGLError()
+	gl.BindVertexArray(0)
 }
 
 func (s ShapeRenderer) DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
+	s.DrawLine(x1, y1, x2, y2, c)
+	s.DrawLine(x2, y2, x3, y3, c)
+	s.DrawLine(x3, y3, x1, y1, c)
+}
 
-	x1f, y1f := s.toClipSpace(x1, y1)
-	x2f, y2f := s.toClipSpace(x2, y2)
-	x3f, y3f := s.toClipSpace(x3, y3)
+func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
+	s.shapeProgram.Use()
+	defer s.shapeProgram.Delete()
 
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
+	// Convert coordinates to OpenGL's normalized device coordinates (-1 to 1)
+	nx1 := float32(x1)/float32(windowWidth)*2 - 1.0
+	ny1 := -float32(y1)/float32(windowHeight)*2 + 1.0
+	nx2 := float32(x2)/float32(windowWidth)*2 - 1.0
+	ny2 := -float32(y2)/float32(windowHeight)*2 + 1.0
 
 	vertices := []float32{
-		x1f, y1f, rf, gf, bf, af,
-		x2f, y2f, rf, gf, bf, af,
-		x3f, y3f, rf, gf, bf, af,
+		nx1, ny1, 0.0,
+		nx2, ny2, 0.0,
 	}
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(1)
-	gl.DrawArrays(gl.LINE_LOOP, 0, 3)
+	var VAO uint32
+	gl.GenVertexArrays(1, &VAO)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
-	checkGLError()
+	var VBO uint32
+	gl.GenBuffers(1, &VBO)
+
+	gl.BindVertexArray(VAO)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.VertexAttribPointerWithOffset(0, 3, gl.FLOAT, false, 3*4, uintptr(0))
+	gl.EnableVertexAttribArray(0)
+
+	gl.BindVertexArray(0)
+
+	s.shapeProgram.Use()
+	defer s.shapeProgram.Delete()
+	gl.BindVertexArray(VAO)
+
+	// Set the uniform color variable in the fragment shader
+	lineColor := s.shapeProgram.GetUniformLocation("shapeColor")
+	r, g, b, a := s.colorToNormalizedRGBA(c)
+	gl.Uniform4f(lineColor, r, g, b, a)
+
+	gl.DrawArrays(gl.LINES, 0, 2)
+	gl.BindVertexArray(0)
 }
 
-func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {}
+// Fill a polygon with a specified color
+func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
+	s.shapeProgram.Use()
+	defer s.shapeProgram.Delete()
 
-func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {}
+	if len(xPoints) != len(yPoints) {
+		return
+	}
 
-func (s ShapeRenderer) FillRect(x, y, width, height int, c color.Color) {}
+	// Set the uniform color variable in the fragment shader
+	shapeColor := s.shapeProgram.GetUniformLocation("shapeColor")
+	r, g, b, a := s.colorToNormalizedRGBA(c)
+	gl.Uniform4f(shapeColor, r, g, b, a)
 
-func (s ShapeRenderer) DrawRect(x, y, width, height int, c color.Color) {}
+	vertices := make([]float32, 0, len(xPoints)*2)
+	for i := 0; i < len(xPoints); i++ {
+		x := float32(xPoints[i])/float32(windowWidth)*2 - 1.0
+		y := -float32(yPoints[i])/float32(windowHeight)*2 + 1.0
+		vertices = append(vertices, x, y)
+	}
+
+	// Create a VAO and VBO for the polygon
+	var VAO, VBO uint32
+	gl.GenVertexArrays(1, &VAO)
+	gl.GenBuffers(1, &VBO)
+
+	gl.BindVertexArray(VAO)
+	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	// Specify the layout of the vertex data
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
+
+	// Draw the polygon
+	gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(xPoints)))
+	gl.BindVertexArray(0)
+}
+
+// DrawPolygon draws the outline of a polygon with a specified color
+func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
+	if len(xPoints) != len(yPoints) {
+		return
+	}
+
+	s.shapeProgram.Use()
+	defer s.shapeProgram.Delete()
+
+	// Set the uniform color variable in the fragment shader
+	polygonColor := s.shapeProgram.GetUniformLocation("shapeColor")
+	r, g, b, a := s.colorToNormalizedRGBA(c)
+	gl.Uniform4f(polygonColor, r, g, b, a)
+
+	// Create vertex and index slices for the polygon
+	vertices := make([]float32, 0, len(xPoints)*2)
+	indices := make([]uint32, 0, len(xPoints))
+
+	for i := 0; i < len(xPoints); i++ {
+		x := float32(xPoints[i])/float32(windowWidth)*2 - 1.0
+		y := -float32(yPoints[i])/float32(windowHeight)*2 + 1.0
+		vertices = append(vertices, x, y)
+		indices = append(indices, uint32(i))
+	}
+
+	// Create a VAO and VBO for the polygon
+	var VAO, VBO, EBO uint32
+	gl.GenVertexArrays(1, &VAO)
+	gl.GenBuffers(1, &VBO)
+	gl.GenBuffers(1, &EBO)
+
+	gl.BindVertexArray(VAO)
+
+	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
+
+	// Specify the layout of the vertex data
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
+
+	// Draw the polygon using indexed drawing
+	gl.DrawElements(gl.LINE_LOOP, int32(len(indices)), gl.UNSIGNED_INT, nil)
+
+	gl.BindVertexArray(0)
+}
+
+// FillRect fills a rectangle with a specified color
+func (s ShapeRenderer) FillRect(x, y, width, height int, c color.Color) {
+	xPoints := []int{x, x + width, x + width, x}
+	yPoints := []int{y, y, y + height, y + height}
+	s.FillPolygon(xPoints, yPoints, c)
+}
+
+// DrawRect draws the outline of a rectangle with a specified color
+func (s ShapeRenderer) DrawRect(x, y, width, height int, c color.Color) {
+	xPoints := []int{x, x + width, x + width, x}
+	yPoints := []int{y, y, y + height, y + height}
+	s.DrawPolygon(xPoints, yPoints, c)
+}
 
 func (s ShapeRenderer) simpleFillCirc(xCenter, yCenter, radius int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
+	const (
+		circSegments = 100
+	)
+	xPoints := make([]int, circSegments)
+	yPoints := make([]int, circSegments)
 
-	segments := 100
-	angleIncrement := 2.0 * math.Pi / float64(segments)
-
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
-
-	vertices := []float32{}
-
-	xCenterF, yCenterF := s.toClipSpace(xCenter, yCenter)
-	vertices = append(vertices, xCenterF, yCenterF, rf, gf, bf, af)
-
-	for i := 0; i <= segments; i++ {
-		angle := float64(i) * angleIncrement
-
-		x := float32(xCenter) + float32(radius)*float32(math.Cos(angle))
-		y := float32(yCenter) + float32(radius)*float32(math.Sin(angle))
-
-		xf, yf := float32(2*x)/float32(s.ScreenWidth)-1.0, float32(2*y)/float32(s.ScreenHeight)-1.0
-
-		vertices = append(vertices, xf, yf, rf, gf, bf, af)
+	for i := 0; i < circSegments; i++ {
+		angle := 2.0 * math.Pi * float64(i) / float64(circSegments)
+		x := float64(xCenter) + float64(radius)*math.Cos(angle)
+		y := float64(yCenter) + float64(radius)*math.Sin(angle)
+		xPoints[i] = int(x)
+		yPoints[i] = int(y)
 	}
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
-	gl.EnableVertexAttribArray(0)
-
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(1)
-
-	gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(segments+2))
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
-}
-
-func (s ShapeRenderer) DrawCirc(x, y, radius int, c color.Color) {
-	s.simpleDrawCirc(x, y, radius, c)
-}
-func (s ShapeRenderer) FillCirc(x, y, radius int, c color.Color) {
-	s.simpleFillCirc(x, y, radius, c)
+	s.FillPolygon(xPoints, yPoints, c)
 }
 
 func (s ShapeRenderer) simpleDrawCirc(xCenter, yCenter, radius int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
+	const (
+		circSegments = 100
+	)
+	xPoints := make([]int, circSegments)
+	yPoints := make([]int, circSegments)
 
-	segments := 100
-	angleIncrement := 2.0 * math.Pi / float64(segments)
-
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
-
-	vertices := []float32{}
-
-	for i := 0; i < segments; i++ {
-		angle1 := float64(i) * angleIncrement
-		angle2 := float64(i+1) * angleIncrement
-
-		x1 := float32(xCenter) + float32(radius)*float32(math.Cos(angle1))
-		y1 := float32(yCenter) + float32(radius)*float32(math.Sin(angle1))
-		x2 := float32(xCenter) + float32(radius)*float32(math.Cos(angle2))
-		y2 := float32(yCenter) + float32(radius)*float32(math.Sin(angle2))
-
-		x1f, y1f := float32(2*x1)/float32(s.ScreenWidth)-1.0, float32(2*y1)/float32(s.ScreenHeight)-1.0
-		x2f, y2f := float32(2*x2)/float32(s.ScreenWidth)-1.0, float32(2*y2)/float32(s.ScreenHeight)-1.0
-
-		vertices = append(vertices, x1f, y1f, rf, gf, bf, af)
-		vertices = append(vertices, x2f, y2f, rf, gf, bf, af)
+	for i := 0; i < circSegments; i++ {
+		angle := 2.0 * math.Pi * float64(i) / float64(circSegments)
+		x := float64(xCenter) + float64(radius)*math.Cos(angle)
+		y := float64(yCenter) + float64(radius)*math.Sin(angle)
+		xPoints[i] = int(x)
+		yPoints[i] = int(y)
 	}
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
-	gl.EnableVertexAttribArray(0)
-
-	gl.VertexAttribPointerWithOffset(1, 4, gl.FLOAT, false, 6*4, uintptr(2*4))
-	gl.EnableVertexAttribArray(1)
-
-	gl.DrawArrays(gl.LINES, 0, int32(len(vertices)/6))
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
+	s.DrawPolygon(xPoints, yPoints, c)
 }
 
 func (s ShapeRenderer) DrawPoint(x, y int, c color.Color) {
-	s.program.Use()
-	defer s.program.Delete()
+	const pointSize = 5
+	s.DrawRect(x, y, pointSize, pointSize, c)
+}
 
-	xf, yf := s.toClipSpace(x, y)
+func (s ShapeRenderer) DrawCircle(xCenter, yCenter, radius int, c color.Color) {
+	s.simpleDrawCirc(xCenter, yCenter, radius, c)
+}
 
-	rf, gf, bf, af := s.colorToNormalizedRGBA(c)
-
-	vertices := []float32{
-		xf, yf, rf, gf, bf, af,
-	}
-
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 6*4, nil)
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, false, 6*4, gl.PtrOffset(2*4))
-	gl.EnableVertexAttribArray(1)
-	gl.DrawArrays(gl.POINTS, 0, 1)
-
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.DeleteBuffers(1, &vbo)
+func (s ShapeRenderer) FillCircle(xCenter, yCenter, radius int, c color.Color) {
+	s.simpleFillCirc(xCenter, yCenter, radius, c)
 }

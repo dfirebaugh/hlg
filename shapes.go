@@ -34,11 +34,11 @@ func DrawRectangle(x, y, width, height int, c color.Color) {
 }
 func FillCircle(x, y, radius int, c color.Color) {
 	ensureSetupCompletion()
-	graphicsBackend.FillCirc(x, y, radius, c)
+	graphicsBackend.FillCircle(x, y, radius, c)
 }
 func DrawCircle(x, y, radius int, c color.Color) {
 	ensureSetupCompletion()
-	graphicsBackend.DrawCirc(x, y, radius, c)
+	graphicsBackend.DrawCircle(x, y, radius, c)
 }
 
 func DrawPoint(x, y int, c color.Color) {

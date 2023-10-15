@@ -116,8 +116,8 @@ func (m *Model) Draw(program graphics.ShaderProgram) {
 	}
 }
 
-func Vector3ToMgl32(v geom.Vector3) mgl32.Vec3 {
-	return mgl32.Vec3{v.X, v.Y, v.Z}
+func Vector3ToMgl32(v geom.Vector3D) mgl32.Vec3 {
+	return mgl32.Vec3{v[0], v[1], v[2]}
 }
 
 func Matrix4ToMgl32(m geom.Matrix4) mgl32.Mat4 {

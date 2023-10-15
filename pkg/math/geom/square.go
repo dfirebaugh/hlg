@@ -9,7 +9,7 @@ func MakeSquare(points [4]Point) Square {
 }
 
 func (s *Square) Centroid() Point {
-	sumX, sumY := 0.0, 0.0
+	var sumX, sumY float32 = 0.0, 0.0
 	for _, p := range s {
 		sumX += p.X
 		sumY += p.Y
@@ -24,7 +24,7 @@ func (s *Square) Translate(vector Vector) {
 	}
 }
 
-func (s *Square) Scale(factor float64) {
+func (s *Square) Scale(factor float32) {
 	centroid := s.Centroid()
 	for i := range s {
 		dir := s[i].ToVector().Subtract(centroid.ToVector())
@@ -36,8 +36,8 @@ func (s *Square) Scale(factor float64) {
 }
 
 func (s *Square) Rotate(angle float64) {
-	cos := math.Cos(angle)
-	sin := math.Sin(angle)
+	cos := float32(math.Cos(angle))
+	sin := float32(math.Sin(angle))
 	centroid := s.Centroid()
 
 	for i := range s {
@@ -57,7 +57,7 @@ func (s *Square) Rotate(angle float64) {
 	}
 }
 
-func (s *Square) Area() float64 {
+func (s *Square) Area() float32 {
 	sideLength := s[1].ToVector().GetDistance(s[0].ToVector())
-	return math.Pow(sideLength, 2)
+	return float32(math.Pow(float64(sideLength), 2))
 }

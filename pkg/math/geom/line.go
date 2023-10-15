@@ -10,8 +10,8 @@ type Segment struct {
 }
 
 type Line struct {
-	slope   float64
-	yint    float64
+	slope   float32
+	yint    float32
 	Segment Segment
 }
 
@@ -28,7 +28,7 @@ func MakeLine(a, b Point) Line {
 	}
 }
 
-func (l Line) EvalX(x float64) float64 {
+func (l Line) EvalX(x float32) float32 {
 	return l.slope*x + l.yint
 }
 

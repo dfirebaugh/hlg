@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"image"
-	"math"
 	"strings"
 	"time"
 
@@ -17,15 +16,17 @@ import (
 var (
 	teapot         *geom.Model
 	t              *ggez.Texture
-	mouseX         int
-	rotationSpeed  float32
+	mouseX, mouseY int
+	rotation       geom.Vector3D
 	lastUpdateTime time.Time
+	rotationSpeed  geom.Vector3D
 )
 
 const (
 	rotationDecayRate = 0.10
 	minRotationSpeed  = 0.05
 	maxRotationSpeed  = 1.0
+	mouseSensitivity  = 0.005
 )
 
 func update() {
@@ -36,26 +37,30 @@ func update() {
 		ggez.ToggleWireFrame()
 	}
 
-	if !ggez.IsButtonPressed(ggez.MouseButton1) {
-		elapsed := time.Since(lastUpdateTime).Seconds()
-		rotationSpeed *= float32(math.Pow(rotationDecayRate, elapsed))
-		if math.Abs(float64(rotationSpeed)) < minRotationSpeed {
-			rotationSpeed = minRotationSpeed
-		}
-	}
+	newMouseX, newMouseY := ggez.GetCursorPosition()
 
 	if ggez.IsButtonPressed(ggez.MouseButton1) {
-		prevX, _ := ggez.GetCursorPosition()
-		if prevX < mouseX {
-			rotationSpeed = float32(mouseX - prevX)
-		}
-		if prevX > mouseX {
-			rotationSpeed = -float32(prevX - mouseX)
-		}
-		mouseX = prevX
+		deltaX := float32(newMouseX-mouseX) * mouseSensitivity
+		deltaY := float32(newMouseY-mouseY) * mouseSensitivity
+
+		rotation[0] += deltaY
+		rotation[1] += deltaX
+
+		teapot.SetRotation(rotation)
+	} else {
+		rotationSpeed.Scaled(rotationDecayRate)
+
+		deltaX := float32(newMouseX-mouseX) * mouseSensitivity
+		deltaY := float32(newMouseY-mouseY) * mouseSensitivity
+
+		rotation[0] += deltaY * rotationSpeed[0]
+		rotation[1] += deltaX * rotationSpeed[1]
+
+		// teapot.Rotate()
+		teapot.SetRotation(geom.Vector3D{})
 	}
 
-	teapot.Rotate(rotationSpeed, geom.Vector3D{0, 1, 0})
+	mouseX, mouseY = newMouseX, newMouseY
 	lastUpdateTime = time.Now()
 }
 
@@ -83,7 +88,7 @@ func main() {
 	teapot.ScaleFactor = 0.01
 	teapot.Position[1] = -0.5
 
-	rotationSpeed = 0
+	rotationSpeed = geom.Vector3D{0, 0, 0}
 
 	ggez.Update(update)
 }

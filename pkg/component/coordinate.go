@@ -7,8 +7,8 @@ import (
 )
 
 type Coordinate struct {
-	X float64
-	Y float64
+	X float32
+	Y float32
 }
 
 func (c Coordinate) String() string {
@@ -20,13 +20,13 @@ func (c *Coordinate) SetCoordinate(newCoord Coordinate) {
 	c.Y = newCoord.Y
 }
 
-func (c Coordinate) GetDistance(other Coordinate) float64 {
+func (c Coordinate) GetDistance(other Coordinate) float32 {
 	a := geom.MakeVector(c.X, c.Y)
 	b := geom.MakeVector(other.X, other.Y)
 	return a.GetDistance(b)
 }
 
-func (c Coordinate) GetDirection(other Coordinate) float64 {
+func (c Coordinate) GetDirection(other Coordinate) float32 {
 	a := geom.MakeVector(c.X, c.Y)
 	b := geom.MakeVector(other.X, other.Y)
 	return a.GetDirection(b)
@@ -46,7 +46,7 @@ func (c Coordinate) Subtract(other Coordinate) Coordinate {
 	}
 }
 
-func (c Coordinate) TranslateXY(offset Coordinate, pixelSize float64) (float64, float64) {
+func (c Coordinate) TranslateXY(offset Coordinate, pixelSize float32) (float32, float32) {
 	x := (c.X - offset.X) / pixelSize
 	y := (c.Y - offset.Y) / pixelSize
 	return x, y

@@ -34,7 +34,7 @@ func LoadOBJModelFromReader(name string, reader io.Reader) (*geom.Model, error) 
 	return &geom.Model{
 		Meshes:      []*geom.Mesh{mesh},
 		ScaleFactor: 1,
-		Position:    geom.Vector3{X: 0, Y: 0, Z: 0},
+		Position:    geom.Vector3D{0, 0, 0},
 		Rotation:    geom.Matrix4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	}, nil
 }
@@ -67,7 +67,7 @@ func LoadOBJModelFromFile(filePath string) (*geom.Model, error) {
 	return &geom.Model{
 		Meshes:      []*geom.Mesh{mesh},
 		ScaleFactor: 1,
-		Position:    geom.Vector3{X: 0, Y: 0, Z: 0},
+		Position:    geom.Vector3D{0, 0, 0},
 		Rotation:    geom.Matrix4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	}, nil
 }

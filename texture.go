@@ -8,7 +8,7 @@ type Texture struct {
 	ptr        uintptr
 	X, Y, W, H int
 	img        image.Image
-	Angle      float64
+	Angle      float32
 	Center     struct {
 		X int
 		Y int
@@ -78,7 +78,7 @@ func (t *Texture) SetScale(scaleX, scaleY float64) {
 	t.ScaleY = scaleY
 }
 
-func (t *Texture) SetRotation(angle float64) {
+func (t *Texture) SetRotation(angle float32) {
 	t.Angle = angle
 }
 

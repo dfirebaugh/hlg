@@ -7,7 +7,7 @@ func MakeCube(points [8]Point3D) Cube {
 }
 
 func (c *Cube) Centroid() Point3D {
-	sumX, sumY, sumZ := 0.0, 0.0, 0.0
+	var sumX, sumY, sumZ float32 = 0.0, 0.0, 0.0
 	for _, p := range c {
 		sumX += p.X
 		sumY += p.Y
@@ -24,7 +24,7 @@ func (c *Cube) Translate(vector Vector3D) {
 	}
 }
 
-func (c *Cube) Scale(factor float64) {
+func (c *Cube) Scale(factor float32) {
 	centroid := c.Centroid()
 	for i := range c {
 		dir := c[i].ToVector3D().Subtract(centroid.ToVector3D())

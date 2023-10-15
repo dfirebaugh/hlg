@@ -17,9 +17,9 @@ func (t *Triangle) Centroid() Point {
 	}
 }
 
-func (t *Triangle) Rotate(angle float64) {
-	cos := math.Cos(angle)
-	sin := math.Sin(angle)
+func (t *Triangle) Rotate(angle float32) {
+	cos := float32(math.Cos(float64(angle)))
+	sin := float32(math.Sin(float64(angle)))
 
 	centroid := t.Centroid()
 

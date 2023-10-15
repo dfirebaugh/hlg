@@ -49,11 +49,11 @@ func (b *Ball) Update() {
 	b.Y += b.Velocity.Y
 
 	// Boundary checks - Bounce off the edges
-	if b.X < 0 || b.X > float64(ggez.ScreenWidth()) {
+	if b.X < 0 || b.X > float32(ggez.ScreenWidth()) {
 		b.Velocity.X = -b.Velocity.X
 	}
 
-	if b.Y < 0 || b.Y > float64(ggez.ScreenHeight()) {
+	if b.Y < 0 || b.Y > float32(ggez.ScreenHeight()) {
 		b.Velocity.Y = -b.Velocity.Y
 	}
 }
@@ -61,10 +61,10 @@ func (b *Ball) Update() {
 func NewBall() Ball {
 	return Ball{
 		Circle: geom.Circle{
-			X: rand.Float64() * float64(ggez.ScreenWidth()), Y: rand.Float64() * float64(ggez.ScreenHeight()),
+			X: float32(rand.Float64() * float64(ggez.ScreenWidth())), Y: float32(rand.Float64() * float64(ggez.ScreenHeight())),
 			R: 50,
 		},
-		Velocity: geom.Point{X: rand.Float64()*4 - 2, Y: rand.Float64()*4 - 2}, // random velocity between -2 to 2
+		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},
 		Color:    color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255},
 	}
 }

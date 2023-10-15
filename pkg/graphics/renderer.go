@@ -43,7 +43,7 @@ type TextureManager interface {
 		y int,
 		w int,
 		h int,
-		angle float64,
+		angle float32,
 		centerX int,
 		centerY int,
 		flipType int,
@@ -70,13 +70,13 @@ type ShapeRenderer interface {
 }
 
 type Model interface {
-	Rotate(angle float32, axis geom.Vector3)
+	Rotate(angle float32, axis geom.Vector3D)
 	Scale(factor float32)
-	SetPosition(v geom.Vector3)
-	Translate(v geom.Vector3)
+	SetPosition(v geom.Vector3D)
+	Translate(v geom.Vector3D)
 	GetMeshes() []*geom.Mesh
 	GetScaleFactor() float32
-	GetPosition() geom.Vector3
+	GetPosition() geom.Vector3D
 	GetRotation() geom.Matrix4
 }
 

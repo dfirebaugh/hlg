@@ -340,7 +340,7 @@ func createVAO(vertices []float32, indices []uint32) uint32 {
 
 	return VAO
 }
-func (g *GLRenderer) RenderTexture(textureInstance uintptr, x int, y int, w int, h int, angle float64, centerX int, centerY int, flipType int) {
+func (g *GLRenderer) RenderTexture(textureInstance uintptr, x int, y int, w int, h int, angle float32, centerX int, centerY int, flipType int) {
 	g.textureProgram.Use()
 	defer g.textureProgram.Delete()
 

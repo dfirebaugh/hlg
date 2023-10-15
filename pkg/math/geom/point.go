@@ -3,11 +3,11 @@ package geom
 import "math"
 
 type Point struct {
-	X float64
-	Y float64
+	X float32
+	Y float32
 }
 
-func MakePoint(x, y float64) Point {
+func MakePoint(x, y float32) Point {
 	return Point{X: x, Y: y}
 }
 
@@ -16,10 +16,10 @@ func (p Point) ToVector() Vector {
 }
 
 type Point3D struct {
-	X, Y, Z float64
+	X, Y, Z float32
 }
 
-func MakePoint3D(x, y, z float64) Point3D {
+func MakePoint3D(x, y, z float32) Point3D {
 	return Point3D{X: x, Y: y, Z: z}
 }
 
@@ -47,8 +47,8 @@ func (p Point3D) Cross(other Point3D) Point3D {
 	}
 }
 
-func (p Point3D) Magnitude() float64 {
-	return math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)
+func (p Point3D) Magnitude() float32 {
+	return float32(math.Sqrt(float64(p.X*p.X + p.Y*p.Y + p.Z*p.Z)))
 }
 
 func (p Point3D) Normalize() Point3D {

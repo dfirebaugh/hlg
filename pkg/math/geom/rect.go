@@ -4,10 +4,10 @@ import (
 	"math"
 )
 
-// Rect a float64 slice with 4 elements []float64{x, y, width, height}
-type Rect [4]float64
+// Rect a float32 slice with 4 elements []float32{x, y, width, height}
+type Rect [4]float32
 
-func MakeRect(x, y, width, height float64) Rect {
+func MakeRect(x, y, width, height float32) Rect {
 	return Rect{x, y, width, height}
 }
 
@@ -28,7 +28,7 @@ func (r Rect) IsAxisAlignedCollision(other Rect) bool {
 		ah+ay > by
 }
 
-func (r Rect) GetOverlap(other Rect) (float64, float64) {
+func (r Rect) GetOverlap(other Rect) (float32, float32) {
 	return (r[0] + r[2]) - other[0], (r[1] + r[3]) - other[1]
 }
 
@@ -37,12 +37,12 @@ func (r Rect) Dimensions() int {
 	return 4
 }
 
-func (r Rect) GetCenter() (float64, float64) {
+func (r Rect) GetCenter() (float32, float32) {
 	return (r[0] + r[0] + r[2]) / 2, (r[1] + r[1] + r[3]) / 2
 }
 
 // Dimension returns the value of the i-th dimension
-func (r Rect) Dimension(i int) float64 {
+func (r Rect) Dimension(i int) float32 {
 	return r[i]
 }
 
@@ -73,10 +73,10 @@ func (r Rect) HasRayIntersection(ray Ray, collision *Collision) bool {
 	collision.TimeNear = targetPoint.Subtract(ray.Origin).Multiply(invdir)
 	collision.TimeFar = targetPoint.Add(targetSize).Subtract(ray.Origin).Multiply(invdir)
 
-	if math.IsNaN(collision.TimeNear[0]) ||
-		math.IsNaN(collision.TimeNear[1]) ||
-		math.IsNaN(collision.TimeFar[0]) ||
-		math.IsNaN(collision.TimeFar[1]) {
+	if math.IsNaN(float64(collision.TimeNear[0])) ||
+		math.IsNaN(float64(collision.TimeNear[1])) ||
+		math.IsNaN(float64(collision.TimeFar[0])) ||
+		math.IsNaN(float64(collision.TimeFar[1])) {
 		return false
 	}
 
@@ -94,10 +94,10 @@ func (r Rect) HasRayIntersection(ray Ray, collision *Collision) bool {
 	}
 
 	// closest 'time' will be the first contact
-	collision.HitNear = math.Max(collision.TimeNear[0], collision.TimeNear[1])
+	collision.HitNear = math.Max(float64(collision.TimeNear[0]), float64(collision.TimeNear[1]))
 
 	// furthest 'time' is contact on opposite side of target
-	collision.HitFar = math.Min(collision.TimeFar[0], collision.TimeFar[1])
+	collision.HitFar = math.Min(float64(collision.TimeFar[0]), float64(collision.TimeFar[1]))
 
 	if collision.HitFar < 0 {
 		return false
@@ -106,7 +106,7 @@ func (r Rect) HasRayIntersection(ray Ray, collision *Collision) bool {
 		return false
 	}
 
-	collision.Point = ray.Origin.Add(MakeVector(collision.HitNear, collision.HitNear).Multiply(ray.Direction))
+	collision.Point = ray.Origin.Add(MakeVector(float32(collision.HitNear), float32(collision.HitNear)).Multiply(ray.Direction))
 
 	if collision.TimeNear[0] > collision.TimeNear[1] {
 		if invdir[0] < 0 {

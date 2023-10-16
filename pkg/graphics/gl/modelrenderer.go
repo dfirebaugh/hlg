@@ -20,12 +20,12 @@ func NewModelRenderer(program graphics.ShaderProgram) ModelRenderer {
 
 func (mr ModelRenderer) RenderModel(m graphics.Model, t graphics.Texture) {
 	mr.program.Use()
-	defer mr.program.Delete()
 
 	texture := textures[t.Handle()]
+	texture.Bind(gl.TEXTURE0)
+	defer texture.UnBind()
 
 	texture.SetUniform(mr.program.GetUniformLocation("texture_diffuse1"))
-	texture.Bind(gl.TEXTURE0)
 
 	model, _ := TranslateGeomModelToGLModel(m.(*geom.Model))
 	model.Draw(mr.program)
@@ -37,6 +37,4 @@ func (mr ModelRenderer) RenderModel(m graphics.Model, t graphics.Texture) {
 
 	gl.Uniform3f(lightPosLoc, lightX, lightY, lightZ)
 	gl.Uniform3f(lightColorLoc, 1*mr.lightIntensity, 1*mr.lightIntensity, 1*mr.lightIntensity)
-
-	texture.UnBind()
 }

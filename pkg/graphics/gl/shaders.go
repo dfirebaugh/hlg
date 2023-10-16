@@ -8,6 +8,12 @@ var BasicVert string
 //go:embed shaders/basic.frag
 var BasicFrag string
 
+//go:embed shaders/texture.vert
+var TextureVert string
+
+//go:embed shaders/texture.frag
+var TextureFrag string
+
 //go:embed shaders/shape.vert
 var ShapeVert string
 

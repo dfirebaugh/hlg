@@ -2,6 +2,7 @@ package ggez
 
 import (
 	"image"
+	"image/color"
 )
 
 type Texture struct {
@@ -47,6 +48,10 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 	rgba := t.SetPixelsFromImage(img)
 	t.ptr, err = graphicsBackend.CreateTextureFromImage(rgba)
 	return &t, err
+}
+
+func (t *Texture) Clear(c color.Color) {
+	graphicsBackend.ClearTexture(t.Handle(), c)
 }
 
 func (t *Texture) Handle() uintptr {

@@ -24,7 +24,7 @@ func main() {
 	ggez.Setup(ggez.GLRenderer)
 	ggez.SetScreenSize(960, 640)
 
-	numBalls := 400
+	numBalls := 900
 	balls = make([]Ball, numBalls)
 	for i := 0; i < numBalls; i++ {
 		balls[i] = NewBall()

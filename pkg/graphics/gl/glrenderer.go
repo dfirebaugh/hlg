@@ -2,11 +2,8 @@ package gl
 
 import (
 	"fmt"
-	"image"
 	"image/color"
-	"image/draw"
 	"log"
-	"unsafe"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
 	"github.com/go-gl/gl/v3.3-core/gl"
@@ -94,12 +91,12 @@ func New() (*GLRenderer, error) {
 }
 
 func (g *GLRenderer) setupShaders() error {
-	textureVertexShader, err := NewShader(BasicVert, gl.VERTEX_SHADER)
+	textureVertexShader, err := NewShader(TextureVert, gl.VERTEX_SHADER)
 	if err != nil {
 		return err
 	}
 
-	textureFragmentShader, err := NewShader(BasicFrag, gl.FRAGMENT_SHADER)
+	textureFragmentShader, err := NewShader(TextureFrag, gl.FRAGMENT_SHADER)
 	if err != nil {
 		panic(err)
 	}
@@ -150,8 +147,10 @@ func (g *GLRenderer) resizeCallback(window *glfw.Window, width int, height int) 
 }
 
 func (g *GLRenderer) Close() {
-	if g.textureProgram != nil {
-		g.textureProgram.Delete()
+	for _, p := range g.programs {
+		if p != nil {
+			p.Delete()
+		}
 	}
 
 	checkGLError()
@@ -170,37 +169,37 @@ func (g *GLRenderer) SetWindowTitle(title string) {
 
 func (g *GLRenderer) DestroyWindow() {
 	g.window.Destroy()
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) PrintPlatformAndVersion() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version:", version)
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) PrintRendererInfo() {
 	renderer := gl.GoStr(gl.GetString(gl.RENDERER))
 	fmt.Println("Renderer:", renderer)
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) Clear(c color.Color) {
 	r, green, b, a := c.RGBA()
 	gl.ClearColor(float32(r)/0xffff, float32(green)/0xffff, float32(b)/0xffff, float32(a)/0xffff)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) Render() {
 	g.window.SwapBuffers()
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) SetScreenSize(w int, h int) {
 	// Shapegraphics.SetScreenSize(w, h)
 	g.SetWindowSize(w, h)
-	// checkGLError()
+	checkGLError()
 }
 
 func (g *GLRenderer) SetWindowSize(width, height int) {
@@ -212,7 +211,7 @@ func (g *GLRenderer) SetWindowSize(width, height int) {
 	g.window.SetSize(width, height)
 
 	g.resizeCallback(g.window, width, height)
-	// checkGLError()
+	checkGLError()
 }
 
 func min(a, b float32) float32 {
@@ -220,170 +219,6 @@ func min(a, b float32) float32 {
 		return a
 	}
 	return b
-}
-
-func (g *GLRenderer) CreateTextureFromImage(img image.Image) (uintptr, error) {
-	// Compute the aspect ratio of the image
-	imageAspectRatio := float32(img.Bounds().Dx()) / float32(img.Bounds().Dy())
-
-	// Normalize the image dimensions to fit within the OpenGL coordinate system
-	normalizedWidth := float32(img.Bounds().Dx()) / float32(g.screenWidth)
-	normalizedHeight := float32(img.Bounds().Dy()) / float32(g.screenHeight)
-
-	// Adjust normalization to maintain aspect ratio
-	scaleFactor := min(normalizedWidth/imageAspectRatio, normalizedHeight)
-	normalizedWidth = imageAspectRatio * scaleFactor
-	normalizedHeight = scaleFactor
-
-	vertices := []float32{
-		-1, 1, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, // top left
-		-1 + 2*normalizedWidth, 1, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, // top right
-		-1 + 2*normalizedWidth, 1 - 2*normalizedHeight, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, // bottom right
-		-1, 1 - 2*normalizedHeight, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, // bottom left
-	}
-
-	indices := []uint32{
-		// rectangle
-		0, 1, 2, // top triangle
-		0, 2, 3, // bottom triangle
-	}
-
-	t, err := NewTexture(img)
-	if err != nil {
-		return 0, err // Return an error instead of panicking
-	}
-	if textures == nil {
-		textures = make(map[uintptr]*Texture)
-	}
-
-	t.Width = img.Bounds().Dx()
-	t.Height = img.Bounds().Dy()
-	t.VAO = createVAO(vertices, indices)
-	textures[uintptr(unsafe.Pointer(t))] = t
-	checkGLError()
-
-	// Return the texture instance as a uintptr
-	return uintptr(unsafe.Pointer(t)), nil
-}
-
-func (g *GLRenderer) UpdateTextureFromImage(textureInstance uintptr, img image.Image) {
-	rgba := image.NewRGBA(img.Bounds())
-	draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
-
-	textureID := uint32(textureInstance)
-	gl.BindTexture(gl.TEXTURE_2D, textureID)
-	gl.TexSubImage2D(
-		gl.TEXTURE_2D, 0, 0, 0,
-		int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y),
-		gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix),
-	)
-
-	// Check for OpenGL errors
-	if err := gl.GetError(); err != gl.NO_ERROR {
-		log.Printf("OpenGL error: %s\n", err)
-	}
-
-	// Unbind the texture
-	gl.BindTexture(gl.TEXTURE_2D, 0)
-
-	gl.GenerateMipmap(gl.TEXTURE_2D)
-
-	// Check for OpenGL errors after generating mipmaps
-	if err := gl.GetError(); err != gl.NO_ERROR {
-		log.Printf("OpenGL error after generating mipmaps: %s\n", err)
-	}
-}
-
-func createVAO(vertices []float32, indices []uint32) uint32 {
-
-	var VAO uint32
-	gl.GenVertexArrays(1, &VAO)
-
-	var VBO uint32
-	gl.GenBuffers(1, &VBO)
-
-	var EBO uint32
-	gl.GenBuffers(1, &EBO)
-
-	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointers()
-	gl.BindVertexArray(VAO)
-
-	// copy vertices data into VBO (it needs to be bound first)
-	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-
-	// copy indices into element buffer
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
-
-	// size of one whole vertex (sum of attrib sizes)
-	var stride int32 = 3*4 + 3*4 + 2*4
-	var offset int = 0
-
-	// position
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, stride, gl.PtrOffset(offset))
-	gl.EnableVertexAttribArray(0)
-	offset += 3 * 4
-
-	// color
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, stride, gl.PtrOffset(offset))
-	gl.EnableVertexAttribArray(1)
-	offset += 3 * 4
-
-	// texture position
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, stride, gl.PtrOffset(offset))
-	gl.EnableVertexAttribArray(2)
-	offset += 2 * 4
-
-	// unbind the VAO (safe practice so we don't accidentally (mis)configure it later)
-	gl.BindVertexArray(0)
-
-	return VAO
-}
-func (g *GLRenderer) RenderTexture(textureInstance uintptr, x int, y int, w int, h int, angle float32, centerX int, centerY int, flipType int) {
-	g.textureProgram.Use()
-	defer g.textureProgram.Delete()
-
-	// Retrieve the texture associated with the provided textureInstance
-	texture0, exists := textures[textureInstance]
-	if !exists {
-		return // Texture not found, exit early
-	}
-
-	// Calculate the scale based on the image's width and height
-	imgScaleWidth := float32(w) / float32(texture0.Width)
-	imgScaleHeight := float32(h) / float32(texture0.Height)
-
-	// Set uniform variables in the shader program
-	gl.Uniform2f(g.textureProgram.GetUniformLocation("positionOffset"), float32(x+(w/2)), float32(y+(w/2)))
-	gl.Uniform1i(g.textureProgram.GetUniformLocation("windowWidth"), int32(g.screenWidth))
-	gl.Uniform1i(g.textureProgram.GetUniformLocation("windowHeight"), int32(g.screenHeight))
-	gl.Uniform1f(g.textureProgram.GetUniformLocation("rotationAngle"), float32(angle))
-	gl.Uniform1f(g.textureProgram.GetUniformLocation("scaleWidth"), imgScaleWidth)
-	gl.Uniform1f(g.textureProgram.GetUniformLocation("scaleHeight"), imgScaleHeight)
-	gl.Uniform1f(g.textureProgram.GetUniformLocation("aspectRatioX"), g.aspectRatioX)
-	gl.Uniform1f(g.textureProgram.GetUniformLocation("aspectRatioY"), g.aspectRatioY)
-
-	aspectRatio := float32(w) / float32(h)
-	location := g.textureProgram.GetUniformLocation("desiredAspectRatio")
-	gl.Uniform1f(location, aspectRatio)
-
-	// Activate the texture unit and bind the texture
-	gl.ActiveTexture(gl.TEXTURE0)
-	texture0.Bind(gl.TEXTURE0)
-	defer texture0.UnBind()
-
-	// Bind the VAO associated with the texture
-	gl.BindVertexArray(texture0.VAO)
-	defer gl.BindVertexArray(0) // Unbind the VAO after rendering
-
-	// Draw the texture using triangles
-	gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, unsafe.Pointer(nil))
-}
-
-func (g *GLRenderer) DestroyTexture(textureInstance uintptr) {
-	textureID := uint32(textureInstance)
-	gl.DeleteTextures(1, &textureID)
 }
 
 func (g *GLRenderer) PollEvents() bool {

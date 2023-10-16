@@ -3,7 +3,7 @@ module github.com/dfirebaugh/ggez
 go 1.20
 
 require (
-	golang.org/x/image v0.12.0
+	golang.org/x/image v0.13.0
 	tinygo.org/x/tinyfont v0.3.0
 )
 

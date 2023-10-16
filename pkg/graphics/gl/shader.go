@@ -50,6 +50,7 @@ func (prog *Program) Handle() uint32 {
 
 func (prog *Program) Use() {
 	gl.UseProgram(prog.handle)
+	checkGLError()
 }
 
 func (prog *Program) Link() error {
@@ -78,7 +79,6 @@ func NewProgram(shaders ...graphics.Shader) (*Program, error) {
 }
 
 func NewShader(src string, sType uint32) (*Shader, error) {
-
 	handle := gl.CreateShader(sType)
 	glSrc, freeFn := gl.Strs(src + "\x00")
 	defer freeFn()

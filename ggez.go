@@ -70,25 +70,24 @@ func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
 	fpsCounter = NewFPSCounter()
-	// var err error
-	// uiTexture, err = CreateTextureFromImage(uifb.ToImage())
-	// if err != nil {
-	// 	panic(err)
-	// }
+
+	uifb = fb.New(screenWidth, screenHeight)
+	uiTexture, _ = CreateTextureFromImage(uifb.ToImage())
+
 	for {
 		if !graphicsBackend.PollEvents() {
 			break
 		}
 		updateFn()
 
+		uiTexture.Clear(color.RGBA{0, 0, 0, 255})
+		uiTexture.UpdateTextureFromImage(uifb.ToImage())
+		uiTexture.Render()
 		graphicsBackend.Render()
-		// graphicsBackend.RenderTexture(uiTexture, 0, 0, screenWidth, screenHeight, 0, 0, 0, 0)
-		// uiTexture.Render()
 
 		calculateFPS()
 	}
-	// graphicsBackend.DestroyTexture(uiTexture)
-	// uiTexture.Destroy()
+	uiTexture.Destroy()
 }
 
 func calculateFPS() {
@@ -99,6 +98,10 @@ func calculateFPS() {
 		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
 	}
 	graphicsBackend.SetWindowTitle(title)
+}
+
+func GetFPS() float64 {
+	return fpsCounter.GetFPS()
 }
 
 func close() {

@@ -57,6 +57,9 @@ func (s ShapeRenderer) createTriangleVAO(x1, y1, x2, y2, x3, y3 int) uint32 {
 	var VBO uint32
 	gl.GenBuffers(1, &VBO)
 
+	defer gl.DeleteVertexArrays(1, &VAO)
+	defer gl.DeleteBuffers(1, &VBO)
+
 	gl.BindVertexArray(VAO)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
@@ -73,7 +76,6 @@ func (s ShapeRenderer) createTriangleVAO(x1, y1, x2, y2, x3, y3 int) uint32 {
 func (s ShapeRenderer) FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
 	VAO := s.createTriangleVAO(x1, y1, x2, y2, x3, y3)
 	s.shapeProgram.Use()
-	defer s.shapeProgram.Delete()
 
 	gl.BindVertexArray(VAO)
 
@@ -95,7 +97,6 @@ func (s ShapeRenderer) DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
 
 func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	s.shapeProgram.Use()
-	defer s.shapeProgram.Delete()
 
 	// Convert coordinates to OpenGL's normalized device coordinates (-1 to 1)
 	nx1 := float32(x1)/float32(windowWidth)*2 - 1.0
@@ -113,8 +114,10 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 
 	var VBO uint32
 	gl.GenBuffers(1, &VBO)
-
 	gl.BindVertexArray(VAO)
+
+	defer gl.DeleteVertexArrays(1, &VAO)
+	defer gl.DeleteBuffers(1, &VBO)
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
@@ -125,7 +128,6 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	gl.BindVertexArray(0)
 
 	s.shapeProgram.Use()
-	defer s.shapeProgram.Delete()
 	gl.BindVertexArray(VAO)
 
 	// Set the uniform color variable in the fragment shader
@@ -140,13 +142,12 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 // Fill a polygon with a specified color
 func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
 	s.shapeProgram.Use()
-	defer s.shapeProgram.Delete()
 
-	if len(xPoints) != len(yPoints) {
+	if len(xPoints) != len(yPoints) || len(xPoints) < 3 {
+		// Invalid input, can't draw a polygon
 		return
 	}
 
-	// Set the uniform color variable in the fragment shader
 	shapeColor := s.shapeProgram.GetUniformLocation("shapeColor")
 	r, g, b, a := s.colorToNormalizedRGBA(c)
 	gl.Uniform4f(shapeColor, r, g, b, a)
@@ -158,20 +159,20 @@ func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
 		vertices = append(vertices, x, y)
 	}
 
-	// Create a VAO and VBO for the polygon
 	var VAO, VBO uint32
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
+
+	defer gl.DeleteVertexArrays(1, &VAO)
+	defer gl.DeleteBuffers(1, &VBO)
 
 	gl.BindVertexArray(VAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
 
-	// Specify the layout of the vertex data
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
 
-	// Draw the polygon
 	gl.DrawArrays(gl.TRIANGLE_FAN, 0, int32(len(xPoints)))
 	gl.BindVertexArray(0)
 }
@@ -183,7 +184,6 @@ func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 	}
 
 	s.shapeProgram.Use()
-	defer s.shapeProgram.Delete()
 
 	// Set the uniform color variable in the fragment shader
 	polygonColor := s.shapeProgram.GetUniformLocation("shapeColor")
@@ -206,6 +206,9 @@ func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
 	gl.GenBuffers(1, &EBO)
+
+	defer gl.DeleteVertexArrays(1, &VAO)
+	defer gl.DeleteBuffers(1, &VBO)
 
 	gl.BindVertexArray(VAO)
 

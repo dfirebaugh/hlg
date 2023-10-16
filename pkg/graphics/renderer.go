@@ -48,6 +48,7 @@ type TextureManager interface {
 		centerY int,
 		flipType int,
 	)
+	ClearTexture(textureInstance uintptr, c color.Color)
 	DestroyTexture(textureInstance uintptr)
 }
 

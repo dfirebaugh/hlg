@@ -3,6 +3,7 @@ package gl
 import (
 	"errors"
 	"image"
+	"image/color"
 	"image/draw"
 	"os"
 
@@ -66,12 +67,36 @@ func NewTexture(img image.Image) (*Texture, error) {
 	gl.TexParameteri(texture.target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-
 	gl.TexImage2D(target, 0, internalFmt, width, height, 0, format, pixType, dataPtr)
 
-	gl.GenerateMipmap(texture.handle)
+	// gl.GenerateMipmap(texture.handle)
 
 	return &texture, nil
+}
+
+func (t *Texture) Clear(color color.Color) {
+	rgba := image.NewRGBA(image.Rect(0, 0, t.Width, t.Height))
+	draw.Draw(rgba, rgba.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
+	t.UpdateFromImage(rgba)
+}
+
+func (t *Texture) UpdateFromImage(img image.Image) error {
+	rgba := image.NewRGBA(img.Bounds())
+	draw.Draw(rgba, rgba.Bounds(), img, image.Pt(0, 0), draw.Src)
+	if rgba.Stride != rgba.Rect.Size().X*4 {
+		return errUnsupportedStride
+	}
+
+	t.Bind(gl.TEXTURE0)
+	defer t.UnBind()
+
+	width := int32(rgba.Rect.Size().X)
+	height := int32(rgba.Rect.Size().Y)
+	dataPtr := gl.Ptr(rgba.Pix)
+
+	gl.TexSubImage2D(t.target, 0, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, dataPtr)
+
+	return nil
 }
 
 func (t *Texture) Handle() uint32 {

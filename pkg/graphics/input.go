@@ -14,5 +14,7 @@ type InputManager interface {
 
 	GetCursorPosition() (x, y int)
 
+	SetScrollCallback(cb func(x float64, y float64))
+
 	Update()
 }

@@ -27,3 +27,6 @@ func ReleaseButton(buttonCode MouseButton) {
 func GetCursorPosition() (x, y int) {
 	return graphicsBackend.GetCursorPosition()
 }
+func SetScrollCallback(cb func(x float64, y float64)) {
+	graphicsBackend.SetScrollCallback(cb)
+}

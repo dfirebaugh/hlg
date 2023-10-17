@@ -15,17 +15,19 @@ import (
 )
 
 var (
-	teapot         *geom.Model
-	t              *ggez.Texture
-	mouseX         int
-	rotationSpeed  float32
-	lastUpdateTime time.Time
+	teapot                         *geom.Model
+	t                              *ggez.Texture
+	mouseX, mouseY                 int
+	rotationSpeedX, rotationSpeedY float32
+	zoomSpeed                      float32
+	lastUpdateTime                 time.Time
 )
 
 const (
 	rotationDecayRate = 0.10
 	minRotationSpeed  = 0.05
 	maxRotationSpeed  = 1.0
+	zoomRate          = 0.005
 )
 
 func update() {
@@ -38,24 +40,24 @@ func update() {
 
 	if !ggez.IsButtonPressed(ggez.MouseButton1) {
 		elapsed := time.Since(lastUpdateTime).Seconds()
-		rotationSpeed *= float32(math.Pow(rotationDecayRate, elapsed))
-		if math.Abs(float64(rotationSpeed)) < minRotationSpeed {
-			rotationSpeed = minRotationSpeed
-		}
+		rotationSpeedX *= float32(math.Pow(rotationDecayRate, elapsed))
+		rotationSpeedY *= float32(math.Pow(rotationDecayRate, elapsed))
 	}
 
 	if ggez.IsButtonPressed(ggez.MouseButton1) {
-		prevX, _ := ggez.GetCursorPosition()
-		if prevX < mouseX {
-			rotationSpeed = float32(mouseX - prevX)
-		}
-		if prevX > mouseX {
-			rotationSpeed = -float32(prevX - mouseX)
-		}
-		mouseX = prevX
+		prevX, prevY := ggez.GetCursorPosition()
+		rotationSpeedX = float32(mouseX - prevX)
+		rotationSpeedY = float32(mouseY - prevY)
+		mouseX, mouseY = prevX, prevY
 	}
 
-	teapot.Rotate(rotationSpeed, geom.Vector3D{0, 1, 0})
+	if zoomSpeed != 0 {
+		teapot.ScaleFactor += zoomSpeed
+		zoomSpeed = 0
+	}
+
+	teapot.Rotate(rotationSpeedX, geom.Vector3D{0, 1, 0})
+	teapot.Rotate(rotationSpeedY, geom.Vector3D{1, 0, 0})
 	lastUpdateTime = time.Now()
 }
 
@@ -81,9 +83,11 @@ func main() {
 	}
 
 	teapot.ScaleFactor = 0.01
-	teapot.Position[1] = -0.5
+	rotationSpeedX, rotationSpeedY = 0, 0
 
-	rotationSpeed = 0
+	ggez.SetScrollCallback(func(_, y float64) {
+		zoomSpeed += float32(y) * zoomRate
+	})
 
 	ggez.Update(update)
 }

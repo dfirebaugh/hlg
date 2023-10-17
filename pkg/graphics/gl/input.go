@@ -42,6 +42,12 @@ func NewInputDeviceGlfw(window *glfw.Window) *InputDeviceGlfw {
 	}
 }
 
+func (i *InputDeviceGlfw) SetScrollCallback(cb func(x float64, y float64)) {
+	i.window.SetScrollCallback(func(window *glfw.Window, xoff float64, yoff float64) {
+		cb(xoff, yoff)
+	})
+}
+
 func (id *InputDeviceGlfw) PressKey(keyCode uint32) {
 	key := glfw.Key(keyCode)
 	if k, exists := id.keys[key]; exists {

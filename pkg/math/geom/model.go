@@ -61,30 +61,36 @@ func (m *Model) Scale(factor float32) {
 }
 
 func (m *Model) SetRotation(v Vector3D) {
-	// Create a rotation matrix based on the provided Vector3D
-	rotationMatrix := createRotationMatrix(v[0], v[1], v[2])
+	translationMatrixToOrigin := createTranslationMatrix(-m.Position[0], -m.Position[1], -m.Position[2])
+	m.ApplyMatrix(translationMatrixToOrigin)
 
-	// Assign the rotation matrix to the Model's Rotation property
+	// Apply rotation
+	rotationMatrix := createRotationMatrix(v[0], v[1], v[2])
 	m.Rotation = rotationMatrix
+
+	translationMatrixBack := createTranslationMatrix(m.Position[0], m.Position[1], m.Position[2])
+	m.ApplyMatrix(translationMatrixBack)
 }
 
 func (m *Model) Rotate(angle float32, axis Vector3D) {
-	radAngle := float32(angle) * math.Pi / 180.0
+	translationMatrixToOrigin := createTranslationMatrix(-m.Position[0], -m.Position[1], -m.Position[2])
+	m.ApplyMatrix(translationMatrixToOrigin)
 
+	radAngle := float32(angle) * math.Pi / 180.0
 	s := float32(math.Sin(float64(radAngle)))
 	c := float32(math.Cos(float64(radAngle)))
-
 	axis = axis.normalize()
 	ux, uy, uz := axis[0], axis[1], axis[2]
-
 	r := Matrix4{
 		c + ux*ux*(1-c), ux*uy*(1-c) - uz*s, ux*uz*(1-c) + uy*s, 0,
 		uy*ux*(1-c) + uz*s, c + uy*uy*(1-c), uy*uz*(1-c) - ux*s, 0,
 		uz*ux*(1-c) - uy*s, uz*uy*(1-c) + ux*s, c + uz*uz*(1-c), 0,
 		0, 0, 0, 1,
 	}
-
 	m.Rotation = m.Rotation.Multiply(r)
+
+	translationMatrixBack := createTranslationMatrix(m.Position[0], m.Position[1], m.Position[2])
+	m.ApplyMatrix(translationMatrixBack)
 }
 
 func (m *Model) GetMeshes() []*Mesh {

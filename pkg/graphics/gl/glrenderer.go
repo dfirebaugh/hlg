@@ -11,17 +11,18 @@ import (
 )
 
 type GLRenderer struct {
-	window           *glfw.Window
-	programs         []*Program
-	modelProgram     *Program
-	textureProgram   *Program
-	scaleFactor      int
-	screenHeight     int
-	screenWidth      int
-	aspectRatioX     float32
-	aspectRatioY     float32
-	VAO              uint32
-	wireframeEnabled bool
+	window                  *glfw.Window
+	programs                []*Program
+	modelProgram            *Program
+	nonTexturedModelProgram *Program
+	textureProgram          *Program
+	scaleFactor             int
+	screenHeight            int
+	screenWidth             int
+	aspectRatioX            float32
+	aspectRatioY            float32
+	VAO                     uint32
+	wireframeEnabled        bool
 	graphics.ShapeRenderer
 	graphics.InputManager
 	ModelRenderer
@@ -81,7 +82,7 @@ func New() (*GLRenderer, error) {
 	g.PrintPlatformAndVersion()
 	g.PrintRendererInfo()
 
-	g.ModelRenderer = NewModelRenderer(g.modelProgram)
+	g.ModelRenderer = NewModelRenderer(g.modelProgram, g.nonTexturedModelProgram)
 	g.ShapeRenderer = NewShapeRenderer()
 	g.InputManager = NewInputDeviceGlfw(g.window)
 
@@ -122,6 +123,22 @@ func (g *GLRenderer) setupShaders() error {
 		return err
 	}
 	g.programs = append(g.programs, g.modelProgram)
+
+	nonTexturedModelVertShader, err := NewShader(NonTexturedModelVert, gl.VERTEX_SHADER)
+	if err != nil {
+		return err
+	}
+
+	nonTexturedModelFragShader, err := NewShader(NonTexturedModelFrag, gl.FRAGMENT_SHADER)
+	if err != nil {
+		return err
+	}
+
+	g.nonTexturedModelProgram, err = NewProgram(nonTexturedModelVertShader, nonTexturedModelFragShader)
+	if err != nil {
+		return err
+	}
+	g.programs = append(g.programs, g.nonTexturedModelProgram)
 
 	return nil
 }

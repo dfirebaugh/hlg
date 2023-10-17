@@ -43,8 +43,8 @@ func update() {
 		deltaX := float32(newMouseX-mouseX) * mouseSensitivity
 		deltaY := float32(newMouseY-mouseY) * mouseSensitivity
 
-		rotation[0] += deltaY
-		rotation[1] += deltaX
+		rotation[0] -= deltaY
+		rotation[1] -= deltaX
 
 		teapot.SetRotation(rotation)
 	} else {
@@ -54,10 +54,9 @@ func update() {
 		deltaY := float32(newMouseY-mouseY) * mouseSensitivity
 
 		rotation[0] += deltaY * rotationSpeed[0]
-		rotation[1] += deltaX * rotationSpeed[1]
+		rotation[1] -= deltaX * rotationSpeed[1]
 
-		// teapot.Rotate()
-		teapot.SetRotation(geom.Vector3D{})
+		teapot.SetRotation(rotation)
 	}
 
 	mouseX, mouseY = newMouseX, newMouseY

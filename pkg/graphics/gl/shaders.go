@@ -31,3 +31,9 @@ var ModelVert string
 
 //go:embed shaders/model.frag
 var ModelFrag string
+
+//go:embed shaders/nontextured_model.vert
+var NonTexturedModelVert string
+
+//go:embed shaders/nontextured_model.frag
+var NonTexturedModelFrag string

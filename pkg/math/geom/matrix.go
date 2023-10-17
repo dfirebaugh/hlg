@@ -72,13 +72,20 @@ func Matrix4Identity() Matrix4 {
 }
 
 func createRotationMatrix(x, y, z float32) Matrix4 {
-	// Create rotation matrices for X, Y, and Z axes
 	rotationMatrixX := Matrix4RotationX(x)
 	rotationMatrixY := Matrix4RotationY(y)
 	rotationMatrixZ := Matrix4RotationZ(z)
 
-	// Combine the rotation matrices
 	finalRotationMatrix := rotationMatrixX.Multiply(rotationMatrixY).Multiply(rotationMatrixZ)
 
 	return finalRotationMatrix
+}
+
+func createTranslationMatrix(dx, dy, dz float32) Matrix4 {
+	return Matrix4{
+		1, 0, 0, dx,
+		0, 1, 0, dy,
+		0, 0, 1, dz,
+		0, 0, 0, 1,
+	}
 }

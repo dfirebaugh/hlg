@@ -3,21 +3,23 @@ package gl
 import (
 	"github.com/dfirebaugh/ggez/pkg/graphics"
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
-	"github.com/go-gl/gl/v3.3-core/gl"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
 type ModelRenderer struct {
+	cam                *Camera
 	lightIntensity     float32
 	program            graphics.ShaderProgram
 	nonTexturedProgram graphics.ShaderProgram
 }
 
-func NewModelRenderer(program graphics.ShaderProgram, nonTexturedProgram graphics.ShaderProgram) ModelRenderer {
+func NewModelRenderer(cam *Camera, program graphics.ShaderProgram, nonTexturedProgram graphics.ShaderProgram) ModelRenderer {
 	modelMatrix = mgl32.Ident4()
 
 	return ModelRenderer{
+		cam:                cam,
 		lightIntensity:     4,
 		program:            program,
 		nonTexturedProgram: nonTexturedProgram,
@@ -92,5 +94,5 @@ func (mr ModelRenderer) RenderModel(m graphics.Model, t graphics.Texture) {
 	gl.Uniform3f(lightColorLoc, 1*mr.lightIntensity, 1*mr.lightIntensity, 1*mr.lightIntensity)
 
 	model, _ := TranslateGeomModelToGLModel(m.(*geom.Model))
-	model.Draw(mr.program)
+	model.Draw(mr.program, mr.cam)
 }

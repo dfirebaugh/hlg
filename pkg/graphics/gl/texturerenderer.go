@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"unsafe"
 
-	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 func (g *GLRenderer) CreateTextureFromImage(img image.Image) (uintptr, error) {

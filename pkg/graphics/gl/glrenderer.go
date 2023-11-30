@@ -6,12 +6,13 @@ import (
 	"log"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/go-gl/gl/v3.3-core/gl"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 type GLRenderer struct {
-	window                  *glfw.Window
+	window *glfw.Window
+	*Camera
 	programs                []*Program
 	modelProgram            *Program
 	nonTexturedModelProgram *Program
@@ -37,6 +38,7 @@ var textures map[uintptr]*Texture
 func New() (*GLRenderer, error) {
 	var err error
 	g := &GLRenderer{
+		Camera:       NewCamera(),
 		scaleFactor:  3,
 		screenHeight: 160,
 		screenWidth:  240,
@@ -46,8 +48,8 @@ func New() (*GLRenderer, error) {
 		log.Fatalf("could not initialize GLFW: %v", err)
 	}
 
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 3)
+	glfw.WindowHint(glfw.ContextVersionMajor, 4)
+	glfw.WindowHint(glfw.ContextVersionMinor, 6)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
@@ -71,8 +73,8 @@ func New() (*GLRenderer, error) {
 		log.Fatalf("could not initialize OpenGL bindings: %v", err)
 	}
 
-	gl.Enable(gl.CULL_FACE)
-	gl.CullFace(gl.BACK)
+	// gl.Enable(gl.CULL_FACE)
+	// gl.CullFace(gl.BACK)
 	gl.FrontFace(gl.CW)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Enable(gl.BLEND)
@@ -82,7 +84,7 @@ func New() (*GLRenderer, error) {
 	g.PrintPlatformAndVersion()
 	g.PrintRendererInfo()
 
-	g.ModelRenderer = NewModelRenderer(g.modelProgram, g.nonTexturedModelProgram)
+	g.ModelRenderer = NewModelRenderer(g.Camera, g.modelProgram, g.nonTexturedModelProgram)
 	g.ShapeRenderer = NewShapeRenderer()
 	g.InputManager = NewInputDeviceGlfw(g.window)
 
@@ -263,7 +265,6 @@ func checkGLError() {
 			errString = "INVALID_VALUE"
 		case gl.INVALID_OPERATION:
 			errString = "INVALID_OPERATION"
-		// Add other error codes as needed
 		default:
 			errString = "UNKNOWN_ERROR"
 		}

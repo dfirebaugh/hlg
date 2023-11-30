@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 type GraphicsBackend interface {
@@ -17,6 +18,7 @@ type GraphicsBackend interface {
 	ShapeRenderer
 	ModelRenderer
 	InputManager
+	Camera
 }
 
 type Renderer interface {
@@ -113,3 +115,9 @@ const (
 	CubeTop
 	CubeBottom
 )
+
+type Camera interface {
+	GetProjectionMatrix() mgl32.Mat4
+	GetViewMatrix() mgl32.Mat4
+	SetCameraPosition(position geom.Vector3D, target geom.Vector3D, up geom.Vector3D)
+}

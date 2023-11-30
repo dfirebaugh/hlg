@@ -3,7 +3,7 @@ package gl
 import (
 	"github.com/dfirebaugh/ggez/pkg/graphics"
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
-	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -14,6 +14,7 @@ type Mesh struct {
 }
 
 type Model struct {
+	Camera   *Camera
 	Meshes   []*Mesh
 	scale    float32
 	position mgl32.Vec3
@@ -92,13 +93,13 @@ func (m *Model) Rotate(angle float32, axis mgl32.Vec3) {
 	m.rotation = mgl32.HomogRotate3D(mgl32.DegToRad(angle), axis).Mul4(m.rotation)
 }
 
-func (m *Model) Draw(program graphics.ShaderProgram) {
+func (m *Model) Draw(program graphics.ShaderProgram, camera *Camera) {
 	program.Use()
 
 	model := mgl32.Translate3D(m.position.X(), m.position.Y(), m.position.Z()).
 		Mul4(m.rotation).
 		Mul4(mgl32.Scale3D(m.scale, m.scale, m.scale))
-	view := mgl32.LookAtV(cameraPos, cameraPos.Add(cameraFront), cameraUp)
+	view := mgl32.LookAtV(camera.Position, camera.Position.Add(camera.Target), camera.Up)
 	projection := mgl32.Perspective(mgl32.DegToRad(zoom), float32(windowWidth/windowHeight), 0.1, 100.0)
 
 	modelLoc := program.GetUniformLocation("model")

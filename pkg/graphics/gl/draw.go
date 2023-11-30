@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
 type ShapeRenderer struct {
@@ -98,7 +98,6 @@ func (s ShapeRenderer) DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
 func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	s.shapeProgram.Use()
 
-	// Convert coordinates to OpenGL's normalized device coordinates (-1 to 1)
 	nx1 := float32(x1)/float32(windowWidth)*2 - 1.0
 	ny1 := -float32(y1)/float32(windowHeight)*2 + 1.0
 	nx2 := float32(x2)/float32(windowWidth)*2 - 1.0
@@ -130,7 +129,6 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	s.shapeProgram.Use()
 	gl.BindVertexArray(VAO)
 
-	// Set the uniform color variable in the fragment shader
 	lineColor := s.shapeProgram.GetUniformLocation("shapeColor")
 	r, g, b, a := s.colorToNormalizedRGBA(c)
 	gl.Uniform4f(lineColor, r, g, b, a)
@@ -139,12 +137,10 @@ func (s ShapeRenderer) DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	gl.BindVertexArray(0)
 }
 
-// Fill a polygon with a specified color
 func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
 	s.shapeProgram.Use()
 
 	if len(xPoints) != len(yPoints) || len(xPoints) < 3 {
-		// Invalid input, can't draw a polygon
 		return
 	}
 
@@ -177,7 +173,6 @@ func (s ShapeRenderer) FillPolygon(xPoints, yPoints []int, c color.Color) {
 	gl.BindVertexArray(0)
 }
 
-// DrawPolygon draws the outline of a polygon with a specified color
 func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 	if len(xPoints) != len(yPoints) {
 		return
@@ -185,12 +180,10 @@ func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 
 	s.shapeProgram.Use()
 
-	// Set the uniform color variable in the fragment shader
 	polygonColor := s.shapeProgram.GetUniformLocation("shapeColor")
 	r, g, b, a := s.colorToNormalizedRGBA(c)
 	gl.Uniform4f(polygonColor, r, g, b, a)
 
-	// Create vertex and index slices for the polygon
 	vertices := make([]float32, 0, len(xPoints)*2)
 	indices := make([]uint32, 0, len(xPoints))
 
@@ -201,7 +194,6 @@ func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 		indices = append(indices, uint32(i))
 	}
 
-	// Create a VAO and VBO for the polygon
 	var VAO, VBO, EBO uint32
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
@@ -218,24 +210,20 @@ func (s ShapeRenderer) DrawPolygon(xPoints, yPoints []int, c color.Color) {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
 
-	// Specify the layout of the vertex data
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
 
-	// Draw the polygon using indexed drawing
 	gl.DrawElements(gl.LINE_LOOP, int32(len(indices)), gl.UNSIGNED_INT, nil)
 
 	gl.BindVertexArray(0)
 }
 
-// FillRect fills a rectangle with a specified color
 func (s ShapeRenderer) FillRect(x, y, width, height int, c color.Color) {
 	xPoints := []int{x, x + width, x + width, x}
 	yPoints := []int{y, y, y + height, y + height}
 	s.FillPolygon(xPoints, yPoints, c)
 }
 
-// DrawRect draws the outline of a rectangle with a specified color
 func (s ShapeRenderer) DrawRect(x, y, width, height int, c color.Color) {
 	xPoints := []int{x, x + width, x + width, x}
 	yPoints := []int{y, y, y + height, y + height}

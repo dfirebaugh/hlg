@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 func (g *GLRenderer) keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
@@ -19,7 +19,6 @@ func (g *GLRenderer) keyCallback(window *glfw.Window, key glfw.Key, scancode int
 	}
 }
 
-// Ensure that our InputDeviceGlfw struct satisfies the InputManager interface.
 var _ graphics.InputManager = (*InputDeviceGlfw)(nil)
 
 type InputDeviceGlfw struct {
@@ -51,7 +50,6 @@ func (i *InputDeviceGlfw) SetScrollCallback(cb func(x float64, y float64)) {
 func (id *InputDeviceGlfw) PressKey(keyCode uint32) {
 	key := glfw.Key(keyCode)
 	if k, exists := id.keys[key]; exists {
-		// Avoiding updating if key is already pressed
 		if !k.isPressed {
 			k.isPressed = true
 			k.wasJustPressed = true

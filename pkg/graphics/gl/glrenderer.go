@@ -171,7 +171,7 @@ func (g *GLRenderer) Close() {
 			p.Delete()
 		}
 	}
-
+	glfw.Terminate()
 	checkGLError()
 }
 

@@ -10,41 +10,44 @@ import (
 	"github.com/dfirebaugh/ggez"
 )
 
-var tex *ggez.Texture
-
-func update() {
-	ggez.Clear(colornames.Aliceblue)
-	tex.Render()
-}
-
 // downloadImage fetches the image from the given URL and returns it as an image.Image
-func downloadImage(url string) (image.Image, error) {
+func downloadImage(url string) image.Image {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer resp.Body.Close()
 
 	img, _, err := image.Decode(resp.Body)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return img, nil
+
+	return img
 }
 
 func main() {
-	ggez.SetRenderer(ggez.GLRenderer)
-	imgURL := "https://parade.com/.image/c_limit%2Ccs_srgb%2Cq_auto:good%2Cw_620/MTkwNTgxNDg5MjU4ODY1Nzg5/nick-offerman-donkey-thoughts.webp"
-	img, err := downloadImage(imgURL)
-	if err != nil {
-		panic(err)
-	}
-	ggez.SetScreenSize(img.Bounds().Max.X, img.Bounds().Max.Y)
+	ggez.SetWindowSize(600, 412)
+	ggez.SetTitle("ggez texture example")
 
-	tex, err = ggez.CreateTextureFromImage(img)
-	if err != nil {
-		panic(err)
-	}
+	t, _ := ggez.CreateTextureFromImage(
+		downloadImage(`https://parade.com/.image/c_limit%2Ccs_srgb%2Cq_auto:good%2Cw_620/MTkwNTgxNDg5MjU4ODY1Nzg5/nick-offerman-donkey-thoughts.webp`),
+	)
 
-	ggez.Update(update)
+	mountain, _ := ggez.CreateTextureFromImage(
+		downloadImage(`https://www.gstatic.com/webp/gallery/1.webp`),
+	)
+	mountain.Resize(300, 206)
+	// mountain.Move(100, 100)
+
+	t.Scale(.4, .4)
+	t.Move(0, 0)
+	// t.FlipVertical()
+	// t.FlipHorizontal()
+
+	ggez.Update(func() {
+		ggez.Clear(colornames.Aliceblue)
+		mountain.Render()
+		t.Render()
+	})
 }

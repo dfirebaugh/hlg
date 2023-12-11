@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/ggez/pkg/math/matrix"
 	"github.com/udhos/gwob"
 )
 
@@ -35,7 +36,7 @@ func LoadOBJModelFromReader(name string, reader io.Reader) (*geom.Model, error) 
 		Meshes:      []*geom.Mesh{mesh},
 		ScaleFactor: 1,
 		Position:    geom.Vector3D{0, 0, 0},
-		Rotation:    geom.Matrix4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+		Rotation:    matrix.Matrix{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	}, nil
 }
 
@@ -68,6 +69,6 @@ func LoadOBJModelFromFile(filePath string) (*geom.Model, error) {
 		Meshes:      []*geom.Mesh{mesh},
 		ScaleFactor: 1,
 		Position:    geom.Vector3D{0, 0, 0},
-		Rotation:    geom.Matrix4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
+		Rotation:    matrix.Matrix{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1},
 	}, nil
 }

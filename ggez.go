@@ -4,56 +4,41 @@ import (
 	"fmt"
 	"image/color"
 	"runtime"
+	"strings"
 
+	"github.com/dfirebaugh/ggez/graphics"
+	"github.com/dfirebaugh/ggez/graphics/webgpu"
 	"github.com/dfirebaugh/ggez/pkg/fb"
-	"github.com/dfirebaugh/ggez/pkg/graphics"
-	"github.com/dfirebaugh/ggez/pkg/graphics/gl"
 )
 
 type Runner struct {
 }
 
 var (
-	screenWidth  = 240
-	screenHeight = 160
+	windowWidth  = 240
+	windowHeight = 160
 )
 
 var (
 	graphicsBackend graphics.GraphicsBackend
 
 	windowTitle string
-	uifb        = fb.New(screenWidth, screenHeight)
+	uifb        = fb.New(int(windowWidth), int(windowHeight))
 	uiTexture   *Texture
-
-	ConfiguredRenderer RendererType
 
 	hasSetupCompleted = false
 	fpsCounter        *FPSCounter
 )
 
-type RendererType uint
-
-const (
-	// SDLAutoRenderer let's SDL pick the appropriate renderer
-	SDLAutoRenderer = iota
-	// Uses OpenGL Renderer
-	GLRenderer
-)
-
-func SetRenderer(t RendererType) {
-	ConfiguredRenderer = t
-}
-
-func Setup(t RendererType) {
-	SetRenderer(t)
+func Setup() {
 	runtime.LockOSThread()
 
-	graphicsBackend, _ = gl.New()
+	graphicsBackend, _ = webgpu.NewGraphicsBackend()
 	hasSetupCompleted = true
 }
 
 func initWindow() {
-	SetScreenSize(screenWidth, screenHeight)
+	SetWindowSize(windowWidth, windowHeight)
 	SetScaleFactor(3)
 	SetTitle("ggez")
 }
@@ -62,7 +47,7 @@ func ensureSetupCompletion() {
 	if hasSetupCompleted {
 		return
 	}
-	Setup(ConfiguredRenderer)
+	Setup()
 	initWindow()
 }
 
@@ -71,21 +56,33 @@ func Update(updateFn func()) {
 	defer close()
 	fpsCounter = NewFPSCounter()
 
-	uifb = fb.New(screenWidth, screenHeight)
+	uifb = fb.New(int(windowWidth), int(windowHeight))
 	uiTexture, _ = CreateTextureFromImage(uifb.ToImage())
 
+	var err error
 	for {
 		if !graphicsBackend.PollEvents() {
 			break
 		}
-		updateFn()
 
-		uiTexture.Clear(color.RGBA{0, 0, 0, 255})
 		uiTexture.UpdateTextureFromImage(uifb.ToImage())
 		uiTexture.Render()
+		updateFn()
 		graphicsBackend.Render()
 
 		calculateFPS()
+		if err != nil {
+			fmt.Println("error occured while rendering:", err)
+
+			errstr := err.Error()
+			switch {
+			case strings.Contains(errstr, "Surface timed out"): // do nothing
+			case strings.Contains(errstr, "Surface is outdated"): // do nothing
+			case strings.Contains(errstr, "Surface was lost"): // do nothing
+			default:
+				panic(err)
+			}
+		}
 	}
 	uiTexture.Destroy()
 }
@@ -118,20 +115,22 @@ func SetTitle(title string) {
 	windowTitle = title
 }
 
+func GetWindowSize() (int, int) {
+	return graphicsBackend.GetWindowSize()
+}
+
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
-
-	screenWidth = width
-	screenHeight = width
-
-	graphicsBackend.SetScreenSize(screenWidth, screenHeight)
+	graphicsBackend.SetScreenSize(width, height)
 }
 
-func ScreenWidth() int {
-	return screenWidth
-}
-func ScreenHeight() int {
-	return screenHeight
+func SetWindowSize(width, height int) {
+	ensureSetupCompletion()
+
+	windowWidth = width
+	windowHeight = height
+
+	graphicsBackend.SetWindowSize(windowWidth, windowHeight)
 }
 
 func SetScaleFactor(f int) {
@@ -139,5 +138,12 @@ func SetScaleFactor(f int) {
 }
 
 func ToggleWireFrame() {
-	graphicsBackend.ToggleWireframeMode()
+	// graphicsBackend.ToggleWireframeMode()
+}
+
+func ScreenHeight() int {
+	return graphicsBackend.ScreenHeight()
+}
+func ScreenWidth() int {
+	return graphicsBackend.ScreenWidth()
 }

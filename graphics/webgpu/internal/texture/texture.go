@@ -73,9 +73,19 @@ func (t *Texture) createPipeline() error {
 			Module:     shader,
 			EntryPoint: "fs_main",
 			Targets: []wgpu.ColorTargetState{{
-				Format:    t.SwapChainDescriptor.Format,
-				Blend:     &wgpu.BlendState_Replace,
-				WriteMask: wgpu.ColorWriteMask_All,
+				Format: t.SwapChainDescriptor.Format,
+				Blend: &wgpu.BlendState{
+					Color: wgpu.BlendComponent{
+						SrcFactor: wgpu.BlendFactor_SrcAlpha,
+						DstFactor: wgpu.BlendFactor_OneMinusSrcAlpha,
+						Operation: wgpu.BlendOperation_Add,
+					},
+					Alpha: wgpu.BlendComponent{
+						SrcFactor: wgpu.BlendFactor_One,
+						DstFactor: wgpu.BlendFactor_Zero,
+						Operation: wgpu.BlendOperation_Add,
+					},
+				}, WriteMask: wgpu.ColorWriteMask_All,
 			}},
 		},
 		Primitive: wgpu.PrimitiveState{

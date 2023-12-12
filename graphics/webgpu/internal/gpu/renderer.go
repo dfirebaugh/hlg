@@ -24,6 +24,8 @@ type Renderer struct {
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
 	RenderQueue
+
+	clearColor wgpu.Color
 }
 
 func NewRenderer(w *window.Window) (r *Renderer, err error) {
@@ -107,8 +109,15 @@ func (r *Renderer) SetScreenSize(width int, height int) {
 	r.SwapChainDescriptor.Height = uint32(height)
 }
 
-func (r *Renderer) Clear(c color.Color) {}
-
+func (r *Renderer) Clear(c color.Color) {
+	red, green, blue, alpha := c.RGBA()
+	r.clearColor = wgpu.Color{
+		R: float64(red) / 0xffff,
+		G: float64(green) / 0xffff,
+		B: float64(blue) / 0xffff,
+		A: float64(alpha) / 0xffff,
+	}
+}
 func (r *Renderer) Render() {
 	view, err := r.SwapChain.GetCurrentTextureView()
 	if err != nil {
@@ -129,15 +138,10 @@ func (r *Renderer) Render() {
 
 	renderPass := encoder.BeginRenderPass(&wgpu.RenderPassDescriptor{
 		ColorAttachments: []wgpu.RenderPassColorAttachment{{
-			View:   view,
-			LoadOp: wgpu.LoadOp_Clear,
-			ClearValue: wgpu.Color{
-				R: 0.1,
-				G: 0.2,
-				B: 0.3,
-				A: 1.0,
-			},
-			StoreOp: wgpu.StoreOp_Store,
+			View:       view,
+			LoadOp:     wgpu.LoadOp_Clear,
+			ClearValue: r.clearColor,
+			StoreOp:    wgpu.StoreOp_Store,
 		}},
 	})
 	defer renderPass.Release()

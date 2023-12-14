@@ -1,15 +1,13 @@
 package window
 
 import (
+	"github.com/dfirebaugh/ggez/pkg/input"
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 type Window struct {
 	*glfw.Window
-	size struct {
-		Width  int
-		Height int
-	}
+	eventChan chan input.Event
 }
 
 func NewWindow(width int, height int) (*Window, error) {
@@ -27,11 +25,39 @@ func NewWindow(width int, height int) (*Window, error) {
 		return nil, err
 	}
 
-	w.size.Width = width
-	w.size.Height = height
 	w.Window.SetSize(int(width), int(height))
+	w.eventChan = make(chan input.Event, 100)
 
 	return w, nil
+}
+
+func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
+	w.Window.SetMouseButtonCallback(func(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+		var eventType input.EventType
+		if action == glfw.Press {
+			eventType = input.MousePress
+		} else if action == glfw.Release {
+			eventType = input.MouseRelease
+		}
+		w.eventChan <- input.Event{Type: eventType, MouseButton: input.MouseButton(button)}
+		fn(w.eventChan)
+	})
+
+	w.Window.SetCursorPosCallback(func(window *glfw.Window, xpos, ypos float64) {
+		w.eventChan <- input.Event{Type: input.MouseMove, X: int(xpos), Y: int(ypos)}
+		fn(w.eventChan)
+	})
+
+	w.Window.SetKeyCallback(func(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		var eventType input.EventType
+		if action == glfw.Press {
+			eventType = input.KeyPress
+		} else if action == glfw.Release {
+			eventType = input.KeyRelease
+		}
+		w.eventChan <- input.Event{Type: eventType, Key: input.Key(key)}
+		fn(w.eventChan)
+	})
 }
 
 func (w *Window) SetResizedCallback(fn func(physicalWidth, physicalHeight uint32, scaleFactor float64)) {

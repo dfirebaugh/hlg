@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 
+	"github.com/dfirebaugh/ggez/pkg/input"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -25,6 +26,7 @@ type GraphicsBackend interface {
 
 type Texture interface {
 	Handle() uintptr
+	UpdateImage(img image.Image) error
 	SetShouldBeRendered(souldRender bool)
 	Resize(width, height float32)
 	Move(x, y float32)
@@ -125,21 +127,6 @@ type Camera interface {
 	// 	SetCameraPosition(position geom.Vector3D, target geom.Vector3D, up geom.Vector3D)
 }
 
-// InputManager is an interface defining methods for handling user input.
 type InputManager interface {
-	// IsKeyPressed(keyCode uint32) bool
-	// IsKeyJustPressed(keyCode uint32) bool
-	// PressKey(keyCode uint32)
-	// ReleaseKey(keyCode uint32)
-
-	// IsButtonPressed(buttonCode uint8) bool
-	// IsButtonJustPressed(buttonCode uint8) bool
-	// PressButton(buttonCode uint8)
-	// ReleaseButton(buttonCode uint8)
-
-	// GetCursorPosition() (x, y int)
-
-	// SetScrollCallback(cb func(x float64, y float64))
-
-	// Update()
+	SetInputCallback(fn func(eventChan chan input.Event))
 }

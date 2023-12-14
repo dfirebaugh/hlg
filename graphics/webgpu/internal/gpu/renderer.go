@@ -6,12 +6,11 @@ import (
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
 	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/window"
-	"github.com/dfirebaugh/ggez/graphics/webgpu/renderer"
 )
 
 type RenderQueue interface {
-	Renderables() []renderer.Renderable
-	ClearRenderQueue()
+	PrepareFrame()
+	RenderFrame(pass *wgpu.RenderPassEncoder)
 }
 
 type Renderer struct {
@@ -119,6 +118,7 @@ func (r *Renderer) Clear(c color.Color) {
 	}
 }
 func (r *Renderer) Render() {
+	r.RenderQueue.PrepareFrame()
 	view, err := r.SwapChain.GetCurrentTextureView()
 	if err != nil {
 		panic(err.Error())
@@ -145,10 +145,7 @@ func (r *Renderer) Render() {
 		}},
 	})
 	defer renderPass.Release()
-
-	for _, renderable := range r.RenderQueue.Renderables() {
-		renderable.RenderPass(renderPass)
-	}
+	r.RenderQueue.RenderFrame(renderPass)
 	renderPass.End()
 
 	cmdBuffer, err := encoder.Finish(nil)
@@ -159,8 +156,6 @@ func (r *Renderer) Render() {
 
 	r.Device.GetQueue().Submit(cmdBuffer)
 	r.SwapChain.Present()
-
-	r.ClearRenderQueue()
 }
 
 func (r *Renderer) Destroy() {

@@ -24,13 +24,15 @@ func NewTexture(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, 
 	return t
 }
 
+func (t *Texture) UpdateImage(img image.Image) error {
+	return t.gpuTexture.UpdateImage(img)
+}
 func (t *Texture) SetHandle(h textureHandle) {
 	t.handle = h
 }
 func (t *Texture) Handle() uintptr {
 	return uintptr(t.handle)
 }
-
 func (t *Texture) SetShouldBeRendered(shouldRender bool) {
 	t.shouldRender = shouldRender
 }

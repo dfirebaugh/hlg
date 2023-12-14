@@ -20,16 +20,16 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 	ensureSetupCompletion()
 	var err error
 	t := Texture{}
-	t.Texture, err = graphicsBackend.CreateTextureFromImage(img)
+	t.Texture, err = ggez.graphicsBackend.CreateTextureFromImage(img)
 	return &t, err
 }
 
 func (t *Texture) UpdateTextureFromImage(img image.Image) {
-	graphicsBackend.UpdateTextureFromImage(t, img)
+	ggez.graphicsBackend.UpdateTextureFromImage(t, img)
 }
 
 // Destroy removes the texture from the renderer
 func (t Texture) Destroy() {
 	ensureSetupCompletion()
-	graphicsBackend.DisposeTexture(t.Handle())
+	ggez.graphicsBackend.DisposeTexture(t.Handle())
 }

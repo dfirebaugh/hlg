@@ -8,33 +8,37 @@ import (
 
 	"github.com/dfirebaugh/ggez/graphics"
 	"github.com/dfirebaugh/ggez/graphics/webgpu"
+	"github.com/dfirebaugh/ggez/pkg/draw"
 	"github.com/dfirebaugh/ggez/pkg/fb"
+	"github.com/dfirebaugh/ggez/pkg/input"
+	"github.com/dfirebaugh/ggez/pkg/math/geom"
 )
-
-type Runner struct {
-}
 
 var (
 	windowWidth  = 240
 	windowHeight = 160
 )
 
-var (
-	graphicsBackend graphics.GraphicsBackend
-
-	windowTitle string
-	uifb        = fb.New(int(windowWidth), int(windowHeight))
-	uiTexture   *Texture
-
-	hasSetupCompleted = false
+type engine struct {
+	graphicsBackend   graphics.GraphicsBackend
+	inputState        *input.InputState
+	windowTitle       string
+	uifb              *fb.ImageFB
+	uiTexture         *Texture
 	fpsCounter        *FPSCounter
+	hasSetupCompleted bool
+}
+
+var (
+	ggez = &engine{}
 )
 
 func Setup() {
 	runtime.LockOSThread()
-
-	graphicsBackend, _ = webgpu.NewGraphicsBackend()
-	hasSetupCompleted = true
+	ggez.inputState = input.NewInputState()
+	ggez.uifb = fb.New(int(windowWidth), int(windowHeight))
+	ggez.graphicsBackend, _ = webgpu.NewGraphicsBackend()
+	ggez.hasSetupCompleted = true
 }
 
 func initWindow() {
@@ -44,7 +48,7 @@ func initWindow() {
 }
 
 func ensureSetupCompletion() {
-	if hasSetupCompleted {
+	if ggez.hasSetupCompleted {
 		return
 	}
 	Setup()
@@ -54,23 +58,30 @@ func ensureSetupCompletion() {
 func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
-	fpsCounter = NewFPSCounter()
+	ggez.fpsCounter = NewFPSCounter()
 
-	uifb = fb.New(int(windowWidth), int(windowHeight))
-	uiTexture, _ = CreateTextureFromImage(uifb.ToImage())
+	ggez.uifb = fb.New(int(windowWidth), int(windowHeight))
+	ggez.uiTexture, _ = CreateTextureFromImage(ggez.uifb.ToImage())
+	defer ggez.uiTexture.Destroy()
+
+	ggez.graphicsBackend.SetInputCallback(func(eventChan chan input.Event) {
+		evt := <-eventChan
+		handleEvent(evt, ggez.inputState)
+	})
 
 	var err error
 	for {
-		if !graphicsBackend.PollEvents() {
+		if !ggez.graphicsBackend.PollEvents() {
 			break
 		}
 
-		uiTexture.UpdateTextureFromImage(uifb.ToImage())
-		uiTexture.Render()
 		updateFn()
-		graphicsBackend.Render()
+		ggez.uiTexture.UpdateTextureFromImage(ggez.uifb.ToImage())
+		ggez.uiTexture.Render()
+		ggez.graphicsBackend.Render()
 
 		calculateFPS()
+
 		if err != nil {
 			fmt.Println("error occured while rendering:", err)
 
@@ -84,44 +95,44 @@ func Update(updateFn func()) {
 			}
 		}
 	}
-	uiTexture.Destroy()
 }
 
 func calculateFPS() {
-	fpsCounter.Frame()
-	fps := fpsCounter.GetFPS()
-	title := windowTitle
+	ggez.fpsCounter.Frame()
+	fps := ggez.fpsCounter.GetFPS()
+	title := ggez.windowTitle
 	if fps != 0 && fpsEnabled {
 		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
 	}
-	graphicsBackend.SetWindowTitle(title)
+	ggez.graphicsBackend.SetWindowTitle(title)
 }
 
 func GetFPS() float64 {
-	return fpsCounter.GetFPS()
+	return ggez.fpsCounter.GetFPS()
 }
 
 func close() {
-	graphicsBackend.Close()
+	ggez.graphicsBackend.Close()
 }
 
 func Clear(c color.RGBA) {
 	ensureSetupCompletion()
-	graphicsBackend.Clear(c)
+	ggez.graphicsBackend.Clear(c)
+	draw.Rect(geom.MakeRect(0, 0, float32(windowWidth), float32(windowHeight))).Fill(ggez.uifb, color.RGBA{0, 0, 0, 0})
 }
 
 func SetTitle(title string) {
 	ensureSetupCompletion()
-	windowTitle = title
+	ggez.windowTitle = title
 }
 
 func GetWindowSize() (int, int) {
-	return graphicsBackend.GetWindowSize()
+	return ggez.graphicsBackend.GetWindowSize()
 }
 
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
-	graphicsBackend.SetScreenSize(width, height)
+	ggez.graphicsBackend.SetScreenSize(width, height)
 }
 
 func SetWindowSize(width, height int) {
@@ -130,11 +141,11 @@ func SetWindowSize(width, height int) {
 	windowWidth = width
 	windowHeight = height
 
-	graphicsBackend.SetWindowSize(windowWidth, windowHeight)
+	ggez.graphicsBackend.SetWindowSize(windowWidth, windowHeight)
 }
 
 func SetScaleFactor(f int) {
-	graphicsBackend.SetScaleFactor(f)
+	ggez.graphicsBackend.SetScaleFactor(f)
 }
 
 func ToggleWireFrame() {
@@ -142,8 +153,8 @@ func ToggleWireFrame() {
 }
 
 func ScreenHeight() int {
-	return graphicsBackend.ScreenHeight()
+	return ggez.graphicsBackend.ScreenHeight()
 }
 func ScreenWidth() int {
-	return graphicsBackend.ScreenWidth()
+	return ggez.graphicsBackend.ScreenWidth()
 }

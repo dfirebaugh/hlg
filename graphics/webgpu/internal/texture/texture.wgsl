@@ -19,13 +19,13 @@ struct VertexOutput {
 @vertex
 fn vs_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    out.tex_coords = mix(vec2<f32>(u_clipRect.xy), vec2<f32>(u_clipRect.zw), model.tex_coords);
 
-    // Apply flip based on the uniform
-    if (u_flipInfo.x > 0.5) { // Horizontal flip
+    out.tex_coords = model.tex_coords * (u_clipRect.zw - u_clipRect.xy) + u_clipRect.xy;
+
+    if (u_flipInfo.x > 0.5) {
         out.tex_coords.x = 1.0 - out.tex_coords.x;
     }
-    if (u_flipInfo.y > 0.5) { // Vertical flip
+    if (u_flipInfo.y > 0.5) {
         out.tex_coords.y = 1.0 - out.tex_coords.y;
     }
 
@@ -33,7 +33,6 @@ fn vs_main(model: VertexInput) -> VertexOutput {
     return out;
 }
 
-// Fragment shader
 @group(0) @binding(0)
 var t_diffuse: texture_2d<f32>;
 @group(0)@binding(1)

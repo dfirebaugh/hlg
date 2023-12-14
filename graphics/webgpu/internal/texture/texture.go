@@ -38,6 +38,171 @@ type Texture struct {
 	clipBuffer *wgpu.Buffer
 }
 
+func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
+	defer func() {
+		if err != nil {
+			t.Destroy()
+			t = nil
+		}
+	}()
+	r := img.Bounds()
+	width := r.Dx()
+	height := r.Dy()
+
+	t = &Texture{
+		Device:              d,
+		SwapChainDescriptor: scd,
+		transform:           matrix.MatrixIdentity(),
+		originalWidth:       float32(width),
+		originalHeight:      float32(height),
+	}
+
+	rgbaImg, ok := img.(*image.RGBA)
+	if !ok {
+		rgbaImg = image.NewRGBA(r)
+		draw.Draw(rgbaImg, r, img, image.Point{}, draw.Over)
+	}
+
+	size := wgpu.Extent3D{
+		Width:              uint32(width),
+		Height:             uint32(height),
+		DepthOrArrayLayers: 1,
+	}
+	t.Texture, err = d.CreateTexture(&wgpu.TextureDescriptor{
+		Label:         label,
+		Size:          size,
+		MipLevelCount: 1,
+		SampleCount:   1,
+		Dimension:     wgpu.TextureDimension_2D,
+		Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
+		Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
+	})
+	if err != nil {
+		return
+	}
+
+	d.GetQueue().WriteTexture(
+		&wgpu.ImageCopyTexture{
+			Aspect:   wgpu.TextureAspect_All,
+			Texture:  t.Texture,
+			MipLevel: 0,
+			Origin:   wgpu.Origin3D{X: 0, Y: 0, Z: 0},
+		},
+		rgbaImg.Pix,
+		&wgpu.TextureDataLayout{
+			Offset:       0,
+			BytesPerRow:  4 * uint32(width),
+			RowsPerImage: uint32(height),
+		},
+		&size,
+	)
+
+	t.TextureView, err = t.Texture.CreateView(nil)
+	if err != nil {
+		return
+	}
+
+	t.Sampler, err = d.CreateSampler(nil)
+	if err != nil {
+		return
+	}
+
+	err = t.createVertexBuffer()
+	if err != nil {
+		return nil, err
+	}
+	err = t.createIndexBuffer()
+	if err != nil {
+		return nil, err
+	}
+	t.createTransformBuffer()
+	err = t.createFlipBuffer()
+	if err != nil {
+		return nil, err
+	}
+	err = t.createClipBuffer()
+	if err != nil {
+		return nil, err
+	}
+	t.SetDefaultClip()
+
+	err = t.createBindGroup()
+	if err != nil {
+		return nil, err
+	}
+	err = t.createPipeline()
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (t *Texture) UpdateImage(img image.Image) error {
+	r := img.Bounds()
+	width := r.Dx()
+	height := r.Dy()
+
+	rgbaImg, ok := img.(*image.RGBA)
+	if !ok {
+		rgbaImg = image.NewRGBA(r)
+		draw.Draw(rgbaImg, r, img, image.Point{}, draw.Over)
+	}
+
+	if int(t.originalWidth) != width || int(t.originalHeight) != height {
+		size := wgpu.Extent3D{
+			Width:              uint32(width),
+			Height:             uint32(height),
+			DepthOrArrayLayers: 1,
+		}
+
+		if t.Texture != nil {
+			t.Texture.Release()
+		}
+
+		var err error
+		t.Texture, err = t.Device.CreateTexture(&wgpu.TextureDescriptor{
+			Label:         "UpdatedTexture",
+			Size:          size,
+			MipLevelCount: 1,
+			SampleCount:   1,
+			Dimension:     wgpu.TextureDimension_2D,
+			Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
+			Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
+		})
+		if err != nil {
+			return err
+		}
+
+		t.originalWidth = float32(width)
+		t.originalHeight = float32(height)
+	}
+
+	size := wgpu.Extent3D{
+		Width:              uint32(width),
+		Height:             uint32(height),
+		DepthOrArrayLayers: 1,
+	}
+
+	t.Device.GetQueue().WriteTexture(
+		&wgpu.ImageCopyTexture{
+			Aspect:   wgpu.TextureAspect_All,
+			Texture:  t.Texture,
+			MipLevel: 0,
+			Origin:   wgpu.Origin3D{X: 0, Y: 0, Z: 0},
+		},
+		rgbaImg.Pix,
+		&wgpu.TextureDataLayout{
+			Offset:       0,
+			BytesPerRow:  4 * uint32(width),
+			RowsPerImage: uint32(height),
+		},
+		&size,
+	)
+
+	return nil
+}
+
 func (t *Texture) createPipeline() error {
 	shader, err := t.CreateShaderModule(&wgpu.ShaderModuleDescriptor{
 		Label: "texture.wgsl",
@@ -231,6 +396,17 @@ func (t *Texture) createFlipBuffer() error {
 	})
 	return err
 }
+func (t *Texture) createClipBuffer() error {
+	clipInfo := [4]float32{0.0, 0.0, t.originalWidth, t.originalWidth}
+
+	var err error
+	t.clipBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+		Label:    "Flip Buffer",
+		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
+		Contents: wgpu.ToBytes(clipInfo[:]),
+	})
+	return err
+}
 
 func (t *Texture) Destroy() {
 	if t.Sampler != nil {
@@ -269,14 +445,10 @@ func (t *Texture) Destroy() {
 		t.flipBuffer.Release()
 		t.flipBuffer = nil
 	}
-}
-
-func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
-	pass.SetPipeline(t.RenderPipeline)
-	pass.SetBindGroup(0, t.BindGroup, nil)
-	pass.SetVertexBuffer(0, t.vertexBuffer, 0, wgpu.WholeSize)
-	pass.SetIndexBuffer(t.indexBuffer, wgpu.IndexFormat_Uint16, 0, wgpu.WholeSize)
-	pass.DrawIndexed(t.numIndices, 1, 0, 0, 0)
+	if t.clipBuffer != nil {
+		t.clipBuffer.Release()
+		t.clipBuffer = nil
+	}
 }
 
 func (t *Texture) UpdateTransformBuffer() {
@@ -298,173 +470,10 @@ func (t *Texture) updateFlipBuffer() {
 	t.Device.GetQueue().WriteBuffer(t.flipBuffer, 0, wgpu.ToBytes(t.flipMatrix[:]))
 }
 
-func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
-	defer func() {
-		if err != nil {
-			t.Destroy()
-			t = nil
-		}
-	}()
-	t = &Texture{
-		Device:              d,
-		SwapChainDescriptor: scd,
-		transform:           matrix.MatrixIdentity(),
-		originalWidth:       float32(img.Bounds().Dx()),
-		originalHeight:      float32(img.Bounds().Dy()),
-	}
-
-	r := img.Bounds()
-	width := r.Dx()
-	height := r.Dy()
-
-	rgbaImg, ok := img.(*image.RGBA)
-	if !ok {
-		rgbaImg = image.NewRGBA(r)
-		draw.Draw(rgbaImg, r, img, image.Point{}, draw.Over)
-	}
-
-	size := wgpu.Extent3D{
-		Width:              uint32(width),
-		Height:             uint32(height),
-		DepthOrArrayLayers: 1,
-	}
-	t.Texture, err = d.CreateTexture(&wgpu.TextureDescriptor{
-		Label:         label,
-		Size:          size,
-		MipLevelCount: 1,
-		SampleCount:   1,
-		Dimension:     wgpu.TextureDimension_2D,
-		Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
-		Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
-	})
-	if err != nil {
-		return
-	}
-
-	d.GetQueue().WriteTexture(
-		&wgpu.ImageCopyTexture{
-			Aspect:   wgpu.TextureAspect_All,
-			Texture:  t.Texture,
-			MipLevel: 0,
-			Origin:   wgpu.Origin3D{X: 0, Y: 0, Z: 0},
-		},
-		rgbaImg.Pix,
-		&wgpu.TextureDataLayout{
-			Offset:       0,
-			BytesPerRow:  4 * uint32(width),
-			RowsPerImage: uint32(height),
-		},
-		&size,
-	)
-
-	t.TextureView, err = t.Texture.CreateView(nil)
-	if err != nil {
-		return
-	}
-
-	t.Sampler, err = d.CreateSampler(nil)
-	if err != nil {
-		return
-	}
-
-	t.SetDefaultClip()
-
-	err = t.createVertexBuffer()
-	if err != nil {
-		return nil, err
-	}
-	err = t.createIndexBuffer()
-	if err != nil {
-		return nil, err
-	}
-	t.createTransformBuffer()
-	err = t.createFlipBuffer()
-	if err != nil {
-		return nil, err
-	}
-	err = t.createBindGroup()
-	if err != nil {
-		return nil, err
-	}
-	err = t.createPipeline()
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
-func (t *Texture) Resize(width, height float32) {
-	scaleX := width / t.originalWidth
-	scaleY := height / t.originalHeight
-
-	t.transform = t.transform.Scale(scaleX, scaleY)
-	t.UpdateTransformBuffer()
-}
-
-func (t *Texture) MoveInScreenSpace(screenX, screenY float32) {
-	currentWidth, currentHeight := t.GetCurrentSize()
-
-	ndcX := (2.0 * (screenX + currentWidth/2) / float32(t.SwapChainDescriptor.Width)) - 1.0
-	ndcY := 1.0 - (2.0 * (screenY + currentHeight/2) / float32(t.SwapChainDescriptor.Height))
-
-	t.transform[12] = ndcX
-	t.transform[13] = ndcY
-
-	t.UpdateTransformBuffer()
-}
-
-func (t *Texture) Rotate(a float32) {
-	t.transform = t.transform.Rotate(a)
-	t.UpdateTransformBuffer()
-}
-
-func (t *Texture) Scale(x, y float32) {
-	t.transform = t.transform.Scale(x, y)
-	t.UpdateTransformBuffer()
-}
-
-func (t *Texture) FlipVertical() {
-	t.flipVertical = !t.flipVertical
-	t.updateFlipBuffer()
-}
-
-func (t *Texture) FlipHorizontal() {
-	t.flipHorizontal = !t.flipHorizontal
-	t.updateFlipBuffer()
-}
-
-func (t *Texture) SetDefaultClip() error {
-	return t.SetClipRect(0, 0, t.originalWidth, t.originalHeight)
-}
-
-func (t *Texture) SetClipRect(minX, minY, maxX, maxY float32) error {
-	t.clipRect = [4]float32{
-		minX / t.originalWidth,
-		minY / t.originalHeight,
-		maxX / t.originalWidth,
-		maxY / t.originalHeight,
-	}
-
-	if t.clipBuffer != nil {
-		t.clipBuffer.Release()
-	}
-
-	var err error
-	t.clipBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Clip Buffer",
-		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
-		Contents: wgpu.ToBytes(t.clipRect[:]),
-	})
-	return err
-}
-
-func (t *Texture) GetCurrentSize() (float32, float32) {
-	scaleX := t.transform[0]
-	scaleY := t.transform[5]
-
-	currentWidth := t.originalWidth * scaleX
-	currentHeight := t.originalHeight * scaleY
-
-	return currentWidth, currentHeight
+func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
+	pass.SetPipeline(t.RenderPipeline)
+	pass.SetBindGroup(0, t.BindGroup, nil)
+	pass.SetVertexBuffer(0, t.vertexBuffer, 0, wgpu.WholeSize)
+	pass.SetIndexBuffer(t.indexBuffer, wgpu.IndexFormat_Uint16, 0, wgpu.WholeSize)
+	pass.DrawIndexed(t.numIndices, 1, 0, 0, 0)
 }

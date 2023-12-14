@@ -53,7 +53,7 @@ func DrawTexture(t Texture) {
 
 func PrintAt(s string, x int, y int, c color.Color) {
 	ensureSetupCompletion()
-	tinyfont.WriteLine(uifb, &proggy.TinySZ8pt7b, int16(x), int16(y), s, c.(color.RGBA))
+	tinyfont.WriteLine(ggez.uifb, &proggy.TinySZ8pt7b, int16(x), int16(y), s, c.(color.RGBA))
 }
 
 func DrawModel(m graphics.Model, t graphics.Texture) {

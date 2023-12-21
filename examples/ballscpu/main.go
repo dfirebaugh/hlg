@@ -50,21 +50,24 @@ func (b *Ball) Update() {
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
+	sw, sh := ggez.ScreenSize()
+
 	// Boundary checks - Bounce off the edges
-	if b.X < 0 || b.X > float32(ggez.ScreenWidth()) {
+	if b.X < 0 || b.X > float32(sw) {
 		b.Velocity.X = -b.Velocity.X
 	}
 
-	if b.Y < 0 || b.Y > float32(ggez.ScreenHeight()) {
+	if b.Y < 0 || b.Y > float32(sh) {
 		b.Velocity.Y = -b.Velocity.Y
 	}
 }
 
 func NewBall(screen Screen) Ball {
+	sw, sh := ggez.ScreenSize()
 	return Ball{
 		screen: screen,
 		Circle: geom.Circle{
-			X: float32(rand.Float64() * float64(ggez.ScreenWidth())), Y: float32(rand.Float64() * float64(ggez.ScreenHeight())),
+			X: float32(rand.Float64() * float64(sw)), Y: float32(rand.Float64() * float64(sh)),
 			R: float32(rand.Intn(35) + 10),
 		},
 		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},

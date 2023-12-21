@@ -50,11 +50,13 @@ func (b *Ball) Update() {
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
-	if b.X < 0 || b.X > float32(ggez.ScreenWidth()) {
+	sw, sh := ggez.ScreenSize()
+
+	if b.X < 0 || b.X > float32(sw) {
 		b.Velocity.X = -b.Velocity.X
 	}
 
-	if b.Y < 0 || b.Y > float32(ggez.ScreenHeight()) {
+	if b.Y < 0 || b.Y > float32(sh) {
 		b.Velocity.Y = -b.Velocity.Y
 	}
 	b.Texture.Move(b.X, b.Y)
@@ -72,9 +74,11 @@ func NewBall() Ball {
 		panic(err)
 	}
 
+	sw, sh := ggez.ScreenSize()
+
 	return Ball{
 		Circle: geom.Circle{
-			X: float32(rand.Float64() * float64(ggez.ScreenWidth())), Y: float32(rand.Float64() * float64(ggez.ScreenHeight())),
+			X: float32(rand.Float64() * float64(sw)), Y: float32(rand.Float64() * float64(sh)),
 			R: 50,
 		},
 		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},

@@ -24,11 +24,18 @@ type GraphicsBackend struct {
 	*RenderQueue
 }
 
+const (
+	width  = 600
+	height = 412
+)
+
 func NewGraphicsBackend() (*GraphicsBackend, error) {
-	w, err := window.NewWindow(600, 412)
+	w, err := window.NewWindow(width, height)
 	if err != nil {
 		panic(err)
 	}
+
+	w.SetAspectRatio(width, height)
 
 	s, err := gpu.NewRenderer(w)
 	if err != nil {

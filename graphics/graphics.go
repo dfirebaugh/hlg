@@ -1,3 +1,5 @@
+// Package graphics provides functionality for 2D graphics rendering,
+// including textures, sprites, text, and shapes.
 package graphics
 
 import (
@@ -11,8 +13,7 @@ import (
 type GraphicsBackend interface {
 	Close()
 	PrintPlatformAndVersion()
-	ScreenHeight() int
-	ScreenWidth() int
+	ScreenSize() (int, int)
 
 	WindowManager
 	EventManager
@@ -35,6 +36,12 @@ type Texture interface {
 	FlipVertical()
 	FlipHorizontal()
 	Clip(minX, minY, maxX, maxY float32)
+	RenderPass(pass *wgpu.RenderPassEncoder)
+	Render()
+	Dispose()
+}
+
+type Renderable interface {
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()
 	Dispose()
@@ -69,6 +76,7 @@ type EventManager interface {
 }
 
 type ShapeRenderer interface {
+	// AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Renderable
 	// DrawLine(x1, y1, x2, y2 int, c color.Color)
 	// FillTriangle(x1, y1, x2, y2, x3, y3 float32, c color.Color)
 	// DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color)

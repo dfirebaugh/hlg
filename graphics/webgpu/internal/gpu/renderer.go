@@ -1,6 +1,7 @@
 package gpu
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
@@ -22,6 +23,7 @@ type Renderer struct {
 	*wgpu.Device
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
+	*window.Window
 	RenderQueue
 
 	clearColor wgpu.Color
@@ -33,11 +35,12 @@ func NewRenderer(w *window.Window) (r *Renderer, err error) {
 	defer func() {
 		if err != nil {
 			r.Destroy()
-			r = nil
+			panic(err)
 		}
 	}()
 	width, height := w.GetWindowSize()
 	r = &Renderer{
+		Window: w,
 		windowSize: struct {
 			Width  int
 			Height int
@@ -47,6 +50,10 @@ func NewRenderer(w *window.Window) (r *Renderer, err error) {
 		},
 	}
 	err = r.setupDevice(w)
+
+	w.SetCloseCallback(func() {
+		r.Destroy()
+	})
 
 	return r, err
 }
@@ -88,19 +95,32 @@ func (r *Renderer) setupDevice(w *window.Window) error {
 
 func (r *Renderer) Resize(width int, height int) {
 	if width > 0 && height > 0 {
+		aspectRatio := float64(r.windowSize.Width) / float64(r.windowSize.Height)
+		newHeight := int(float64(width) / aspectRatio)
+		if newHeight > height {
+			width = int(float64(height) * aspectRatio)
+		} else {
+			height = newHeight
+		}
+
 		r.windowSize.Width = width
 		r.windowSize.Height = height
 		r.SetScreenSize(width, height)
 
 		if r.SwapChain != nil {
 			r.SwapChain.Release()
+			r.SwapChain = nil
 		}
+
 		var err error
-		r.SwapChain, err = r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
-		if err != nil {
+		if r.SwapChain, err = r.createSwapChain(); err != nil {
 			panic(err)
 		}
 	}
+}
+
+func (r *Renderer) createSwapChain() (*wgpu.SwapChain, error) {
+	return r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
 }
 
 func (r *Renderer) SetScreenSize(width int, height int) {
@@ -117,11 +137,45 @@ func (r *Renderer) Clear(c color.Color) {
 		A: float64(alpha) / 0xffff,
 	}
 }
+
+func (r *Renderer) SurfaceIsOutdated() bool {
+	currentWidth, currentHeight := r.Window.GetWindowSize()
+	return currentWidth != int(r.SwapChainDescriptor.Width) || currentHeight != int(r.SwapChainDescriptor.Height)
+}
+
+func (r *Renderer) RecreateSwapChain() {
+	if r.SwapChain != nil {
+		r.SwapChain.Release()
+		r.SwapChain = nil
+	}
+
+	width, height := r.Window.GetWindowSize()
+	r.windowSize.Width = width
+	r.windowSize.Height = height
+	r.SetScreenSize(width, height)
+
+	var err error
+	r.SwapChain, err = r.createSwapChain()
+	if err != nil {
+		fmt.Println("Failed to recreate swap chain:", err)
+		return
+	}
+}
+
 func (r *Renderer) Render() {
+	if r.SwapChain == nil {
+		return
+	}
+
 	r.RenderQueue.PrepareFrame()
 	view, err := r.SwapChain.GetCurrentTextureView()
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("Error getting texture view:", err)
+
+		if r.SurfaceIsOutdated() {
+			r.RecreateSwapChain()
+		}
+		return
 	}
 	defer view.Release()
 
@@ -179,10 +233,6 @@ func (r *Renderer) Destroy() {
 	}
 }
 
-func (r *Renderer) ScreenHeight() int {
-	return int(r.SwapChainDescriptor.Height)
-}
-
-func (r *Renderer) ScreenWidth() int {
-	return int(r.SwapChainDescriptor.Width)
+func (r *Renderer) ScreenSize() (int, int) {
+	return int(r.SwapChainDescriptor.Width), int(r.SwapChainDescriptor.Height)
 }

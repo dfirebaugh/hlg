@@ -152,9 +152,6 @@ func ToggleWireFrame() {
 	// graphicsBackend.ToggleWireframeMode()
 }
 
-func ScreenHeight() int {
-	return ggez.graphicsBackend.ScreenHeight()
-}
-func ScreenWidth() int {
-	return ggez.graphicsBackend.ScreenWidth()
+func ScreenSize() (int, int) {
+	return ggez.graphicsBackend.ScreenSize()
 }

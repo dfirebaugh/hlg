@@ -7,7 +7,8 @@ import (
 
 type Window struct {
 	*glfw.Window
-	eventChan chan input.Event
+	aspectRatio float64
+	eventChan   chan input.Event
 }
 
 func NewWindow(width int, height int) (*Window, error) {
@@ -28,9 +29,23 @@ func NewWindow(width int, height int) (*Window, error) {
 	w.Window.SetSize(int(width), int(height))
 	w.eventChan = make(chan input.Event, 100)
 
+	w.Window.SetIconifyCallback(func(w *glfw.Window, iconified bool) {
+
+	})
+
 	return w, nil
 }
 
+func (w *Window) SetAspectRatio(numerator, denominator int) {
+	w.aspectRatio = float64(numerator) / float64(denominator)
+	w.Window.SetAspectRatio(numerator, denominator)
+}
+func (w *Window) SetCloseCallback(fn func()) {
+	w.Window.SetCloseCallback(func(w *glfw.Window) {
+		defer w.Destroy()
+		fn()
+	})
+}
 func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
 	w.Window.SetMouseButtonCallback(func(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 		var eventType input.EventType
@@ -80,6 +95,7 @@ func (w *Window) GetWindowSize() (int, int) {
 }
 
 func (w *Window) SetWindowSize(width int, height int) {
+	w.SetAspectRatio(width, height)
 	w.SetSize(width, height)
 }
 

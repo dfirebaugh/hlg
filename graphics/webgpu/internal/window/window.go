@@ -9,29 +9,28 @@ type Window struct {
 	*glfw.Window
 	aspectRatio float64
 	eventChan   chan input.Event
+	isDisposed  bool
 }
 
-func NewWindow(width int, height int) (*Window, error) {
-	w := &Window{}
-	var err error
-
+func NewWindow(width, height int) (*Window, error) {
 	if err := glfw.Init(); err != nil {
-		panic(err)
-	}
-
-	glfw.WindowHint(glfw.ClientAPI, glfw.NoAPI)
-	w.Window, err = glfw.CreateWindow(640, 480, "go-webgpu with glfw", nil, nil)
-	if err != nil {
-		w.Destroy()
 		return nil, err
 	}
 
-	w.Window.SetSize(int(width), int(height))
-	w.eventChan = make(chan input.Event, 100)
+	glfw.WindowHint(glfw.ClientAPI, glfw.NoAPI)
+	win, err := glfw.CreateWindow(640, 480, "go-webgpu with glfw", nil, nil)
+	if err != nil {
+		glfw.Terminate()
+		return nil, err
+	}
 
-	w.Window.SetIconifyCallback(func(w *glfw.Window, iconified bool) {
+	w := &Window{
+		Window:     win,
+		eventChan:  make(chan input.Event, 100),
+		isDisposed: false,
+	}
 
-	})
+	win.SetSize(width, height)
 
 	return w, nil
 }
@@ -91,6 +90,9 @@ func (w *Window) SetWindowTitle(title string) {
 }
 
 func (w *Window) GetWindowSize() (int, int) {
+	if w.isDisposed {
+		return 0, 0
+	}
 	return w.Window.GetSize()
 }
 
@@ -106,14 +108,26 @@ func (w *Window) DestroyWindow() {
 }
 
 func (w *Window) Poll() bool {
+	if w.isDisposed {
+		return false
+	}
+
 	glfw.PollEvents()
 	return true
 }
 
+func (w *Window) IsDisposed() bool {
+	return w.isDisposed
+}
+
 func (w *Window) Destroy() {
+	if w.isDisposed {
+		return
+	}
 	if w.Window != nil {
 		w.Window.Destroy()
 		w.Window = nil
 	}
 	glfw.Terminate()
+	w.isDisposed = true
 }

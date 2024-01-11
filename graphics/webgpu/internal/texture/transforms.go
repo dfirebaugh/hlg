@@ -3,8 +3,15 @@ package texture
 import "github.com/rajveermalviya/go-webgpu/wgpu"
 
 func (t *Texture) Resize(width, height float32) {
-	scaleX := width / t.originalWidth
-	scaleY := height / t.originalHeight
+	t.ResizeInScreenSpace(width, height)
+}
+
+func (t *Texture) ResizeInScreenSpace(screenWidth, screenHeight float32) {
+	ndcWidth := (2.0 * screenWidth) / float32(t.SwapChainDescriptor.Width)
+	ndcHeight := (2.0 * screenHeight) / float32(t.SwapChainDescriptor.Height)
+
+	scaleX := ndcWidth
+	scaleY := ndcHeight
 
 	t.transform = t.transform.Scale(scaleX, scaleY)
 	t.UpdateTransformBuffer()

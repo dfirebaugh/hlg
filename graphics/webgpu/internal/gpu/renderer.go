@@ -3,6 +3,7 @@ package gpu
 import (
 	"fmt"
 	"image/color"
+	"log"
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
@@ -32,12 +33,6 @@ type Renderer struct {
 func NewRenderer(w *window.Window) (r *Renderer, err error) {
 	wgpu.SetLogLevel(wgpu.LogLevel_Off)
 
-	defer func() {
-		if err != nil {
-			r.Destroy()
-			panic(err)
-		}
-	}()
 	width, height := w.GetWindowSize()
 	r = &Renderer{
 		Window: w,
@@ -50,6 +45,15 @@ func NewRenderer(w *window.Window) (r *Renderer, err error) {
 		},
 	}
 	err = r.setupDevice(w)
+
+	defer func() {
+		if rec := recover(); rec != nil {
+			log.Printf("Recovered from panic: %v\n", r)
+			if err != nil {
+				r.Destroy()
+			}
+		}
+	}()
 
 	w.SetCloseCallback(func() {
 		r.Destroy()
@@ -94,6 +98,11 @@ func (r *Renderer) setupDevice(w *window.Window) error {
 }
 
 func (r *Renderer) Resize(width int, height int) {
+	if width <= 0 || height <= 0 {
+		log.Println("Invalid dimensions for Resize")
+		return
+	}
+
 	if width > 0 && height > 0 {
 		aspectRatio := float64(r.windowSize.Width) / float64(r.windowSize.Height)
 		newHeight := int(float64(width) / aspectRatio)
@@ -120,6 +129,10 @@ func (r *Renderer) Resize(width int, height int) {
 }
 
 func (r *Renderer) createSwapChain() (*wgpu.SwapChain, error) {
+	if r.Device == nil {
+		return nil, fmt.Errorf("device is nil")
+	}
+
 	return r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
 }
 
@@ -163,6 +176,11 @@ func (r *Renderer) RecreateSwapChain() {
 }
 
 func (r *Renderer) Render() {
+	if r.RenderQueue == nil {
+		log.Println("RenderQueue is not set")
+		return
+	}
+
 	if r.SwapChain == nil {
 		return
 	}

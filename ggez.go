@@ -104,6 +104,9 @@ func calculateFPS() {
 	if fps != 0 && fpsEnabled {
 		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
 	}
+	if ggez.graphicsBackend.IsDisposed() {
+		return
+	}
 	ggez.graphicsBackend.SetWindowTitle(title)
 }
 

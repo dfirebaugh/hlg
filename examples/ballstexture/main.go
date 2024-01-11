@@ -63,7 +63,7 @@ func (b *Ball) Update() {
 }
 
 func NewBall() Ball {
-	circleRadius := 400
+	circleRadius := 80
 	padding := 0
 	ballColor := color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255}
 	f := fb.New((circleRadius*2)+padding, (circleRadius*2)+padding)
@@ -79,7 +79,7 @@ func NewBall() Ball {
 	return Ball{
 		Circle: geom.Circle{
 			X: float32(rand.Float64() * float64(sw)), Y: float32(rand.Float64() * float64(sh)),
-			R: 50,
+			R: 25,
 		},
 		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},
 		// Color:    color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255},

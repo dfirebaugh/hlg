@@ -5,7 +5,6 @@ import (
 	"unsafe"
 
 	"github.com/dfirebaugh/ggez/graphics"
-	"github.com/dfirebaugh/ggez/graphics/webgpu/renderer"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -15,9 +14,9 @@ type RenderQueue struct {
 	*wgpu.Device
 	*wgpu.SwapChainDescriptor
 	Textures     map[textureHandle]*Texture
-	renderQueue  []renderer.Renderable
-	nextFrame    []renderer.Renderable
-	currentFrame []renderer.Renderable
+	renderQueue  []graphics.Renderable
+	nextFrame    []graphics.Renderable
+	currentFrame []graphics.Renderable
 }
 
 func NewRenderQueue(d *wgpu.Device, scd *wgpu.SwapChainDescriptor) *RenderQueue {
@@ -25,15 +24,15 @@ func NewRenderQueue(d *wgpu.Device, scd *wgpu.SwapChainDescriptor) *RenderQueue 
 		Device:              d,
 		SwapChainDescriptor: scd,
 		Textures:            make(map[textureHandle]*Texture),
-		nextFrame:           []renderer.Renderable{},
-		currentFrame:        []renderer.Renderable{},
+		nextFrame:           []graphics.Renderable{},
+		currentFrame:        []graphics.Renderable{},
 	}
 }
 
-func (rq *RenderQueue) AddToRenderQueue(r renderer.Renderable) {
+func (rq *RenderQueue) AddToRenderQueue(r graphics.Renderable) {
 	rq.renderQueue = append(rq.renderQueue, r)
 }
-func (rq *RenderQueue) Pop() (renderer.Renderable, bool) {
+func (rq *RenderQueue) Pop() (graphics.Renderable, bool) {
 	if len(rq.renderQueue) == 0 {
 		return nil, false
 	}

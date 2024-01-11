@@ -18,20 +18,20 @@ func NewWindow(width, height int) (*Window, error) {
 	}
 
 	glfw.WindowHint(glfw.ClientAPI, glfw.NoAPI)
-	win, err := glfw.CreateWindow(640, 480, "go-webgpu with glfw", nil, nil)
-	if err != nil {
-		glfw.Terminate()
-		return nil, err
-	}
 
 	w := &Window{
-		Window:     win,
 		eventChan:  make(chan input.Event, 100),
 		isDisposed: false,
 	}
 
+	win, err := glfw.CreateWindow(640, 480, "go-webgpu with glfw", nil, nil)
+	if err != nil {
+		glfw.Terminate()
+		w.DestroyWindow()
+		return nil, err
+	}
+	w.Window = win
 	win.SetSize(width, height)
-
 	return w, nil
 }
 
@@ -121,6 +121,7 @@ func (w *Window) IsDisposed() bool {
 }
 
 func (w *Window) Destroy() {
+	w.isDisposed = true
 	if w.isDisposed {
 		return
 	}
@@ -129,5 +130,4 @@ func (w *Window) Destroy() {
 		w.Window = nil
 	}
 	glfw.Terminate()
-	w.isDisposed = true
 }

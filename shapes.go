@@ -8,6 +8,11 @@ import (
 	"tinygo.org/x/tinyfont/proggy"
 )
 
+func Triangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Renderable {
+	ensureSetupCompletion()
+	return ggez.graphicsBackend.AddTriangle(x1, y1, x2, y2, x3, y3, c)
+}
+
 func DrawLine(x1, y1, x2, y2 int, c color.Color) {
 	ensureSetupCompletion()
 	// graphicsBackend.DrawLine(x1, y1, x2, y2, c)

@@ -54,6 +54,7 @@ func NewRenderer(w *window.Window) (r *Renderer, err error) {
 			}
 		}
 	}()
+	wgpu.SetLogLevel(wgpu.LogLevel_Error)
 
 	w.SetCloseCallback(func() {
 		r.Destroy()
@@ -103,28 +104,17 @@ func (r *Renderer) Resize(width int, height int) {
 		return
 	}
 
-	if width > 0 && height > 0 {
-		aspectRatio := float64(r.windowSize.Width) / float64(r.windowSize.Height)
-		newHeight := int(float64(width) / aspectRatio)
-		if newHeight > height {
-			width = int(float64(height) * aspectRatio)
-		} else {
-			height = newHeight
-		}
+	// Update window size
+	r.windowSize.Width = width
+	r.windowSize.Height = height
 
-		r.windowSize.Width = width
-		r.windowSize.Height = height
-		r.SetScreenSize(width, height)
+	// Update screen size used by the swap chain
+	r.SetScreenSize(width, height)
 
-		if r.SwapChain != nil {
-			r.SwapChain.Release()
-			r.SwapChain = nil
-		}
-
-		var err error
-		if r.SwapChain, err = r.createSwapChain(); err != nil {
-			panic(err)
-		}
+	// Recreate swap chain with new dimensions
+	var err error
+	if r.SwapChain, err = r.createSwapChain(); err != nil {
+		panic(err)
 	}
 }
 
@@ -152,6 +142,9 @@ func (r *Renderer) Clear(c color.Color) {
 }
 
 func (r *Renderer) SurfaceIsOutdated() bool {
+	if r.Window == nil {
+		return true
+	}
 	currentWidth, currentHeight := r.Window.GetWindowSize()
 	return currentWidth != int(r.SwapChainDescriptor.Width) || currentHeight != int(r.SwapChainDescriptor.Height)
 }
@@ -163,15 +156,16 @@ func (r *Renderer) RecreateSwapChain() {
 	}
 
 	width, height := r.Window.GetWindowSize()
-	r.windowSize.Width = width
-	r.windowSize.Height = height
-	r.SetScreenSize(width, height)
+	if width > 0 && height > 0 {
+		r.windowSize.Width = width
+		r.windowSize.Height = height
+		r.SetScreenSize(width, height)
 
-	var err error
-	r.SwapChain, err = r.createSwapChain()
-	if err != nil {
-		fmt.Println("Failed to recreate swap chain:", err)
-		return
+		var err error
+		r.SwapChain, err = r.createSwapChain()
+		if err != nil {
+			fmt.Println("Failed to recreate swap chain:", err)
+		}
 	}
 }
 
@@ -181,8 +175,18 @@ func (r *Renderer) Render() {
 		return
 	}
 
-	if r.SwapChain == nil {
+	width, height := r.Window.GetWindowSize()
+	if width <= 0 || height <= 0 {
 		return
+	}
+
+	if r.SwapChain == nil {
+		log.Println("RenderQueue is not set")
+		return
+	}
+
+	if r.SurfaceIsOutdated() {
+		r.RecreateSwapChain()
 	}
 
 	r.RenderQueue.PrepareFrame()

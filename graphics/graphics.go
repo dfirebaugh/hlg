@@ -77,7 +77,7 @@ type EventManager interface {
 }
 
 type ShapeRenderer interface {
-	// AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Renderable
+	AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Renderable
 	// DrawLine(x1, y1, x2, y2 int, c color.Color)
 	// FillTriangle(x1, y1, x2, y2, x3, y3 float32, c color.Color)
 	// DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color)

@@ -74,6 +74,7 @@ func (p *Player) Render() {
 
 func main() {
 	ggez.SetWindowSize(windowWidth, windowHeight)
+	ggez.SetScreenSize(windowWidth, windowHeight)
 
 	// Load sprite sheet (replace assets.BuddyDanceSpriteSheet with your sprite sheet)
 	reader := bytes.NewReader(assets.BuddyDanceSpriteSheet)

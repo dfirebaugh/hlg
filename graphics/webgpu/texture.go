@@ -67,6 +67,9 @@ func (t *Texture) Render() {
 	t.SetShouldBeRendered(true)
 	t.renderQueue.AddToRenderQueue(t)
 }
+func (t *Texture) Hide() {
+	t.shouldRender = false
+}
 func (t *Texture) Dispose() {
 	t.renderQueue.DisposeTexture(uintptr(t.handle))
 }

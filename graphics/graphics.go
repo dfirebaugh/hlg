@@ -45,6 +45,7 @@ type Renderable interface {
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()
 	Dispose()
+	Hide()
 }
 
 type Renderer interface {
@@ -76,18 +77,16 @@ type EventManager interface {
 	PollEvents() bool
 }
 
+type Shape interface {
+	Renderable
+	SetColor(c color.Color)
+}
+
 type ShapeRenderer interface {
-	AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Renderable
-	// DrawLine(x1, y1, x2, y2 int, c color.Color)
-	// FillTriangle(x1, y1, x2, y2, x3, y3 float32, c color.Color)
-	// DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color)
-	// FillPolygon(xPoints, yPoints []int, c color.Color)
-	// DrawPolygon(xPoints, yPoints []int, c color.Color)
-	// FillRect(x, y, width, height int, c color.Color)
-	// DrawRect(x, y, width, height int, c color.Color)
-	// FillCircle(x, y, radius int, c color.Color)
-	// DrawCircle(xCenter, yCenter, radius int, c color.Color)
-	// DrawPoint(x, y int, c color.Color)
+	AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Shape
+	AddRectangle(x, y, width, height int, c color.Color) Shape
+	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape
+	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
 }
 
 type Model interface {

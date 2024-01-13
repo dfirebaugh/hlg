@@ -8,47 +8,24 @@ import (
 	"tinygo.org/x/tinyfont/proggy"
 )
 
-func Triangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Renderable {
+func Triangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Shape {
 	ensureSetupCompletion()
 	return ggez.graphicsBackend.AddTriangle(x1, y1, x2, y2, x3, y3, c)
 }
 
-func DrawLine(x1, y1, x2, y2 int, c color.Color) {
+func Rectangle(x, y, width, height int, c color.Color) graphics.Shape {
 	ensureSetupCompletion()
-	// graphicsBackend.DrawLine(x1, y1, x2, y2, c)
-}
-func FillTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.FillTriangle(x1, y1, x2, y2, x3, y3, c)
-}
-func DrawTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.DrawTriangle(x1, y1, x2, y2, x3, y3, c)
-}
-func FillPolygon(xPoints, yPoints []int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.FillPolygon(xPoints, yPoints, c)
-}
-func FillRectangle(x, y, width, height int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.FillRect(x, y, width, height, c)
-}
-func DrawRectangle(x, y, width, height int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.DrawRect(x, y, width, height, c)
-}
-func FillCircle(x, y, radius int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.FillCircle(x, y, radius, c)
-}
-func DrawCircle(x, y, radius int, c color.Color) {
-	ensureSetupCompletion()
-	// graphicsBackend.DrawCircle(x, y, radius, c)
+	return ggez.graphicsBackend.AddRectangle(x, y, width, height, c)
 }
 
-func DrawPoint(x, y int, c color.Color) {
+func Circle(x, y int, radius float32, c color.Color) graphics.Shape {
 	ensureSetupCompletion()
-	// graphicsBackend.DrawPoint(x, y, c)
+	return ggez.graphicsBackend.AddCircle(x, y, radius, c, 64)
+}
+
+func Line(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {
+	ensureSetupCompletion()
+	return ggez.graphicsBackend.AddLine(x1, y1, x2, y2, width, c)
 }
 
 func DrawTexture(t Texture) {

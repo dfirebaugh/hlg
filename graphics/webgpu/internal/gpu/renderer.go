@@ -13,6 +13,7 @@ import (
 type RenderQueue interface {
 	PrepareFrame()
 	RenderFrame(pass *wgpu.RenderPassEncoder)
+	RenderClear()
 }
 
 type Renderer struct {
@@ -132,6 +133,9 @@ func (r *Renderer) SetScreenSize(width int, height int) {
 }
 
 func (r *Renderer) Clear(c color.Color) {
+	if r.RenderQueue != nil {
+		r.RenderQueue.RenderClear()
+	}
 	red, green, blue, alpha := c.RGBA()
 	r.clearColor = wgpu.Color{
 		R: float64(red) / 0xffff,

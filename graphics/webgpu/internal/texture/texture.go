@@ -36,6 +36,7 @@ type Texture struct {
 
 	clipRect   [4]float32 // minX, minY, maxX, maxY
 	clipBuffer *wgpu.Buffer
+	isDisposed bool
 }
 
 func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
@@ -449,6 +450,7 @@ func (t *Texture) Destroy() {
 		t.clipBuffer.Release()
 		t.clipBuffer = nil
 	}
+	t.isDisposed = true
 }
 
 func (t *Texture) UpdateTransformBuffer() {
@@ -471,6 +473,9 @@ func (t *Texture) updateFlipBuffer() {
 }
 
 func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
+	if t.isDisposed {
+		return
+	}
 	pass.SetPipeline(t.RenderPipeline)
 	pass.SetBindGroup(0, t.BindGroup, nil)
 	pass.SetVertexBuffer(0, t.vertexBuffer, 0, wgpu.WholeSize)

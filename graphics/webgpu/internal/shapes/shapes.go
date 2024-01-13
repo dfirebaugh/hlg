@@ -43,8 +43,8 @@ func ScreenToNDC(x, y, screenWidth, screenHeight float32) [3]float32 {
 	return [3]float32{ndcX, ndcY, 0} // Assuming Z coordinate to be 0 for 2D
 }
 
-// ConvertVerticesToNDC converts an array of vertices from screen space to NDC.
-func ConvertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) []Vertex {
+// convertVerticesToNDC converts an array of vertices from screen space to NDC.
+func convertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) []Vertex {
 	ndcVertices := make([]Vertex, len(vertices))
 	for i, v := range vertices {
 		ndcPosition := ScreenToNDC(v.Position[0], v.Position[1], screenWidth, screenHeight)
@@ -54,6 +54,20 @@ func ConvertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) 
 		}
 	}
 	return ndcVertices
+}
+
+func createVertexBuffer(device *wgpu.Device, vertices []Vertex, width float32, height float32) *wgpu.Buffer {
+	ndcVertices := convertVerticesToNDC(vertices, width, height)
+	vertexBuffer, err := device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+		Label:    "Vertex Buffer",
+		Contents: wgpu.ToBytes(ndcVertices[:]),
+		Usage:    wgpu.BufferUsage_Vertex,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return vertexBuffer
 }
 
 func createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderModule, scd *wgpu.SwapChainDescriptor, topology wgpu.PrimitiveTopology) *wgpu.RenderPipeline {

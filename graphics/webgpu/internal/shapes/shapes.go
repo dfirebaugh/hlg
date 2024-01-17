@@ -70,8 +70,19 @@ func createVertexBuffer(device *wgpu.Device, vertices []Vertex, width float32, h
 	return vertexBuffer
 }
 
-func createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderModule, scd *wgpu.SwapChainDescriptor, topology wgpu.PrimitiveTopology) *wgpu.RenderPipeline {
+func (p *Polygon) createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderModule, scd *wgpu.SwapChainDescriptor, topology wgpu.PrimitiveTopology) *wgpu.RenderPipeline {
+	renderPipelineLayout, err := device.CreatePipelineLayout(&wgpu.PipelineLayoutDescriptor{
+		Label: "Render Pipeline Layout",
+		BindGroupLayouts: []*wgpu.BindGroupLayout{
+			p.bindGroupLayout,
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer renderPipelineLayout.Release()
 	pipeline, err := device.CreateRenderPipeline(&wgpu.RenderPipelineDescriptor{
+		Layout: renderPipelineLayout,
 		Vertex: wgpu.VertexState{
 			Module:     shaderModule,
 			EntryPoint: "vs_main",

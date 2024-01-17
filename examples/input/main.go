@@ -27,6 +27,8 @@ func main() {
 
 	triangle := ggez.Triangle(0, 200, 100, 0, 200, 200, colornames.Green)
 
+	circle := ggez.Circle(10, 10, 10, colornames.Red)
+
 	ggez.Update(func() {
 		ggez.Clear(colornames.Grey)
 		if ggez.IsKeyPressed(input.KeySpace) {
@@ -48,5 +50,7 @@ func main() {
 		ggez.PrintAt("press space", 65, 180, colornames.White)
 
 		triangle.Render()
+		circle.Move(float32(x), float32(y))
+		circle.Render()
 	})
 }

@@ -55,6 +55,12 @@ type Renderer interface {
 	// ToggleWireframeMode()
 }
 
+type Transformable interface {
+	Move(screenX, screenY float32)
+	Rotate(angle float32)
+	Scale(sx, sy float32)
+}
+
 type WindowManager interface {
 	SetWindowTitle(title string)
 	DestroyWindow()
@@ -79,6 +85,7 @@ type EventManager interface {
 
 type Shape interface {
 	Renderable
+	Transformable
 	SetColor(c color.Color)
 }
 

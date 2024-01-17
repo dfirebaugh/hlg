@@ -51,12 +51,13 @@ func (b *Ball) Update() {
 	b.Y += b.Velocity.Y
 
 	sw, sh := ggez.ScreenSize()
+	r := float32(b.Circle.R)
 
-	if b.X < 0 || b.X > float32(sw) {
+	if b.X-r < 0 || b.X+r > float32(sw) {
 		b.Velocity.X = -b.Velocity.X
 	}
 
-	if b.Y < 0 || b.Y > float32(sh) {
+	if b.Y-r < 0 || b.Y+r > float32(sh) {
 		b.Velocity.Y = -b.Velocity.Y
 	}
 	b.Texture.Move(b.X, b.Y)
@@ -76,13 +77,15 @@ func NewBall() Ball {
 
 	sw, sh := ggez.ScreenSize()
 
+	radius := float32(rand.Intn(35) + 10)
+	x := radius + float32(rand.Float64()*(float64(sw)-2*float64(radius)))
+	y := radius + float32(rand.Float64()*(float64(sh)-2*float64(radius)))
+
 	return Ball{
 		Circle: geom.Circle{
-			X: float32(rand.Float64() * float64(sw)), Y: float32(rand.Float64() * float64(sh)),
-			R: 25,
+			X: x, Y: y, R: radius,
 		},
 		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},
-		// Color:    color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255},
-		Texture: texture,
+		Texture:  texture,
 	}
 }

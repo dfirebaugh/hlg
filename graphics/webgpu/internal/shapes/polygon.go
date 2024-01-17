@@ -2,20 +2,31 @@ package shapes
 
 import (
 	"image/color"
+	"log"
+	"unsafe"
 
+	"github.com/dfirebaugh/ggez/pkg/math/matrix"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Polygon struct {
 	device *wgpu.Device
-	*wgpu.SwapChainDescriptor
 	renderQueue
-	vertices     []Vertex
-	pipeline     map[RenderMode]*wgpu.RenderPipeline
-	vertexBuffer *wgpu.Buffer
+	*wgpu.SwapChainDescriptor
+	bindGroup       *wgpu.BindGroup
+	bindGroupLayout *wgpu.BindGroupLayout
+	vertices        []Vertex
+	center          [2]float32
+	pipeline        map[RenderMode]*wgpu.RenderPipeline
+	vertexBuffer    *wgpu.Buffer
 
 	shouldeRender bool
 	renderMode    RenderMode
+
+	transform       matrix.Matrix
+	transformBuffer *wgpu.Buffer
+
+	isDisposed bool
 }
 
 func NewPolygon(device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQueue, vertices []Vertex, renderMode RenderMode) *Polygon {
@@ -27,7 +38,12 @@ func NewPolygon(device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQue
 		renderQueue:         rq,
 	}
 
+	p.center = p.calculateCenter()
+
 	p.vertexBuffer = createVertexBuffer(p.device, p.vertices, float32(scd.Width), float32(scd.Height))
+	p.createTransformBuffer()
+	p.createBindGroupLayout(device)
+	p.createBindGroup(device, p.bindGroupLayout)
 
 	shaderModule, err := device.CreateShaderModule(&wgpu.ShaderModuleDescriptor{
 		WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{Code: ShapesShaderCode},
@@ -35,14 +51,64 @@ func NewPolygon(device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQue
 	if err != nil {
 		panic(err)
 	}
-	filledPipeline := createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_TriangleList)
-	outlinedPipeline := createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_LineStrip)
+	defer shaderModule.Release()
+
+	filledPipeline := p.createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_TriangleList)
+	outlinedPipeline := p.createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_LineStrip)
 	p.pipeline = map[RenderMode]*wgpu.RenderPipeline{
 		RenderFilled:   filledPipeline,
 		RenderOutlined: outlinedPipeline,
 	}
 
 	return p
+}
+
+func (p *Polygon) calculateCenter() [2]float32 {
+	var sumX, sumY float32
+	for _, vertex := range p.vertices {
+		sumX += vertex.Position[0]
+		sumY += vertex.Position[1]
+	}
+	count := float32(len(p.vertices))
+	return [2]float32{sumX / count, sumY / count}
+}
+
+func (p *Polygon) createBindGroupLayout(device *wgpu.Device) {
+	var err error
+	p.bindGroupLayout, err = device.CreateBindGroupLayout(&wgpu.BindGroupLayoutDescriptor{
+		Entries: []wgpu.BindGroupLayoutEntry{
+			{
+				Binding:    0,
+				Visibility: wgpu.ShaderStage_Vertex,
+				Buffer: wgpu.BufferBindingLayout{
+					Type: wgpu.BufferBindingType_Uniform,
+				},
+			},
+		},
+		Label: "Polygon Bind Group Layout",
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (p *Polygon) createBindGroup(device *wgpu.Device, layout *wgpu.BindGroupLayout) {
+	var err error
+	p.bindGroup, err = device.CreateBindGroup(&wgpu.BindGroupDescriptor{
+		Layout: layout,
+		Entries: []wgpu.BindGroupEntry{
+			{
+				Binding: 0,
+				Buffer:  p.transformBuffer,
+				Offset:  0,
+				Size:    uint64(unsafe.Sizeof(p.transform)),
+			},
+		},
+		Label: "Polygon Bind Group",
+	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (p *Polygon) SetColor(c color.Color) {
@@ -60,18 +126,30 @@ func (p *Polygon) SetColor(c color.Color) {
 }
 
 func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
-	if !p.shouldeRender {
+	if encoder == nil || !p.shouldeRender || p.isDisposed {
 		return
 	}
 
-	currentPipeline := p.pipeline[p.renderMode]
-	encoder.SetPipeline(currentPipeline)
-	encoder.SetVertexBuffer(0, p.vertexBuffer, 0, wgpu.WholeSize)
-	if p.renderMode == RenderFilled {
-		encoder.Draw(uint32(len(p.vertices)), 1, 0, 0)
-	} else if p.renderMode == RenderOutlined {
-		encoder.Draw(uint32(len(p.vertices)+1), 1, 0, 0) // +1 for loop back to the first vertex
+	// Additional safety checks
+	if p.bindGroup == nil {
+		log.Println("Polygon RenderPass: bindGroup is nil")
+		return
 	}
+	if p.vertexBuffer == nil {
+		log.Println("Polygon RenderPass: vertexBuffer is nil")
+		return
+	}
+	if p.pipeline == nil || p.pipeline[p.renderMode] == nil {
+		log.Println("Polygon RenderPass: pipeline is nil or not set for the current render mode")
+		return
+	}
+
+	encoder.SetPipeline(p.pipeline[p.renderMode])
+	encoder.SetBindGroup(0, p.bindGroup, nil)
+	encoder.SetVertexBuffer(0, p.vertexBuffer, 0, wgpu.WholeSize)
+
+	vertexCount := uint32(len(p.vertices))
+	encoder.Draw(vertexCount, 1, 0, 0)
 }
 
 func (p *Polygon) Render() {
@@ -91,7 +169,21 @@ func (p *Polygon) Dispose() {
 		p.vertexBuffer.Release()
 		p.vertexBuffer = nil
 	}
+	if p.transformBuffer != nil {
+		p.transformBuffer.Release()
+		p.transformBuffer = nil
+	}
+	if p.bindGroup != nil {
+		p.bindGroup.Release()
+		p.bindGroup = nil
+	}
+	if p.bindGroupLayout != nil {
+		p.bindGroupLayout.Release()
+		p.bindGroupLayout = nil
+	}
+	p.isDisposed = true
 }
+
 func (p *Polygon) Hide() {
 	p.shouldeRender = false
 }

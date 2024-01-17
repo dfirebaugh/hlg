@@ -46,6 +46,26 @@ func (m Matrix) Translate(dx, dy float32) Matrix {
 	return m.Multiply(translationMatrix)
 }
 
+func (m Matrix) IsZero() bool {
+	for _, value := range m {
+		if value != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+type Vector4 [4]float32
+
+func (m Matrix) MultiplyVec(v Vector4) Vector4 {
+	return Vector4{
+		m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3],
+		m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3],
+		m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3],
+		m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3],
+	}
+}
+
 func MatrixIdentity() Matrix {
 	matrix := Matrix{}
 	for i := 0; i < 16; i++ {

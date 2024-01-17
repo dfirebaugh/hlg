@@ -2,46 +2,6 @@ package input
 
 import "github.com/go-gl/glfw/v3.3/glfw"
 
-// Joystick corresponds to a joystick.
-type Joystick int
-
-// Joystick IDs.
-const (
-	Joystick1    = Joystick(glfw.Joystick1)
-	Joystick2    = Joystick(glfw.Joystick2)
-	Joystick3    = Joystick(glfw.Joystick3)
-	Joystick4    = Joystick(glfw.Joystick4)
-	Joystick5    = Joystick(glfw.Joystick5)
-	Joystick6    = Joystick(glfw.Joystick6)
-	Joystick7    = Joystick(glfw.Joystick7)
-	Joystick8    = Joystick(glfw.Joystick8)
-	Joystick9    = Joystick(glfw.Joystick9)
-	Joystick10   = Joystick(glfw.Joystick10)
-	Joystick11   = Joystick(glfw.Joystick11)
-	Joystick12   = Joystick(glfw.Joystick12)
-	Joystick13   = Joystick(glfw.Joystick13)
-	Joystick14   = Joystick(glfw.Joystick14)
-	Joystick15   = Joystick(glfw.Joystick15)
-	Joystick16   = Joystick(glfw.Joystick16)
-	JoystickLast = Joystick(glfw.JoystickLast)
-)
-
-// JoystickHatState corresponds to joystick hat states.
-type JoystickHatState int
-
-// Joystick Hat State IDs.
-const (
-	HatCentered  = JoystickHatState(glfw.HatCentered)
-	HatUp        = JoystickHatState(glfw.HatUp)
-	HatRight     = JoystickHatState(glfw.HatRight)
-	HatDown      = JoystickHatState(glfw.HatDown)
-	HatLeft      = JoystickHatState(glfw.HatLeft)
-	HatRightUp   = JoystickHatState(glfw.HatRightUp)
-	HatRightDown = JoystickHatState(glfw.HatRightDown)
-	HatLeftUp    = JoystickHatState(glfw.HatLeftUp)
-	HatLeftDown  = JoystickHatState(glfw.HatLeftDown)
-)
-
 // GamepadAxis corresponds to a gamepad axis.
 type GamepadAxis int
 

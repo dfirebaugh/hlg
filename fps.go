@@ -5,8 +5,12 @@ import (
 )
 
 var (
-	fpsEnabled = true
+	fpsEnabled = false
 )
+
+func EnableFPS() {
+	fpsEnabled = true
+}
 
 func DisableFPS() {
 	fpsEnabled = false

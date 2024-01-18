@@ -25,7 +25,7 @@ type engine struct {
 	windowTitle       string
 	uifb              *fb.ImageFB
 	uiTexture         *Texture
-	fpsCounter        *FPSCounter
+	fpsCounter        *fpsCounter
 	hasSetupCompleted bool
 }
 
@@ -33,7 +33,7 @@ var (
 	hlg = &engine{}
 )
 
-func Setup() {
+func setup() {
 	runtime.LockOSThread()
 	hlg.inputState = input.NewInputState()
 	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
@@ -55,14 +55,15 @@ func ensureSetupCompletion() {
 	if hlg.hasSetupCompleted {
 		return
 	}
-	Setup()
+	setup()
 	initWindow()
 }
 
+// Update is the main update function called to refresh the engine state.
 func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
-	hlg.fpsCounter = NewFPSCounter()
+	hlg.fpsCounter = newFPSCounter()
 
 	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
 	hlg.uiTexture, _ = CreateTextureFromImage(hlg.uifb.ToImage())
@@ -122,26 +123,31 @@ func close() {
 	hlg.graphicsBackend.Close()
 }
 
+// Clear clears the screen with the specified color.
 func Clear(c color.RGBA) {
 	ensureSetupCompletion()
 	hlg.graphicsBackend.Clear(c)
 	draw.Rect(geom.MakeRect(0, 0, float32(windowWidth), float32(windowHeight))).Fill(hlg.uifb, color.RGBA{0, 0, 0, 0})
 }
 
+// SetTitle sets the title of the window.
 func SetTitle(title string) {
 	ensureSetupCompletion()
 	hlg.windowTitle = title
 }
 
+// GetWindowSize retrieves the current window size.
 func GetWindowSize() (int, int) {
 	return hlg.graphicsBackend.GetWindowSize()
 }
 
+// SetScreenSize sets the size of the screen.
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
 	hlg.graphicsBackend.SetScreenSize(width, height)
 }
 
+// SetWindowSize sets the size of the window.
 func SetWindowSize(width, height int) {
 	ensureSetupCompletion()
 
@@ -151,14 +157,12 @@ func SetWindowSize(width, height int) {
 	hlg.graphicsBackend.SetWindowSize(windowWidth, windowHeight)
 }
 
+// SetScaleFactor sets the scale factor for the window.
 func SetScaleFactor(f int) {
 	hlg.graphicsBackend.SetScaleFactor(f)
 }
 
-func ToggleWireFrame() {
-	// graphicsBackend.ToggleWireframeMode()
-}
-
+// ScreenSize returns the current screen size.
 func ScreenSize() (int, int) {
 	return hlg.graphicsBackend.ScreenSize()
 }

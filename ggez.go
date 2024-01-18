@@ -37,7 +37,11 @@ func Setup() {
 	runtime.LockOSThread()
 	ggez.inputState = input.NewInputState()
 	ggez.uifb = fb.New(int(windowWidth), int(windowHeight))
-	ggez.graphicsBackend, _ = webgpu.NewGraphicsBackend()
+	var err error
+	ggez.graphicsBackend, err = webgpu.NewGraphicsBackend()
+	if err != nil {
+		panic(err.Error())
+	}
 	ggez.hasSetupCompleted = true
 }
 

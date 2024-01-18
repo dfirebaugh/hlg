@@ -18,9 +18,14 @@ func Rectangle(x, y, width, height int, c color.Color) graphics.Shape {
 	return ggez.graphicsBackend.AddRectangle(x, y, width, height, c)
 }
 
+func Polygon(x, y int, width float32, sides int, c color.Color) graphics.Shape {
+	ensureSetupCompletion()
+	return ggez.graphicsBackend.AddCircle(x, y, width/2, c, sides)
+}
+
 func Circle(x, y int, radius float32, c color.Color) graphics.Shape {
 	ensureSetupCompletion()
-	return ggez.graphicsBackend.AddCircle(x, y, radius, c, 64)
+	return ggez.graphicsBackend.AddCircle(x, y, radius, c, 32)
 }
 
 func Line(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {

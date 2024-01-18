@@ -1,9 +1,9 @@
-package ggez
+package hlg
 
 import (
 	"image"
 
-	"github.com/dfirebaugh/ggez/graphics"
+	"github.com/dfirebaugh/hlg/graphics"
 )
 
 type Texture struct {
@@ -20,16 +20,16 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 	ensureSetupCompletion()
 	var err error
 	t := Texture{}
-	t.Texture, err = ggez.graphicsBackend.CreateTextureFromImage(img)
+	t.Texture, err = hlg.graphicsBackend.CreateTextureFromImage(img)
 	return &t, err
 }
 
 func (t *Texture) UpdateTextureFromImage(img image.Image) {
-	ggez.graphicsBackend.UpdateTextureFromImage(t, img)
+	hlg.graphicsBackend.UpdateTextureFromImage(t, img)
 }
 
 // Destroy removes the texture from the renderer
 func (t Texture) Destroy() {
 	ensureSetupCompletion()
-	ggez.graphicsBackend.DisposeTexture(t.Handle())
+	hlg.graphicsBackend.DisposeTexture(t.Handle())
 }

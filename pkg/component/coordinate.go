@@ -3,7 +3,7 @@ package component
 import (
 	"fmt"
 
-	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/hlg/pkg/math/geom"
 )
 
 type Coordinate struct {

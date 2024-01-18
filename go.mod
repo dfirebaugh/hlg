@@ -1,4 +1,4 @@
-module github.com/dfirebaugh/ggez
+module github.com/dfirebaugh/hlg
 
 go 1.21
 

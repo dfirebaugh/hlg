@@ -7,7 +7,7 @@ import (
 	"golang.org/x/image/colornames"
 	_ "golang.org/x/image/webp" // This is necessary to decode WEBP images
 
-	"github.com/dfirebaugh/ggez"
+	"github.com/dfirebaugh/hlg"
 )
 
 // downloadImage fetches the image from the given URL and returns it as an image.Image
@@ -27,14 +27,14 @@ func downloadImage(url string) image.Image {
 }
 
 func main() {
-	ggez.SetWindowSize(600, 412)
-	ggez.SetTitle("ggez texture example")
+	hlg.SetWindowSize(600, 412)
+	hlg.SetTitle("hlg texture example")
 
-	t, _ := ggez.CreateTextureFromImage(
+	t, _ := hlg.CreateTextureFromImage(
 		downloadImage(`https://parade.com/.image/c_limit%2Ccs_srgb%2Cq_auto:good%2Cw_620/MTkwNTgxNDg5MjU4ODY1Nzg5/nick-offerman-donkey-thoughts.webp`),
 	)
 
-	mountain, _ := ggez.CreateTextureFromImage(
+	mountain, _ := hlg.CreateTextureFromImage(
 		downloadImage(`https://www.gstatic.com/webp/gallery/1.webp`),
 	)
 	mountain.Resize(300, 206)
@@ -45,8 +45,8 @@ func main() {
 	// t.FlipVertical()
 	// t.FlipHorizontal()
 
-	ggez.Update(func() {
-		ggez.Clear(colornames.Aliceblue)
+	hlg.Update(func() {
+		hlg.Clear(colornames.Aliceblue)
 		mountain.Render()
 		t.Render()
 	})

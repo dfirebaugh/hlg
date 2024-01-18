@@ -4,17 +4,17 @@ import (
 	"image/color"
 	"math/rand"
 
-	"github.com/dfirebaugh/ggez"
-	"github.com/dfirebaugh/ggez/pkg/draw"
-	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/pkg/draw"
+	"github.com/dfirebaugh/hlg/pkg/math/geom"
 	"golang.org/x/image/colornames"
 )
 
 var balls []Ball
 
 func main() {
-	ggez.SetTitle("cpu rendering")
-	ggez.SetWindowSize(960, 640)
+	hlg.SetTitle("cpu rendering")
+	hlg.SetWindowSize(960, 640)
 	screen := NewScreen(960, 640)
 
 	numBalls := 400
@@ -23,7 +23,7 @@ func main() {
 		balls[i] = NewBall(screen)
 	}
 
-	ggez.Update(func() {
+	hlg.Update(func() {
 		screen.Clear(colornames.Grey)
 		for i := range balls {
 			balls[i].Update()
@@ -49,7 +49,7 @@ func (b *Ball) Update() {
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
-	sw, sh := ggez.ScreenSize()
+	sw, sh := hlg.ScreenSize()
 	r := float32(b.Circle.R)
 
 	if b.X-r < 0 || b.X+r > float32(sw) {
@@ -62,7 +62,7 @@ func (b *Ball) Update() {
 }
 
 func NewBall(screen Screen) Ball {
-	sw, sh := ggez.ScreenSize()
+	sw, sh := hlg.ScreenSize()
 
 	radius := float32(rand.Intn(35) + 10)
 	x := radius + float32(rand.Float64()*(float64(sw)-2*float64(radius)))

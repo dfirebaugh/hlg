@@ -7,7 +7,7 @@ import (
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
-	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/window"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
 type RenderQueue interface {

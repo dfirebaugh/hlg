@@ -1,7 +1,7 @@
 package window
 
 import (
-	"github.com/dfirebaugh/ggez/pkg/input"
+	"github.com/dfirebaugh/hlg/pkg/input"
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 

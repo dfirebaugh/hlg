@@ -1,8 +1,8 @@
 package webgpu
 
 import (
-	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/gpu"
-	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/window"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/gpu"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
 // GraphicsBackend

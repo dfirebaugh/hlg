@@ -1,4 +1,4 @@
-package ggez
+package hlg
 
 import "image"
 

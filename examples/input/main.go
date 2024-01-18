@@ -5,8 +5,8 @@ import (
 	"image/color"
 	"math/rand"
 
-	"github.com/dfirebaugh/ggez"
-	"github.com/dfirebaugh/ggez/pkg/input"
+	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
 
@@ -23,31 +23,31 @@ var (
 )
 
 func main() {
-	ggez.SetWindowSize(200, 200)
+	hlg.SetWindowSize(200, 200)
 
-	triangle := ggez.Triangle(0, 200, 100, 0, 200, 200, colornames.Green)
+	triangle := hlg.Triangle(0, 200, 100, 0, 200, 200, colornames.Green)
 
-	circle := ggez.Circle(10, 10, 10, colornames.Red)
+	circle := hlg.Circle(10, 10, 10, colornames.Red)
 
-	ggez.Update(func() {
-		ggez.Clear(colornames.Grey)
-		if ggez.IsKeyPressed(input.KeySpace) {
+	hlg.Update(func() {
+		hlg.Clear(colornames.Grey)
+		if hlg.IsKeyPressed(input.KeySpace) {
 			triangle.SetColor(colors[rand.Intn(len(colors))])
 		}
-		if ggez.IsButtonPressed(input.MouseButtonLeft) {
-			ggez.PrintAt("left mouse button pressed", 10, 25, colornames.Red)
+		if hlg.IsButtonPressed(input.MouseButtonLeft) {
+			hlg.PrintAt("left mouse button pressed", 10, 25, colornames.Red)
 		}
-		if ggez.IsButtonPressed(input.MouseButtonRight) {
-			ggez.PrintAt("right mouse button pressed", 10, 35, colornames.Red)
+		if hlg.IsButtonPressed(input.MouseButtonRight) {
+			hlg.PrintAt("right mouse button pressed", 10, 35, colornames.Red)
 		}
-		if ggez.IsButtonPressed(input.MouseButtonMiddle) {
-			ggez.PrintAt("middle mouse button pressed", 10, 45, colornames.Red)
+		if hlg.IsButtonPressed(input.MouseButtonMiddle) {
+			hlg.PrintAt("middle mouse button pressed", 10, 45, colornames.Red)
 		}
 
-		x, y := ggez.GetCursorPosition()
-		ggez.PrintAt(fmt.Sprintf("%d:%d", x, y), 10, 10, colornames.Red)
+		x, y := hlg.GetCursorPosition()
+		hlg.PrintAt(fmt.Sprintf("%d:%d", x, y), 10, 10, colornames.Red)
 
-		ggez.PrintAt("press space", 65, 180, colornames.White)
+		hlg.PrintAt("press space", 65, 180, colornames.White)
 
 		triangle.Render()
 		circle.Move(float32(x), float32(y))

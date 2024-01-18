@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"sort"
 
-	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/hlg/pkg/math/geom"
 )
 
 type Polygon geom.Polygon

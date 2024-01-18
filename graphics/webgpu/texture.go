@@ -3,7 +3,7 @@ package webgpu
 import (
 	"image"
 
-	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/texture"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/texture"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 

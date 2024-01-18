@@ -1,6 +1,6 @@
-package ggez
+package hlg
 
-import "github.com/dfirebaugh/ggez/pkg/input"
+import "github.com/dfirebaugh/hlg/pkg/input"
 
 func handleEvent(evt input.Event, state *input.InputState) {
 	switch evt.Type {

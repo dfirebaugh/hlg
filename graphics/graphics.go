@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/dfirebaugh/ggez/pkg/input"
+	"github.com/dfirebaugh/hlg/pkg/input"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 

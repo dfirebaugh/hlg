@@ -1,4 +1,4 @@
-package ggez
+package hlg
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dfirebaugh/ggez/graphics"
-	"github.com/dfirebaugh/ggez/graphics/webgpu"
-	"github.com/dfirebaugh/ggez/pkg/draw"
-	"github.com/dfirebaugh/ggez/pkg/fb"
-	"github.com/dfirebaugh/ggez/pkg/input"
-	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu"
+	"github.com/dfirebaugh/hlg/pkg/draw"
+	"github.com/dfirebaugh/hlg/pkg/fb"
+	"github.com/dfirebaugh/hlg/pkg/input"
+	"github.com/dfirebaugh/hlg/pkg/math/geom"
 )
 
 var (
@@ -30,29 +30,29 @@ type engine struct {
 }
 
 var (
-	ggez = &engine{}
+	hlg = &engine{}
 )
 
 func Setup() {
 	runtime.LockOSThread()
-	ggez.inputState = input.NewInputState()
-	ggez.uifb = fb.New(int(windowWidth), int(windowHeight))
+	hlg.inputState = input.NewInputState()
+	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
 	var err error
-	ggez.graphicsBackend, err = webgpu.NewGraphicsBackend()
+	hlg.graphicsBackend, err = webgpu.NewGraphicsBackend()
 	if err != nil {
 		panic(err.Error())
 	}
-	ggez.hasSetupCompleted = true
+	hlg.hasSetupCompleted = true
 }
 
 func initWindow() {
 	SetWindowSize(windowWidth, windowHeight)
 	SetScaleFactor(3)
-	SetTitle("ggez")
+	SetTitle("hlg")
 }
 
 func ensureSetupCompletion() {
-	if ggez.hasSetupCompleted {
+	if hlg.hasSetupCompleted {
 		return
 	}
 	Setup()
@@ -62,27 +62,27 @@ func ensureSetupCompletion() {
 func Update(updateFn func()) {
 	ensureSetupCompletion()
 	defer close()
-	ggez.fpsCounter = NewFPSCounter()
+	hlg.fpsCounter = NewFPSCounter()
 
-	ggez.uifb = fb.New(int(windowWidth), int(windowHeight))
-	ggez.uiTexture, _ = CreateTextureFromImage(ggez.uifb.ToImage())
-	defer ggez.uiTexture.Destroy()
+	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
+	hlg.uiTexture, _ = CreateTextureFromImage(hlg.uifb.ToImage())
+	defer hlg.uiTexture.Destroy()
 
-	ggez.graphicsBackend.SetInputCallback(func(eventChan chan input.Event) {
+	hlg.graphicsBackend.SetInputCallback(func(eventChan chan input.Event) {
 		evt := <-eventChan
-		handleEvent(evt, ggez.inputState)
+		handleEvent(evt, hlg.inputState)
 	})
 
 	var err error
 	for {
-		if !ggez.graphicsBackend.PollEvents() {
+		if !hlg.graphicsBackend.PollEvents() {
 			break
 		}
 
 		updateFn()
-		ggez.uiTexture.UpdateTextureFromImage(ggez.uifb.ToImage())
-		ggez.uiTexture.Render()
-		ggez.graphicsBackend.Render()
+		hlg.uiTexture.UpdateTextureFromImage(hlg.uifb.ToImage())
+		hlg.uiTexture.Render()
+		hlg.graphicsBackend.Render()
 
 		calculateFPS()
 
@@ -102,44 +102,44 @@ func Update(updateFn func()) {
 }
 
 func calculateFPS() {
-	ggez.fpsCounter.Frame()
-	fps := ggez.fpsCounter.GetFPS()
-	title := ggez.windowTitle
+	hlg.fpsCounter.Frame()
+	fps := hlg.fpsCounter.GetFPS()
+	title := hlg.windowTitle
 	if fps != 0 && fpsEnabled {
 		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
 	}
-	if ggez.graphicsBackend.IsDisposed() {
+	if hlg.graphicsBackend.IsDisposed() {
 		return
 	}
-	ggez.graphicsBackend.SetWindowTitle(title)
+	hlg.graphicsBackend.SetWindowTitle(title)
 }
 
 func GetFPS() float64 {
-	return ggez.fpsCounter.GetFPS()
+	return hlg.fpsCounter.GetFPS()
 }
 
 func close() {
-	ggez.graphicsBackend.Close()
+	hlg.graphicsBackend.Close()
 }
 
 func Clear(c color.RGBA) {
 	ensureSetupCompletion()
-	ggez.graphicsBackend.Clear(c)
-	draw.Rect(geom.MakeRect(0, 0, float32(windowWidth), float32(windowHeight))).Fill(ggez.uifb, color.RGBA{0, 0, 0, 0})
+	hlg.graphicsBackend.Clear(c)
+	draw.Rect(geom.MakeRect(0, 0, float32(windowWidth), float32(windowHeight))).Fill(hlg.uifb, color.RGBA{0, 0, 0, 0})
 }
 
 func SetTitle(title string) {
 	ensureSetupCompletion()
-	ggez.windowTitle = title
+	hlg.windowTitle = title
 }
 
 func GetWindowSize() (int, int) {
-	return ggez.graphicsBackend.GetWindowSize()
+	return hlg.graphicsBackend.GetWindowSize()
 }
 
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
-	ggez.graphicsBackend.SetScreenSize(width, height)
+	hlg.graphicsBackend.SetScreenSize(width, height)
 }
 
 func SetWindowSize(width, height int) {
@@ -148,11 +148,11 @@ func SetWindowSize(width, height int) {
 	windowWidth = width
 	windowHeight = height
 
-	ggez.graphicsBackend.SetWindowSize(windowWidth, windowHeight)
+	hlg.graphicsBackend.SetWindowSize(windowWidth, windowHeight)
 }
 
 func SetScaleFactor(f int) {
-	ggez.graphicsBackend.SetScaleFactor(f)
+	hlg.graphicsBackend.SetScaleFactor(f)
 }
 
 func ToggleWireFrame() {
@@ -160,5 +160,5 @@ func ToggleWireFrame() {
 }
 
 func ScreenSize() (int, int) {
-	return ggez.graphicsBackend.ScreenSize()
+	return hlg.graphicsBackend.ScreenSize()
 }

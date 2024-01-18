@@ -4,17 +4,17 @@ import (
 	"image/color"
 	"math/rand"
 
-	"github.com/dfirebaugh/ggez"
-	"github.com/dfirebaugh/ggez/pkg/draw"
-	"github.com/dfirebaugh/ggez/pkg/fb"
-	"github.com/dfirebaugh/ggez/pkg/math/geom"
+	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/pkg/draw"
+	"github.com/dfirebaugh/hlg/pkg/fb"
+	"github.com/dfirebaugh/hlg/pkg/math/geom"
 	"golang.org/x/image/colornames"
 )
 
 var balls []Ball
 
 func update() {
-	ggez.Clear(colornames.Grey)
+	hlg.Clear(colornames.Grey)
 
 	for i := range balls {
 		balls[i].Update()
@@ -23,8 +23,8 @@ func update() {
 }
 
 func main() {
-	ggez.SetWindowSize(960, 640)
-	ggez.SetTitle("texture rendering")
+	hlg.SetWindowSize(960, 640)
+	hlg.SetTitle("texture rendering")
 
 	numBalls := 900
 	balls = make([]Ball, numBalls)
@@ -32,14 +32,14 @@ func main() {
 		balls[i] = NewBall()
 	}
 
-	ggez.Update(update)
+	hlg.Update(update)
 }
 
 type Ball struct {
 	geom.Circle
 	Velocity geom.Point
 	Color    color.RGBA
-	*ggez.Texture
+	*hlg.Texture
 }
 
 func (b *Ball) Render() {
@@ -50,7 +50,7 @@ func (b *Ball) Update() {
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
-	sw, sh := ggez.ScreenSize()
+	sw, sh := hlg.ScreenSize()
 	r := float32(b.Circle.R)
 
 	if b.X-r < 0 || b.X+r > float32(sw) {
@@ -69,13 +69,13 @@ func NewBall() Ball {
 	ballColor := color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255}
 	f := fb.New((circleRadius*2)+padding, (circleRadius*2)+padding)
 	draw.Circle(geom.MakeCircle(float32(circleRadius), float32(circleRadius), float32(rand.Intn(circleRadius)+10))).Fill(f, ballColor)
-	texture, err := ggez.CreateTextureFromImage(f.ToImage())
+	texture, err := hlg.CreateTextureFromImage(f.ToImage())
 	texture.Resize(float32(circleRadius/4), float32(circleRadius/4))
 	if err != nil {
 		panic(err)
 	}
 
-	sw, sh := ggez.ScreenSize()
+	sw, sh := hlg.ScreenSize()
 
 	radius := float32(rand.Intn(35) + 10)
 	x := radius + float32(rand.Float64()*(float64(sw)-2*float64(radius)))

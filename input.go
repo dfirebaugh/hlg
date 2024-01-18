@@ -1,28 +1,28 @@
-package ggez
+package hlg
 
-import "github.com/dfirebaugh/ggez/pkg/input"
+import "github.com/dfirebaugh/hlg/pkg/input"
 
 func IsKeyPressed(keyCode input.Key) bool {
-	return ggez.inputState.IsKeyPressed(keyCode)
+	return hlg.inputState.IsKeyPressed(keyCode)
 }
 func PressKey(keyCode input.Key) {
-	ggez.inputState.PressKey(keyCode)
+	hlg.inputState.PressKey(keyCode)
 }
 func ReleaseKey(keyCode input.Key) {
-	ggez.inputState.ReleaseKey(keyCode)
+	hlg.inputState.ReleaseKey(keyCode)
 }
 func IsButtonPressed(buttonCode input.MouseButton) bool {
-	return ggez.inputState.IsButtonPressed(buttonCode)
+	return hlg.inputState.IsButtonPressed(buttonCode)
 }
 func PressButton(buttonCode input.MouseButton) {
-	ggez.inputState.PressButton(buttonCode)
+	hlg.inputState.PressButton(buttonCode)
 }
 func ReleaseButton(buttonCode input.MouseButton) {
-	ggez.inputState.ReleaseButton(buttonCode)
+	hlg.inputState.ReleaseButton(buttonCode)
 }
 func GetCursorPosition() (x, y int) {
-	return ggez.inputState.GetCursorPosition()
+	return hlg.inputState.GetCursorPosition()
 }
 func SetScrollCallback(cb func(x float64, y float64)) {
-	ggez.inputState.SetScrollCallback(cb)
+	hlg.inputState.SetScrollCallback(cb)
 }

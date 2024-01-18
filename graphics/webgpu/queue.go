@@ -6,8 +6,8 @@ import (
 	"math"
 	"unsafe"
 
-	"github.com/dfirebaugh/ggez/graphics"
-	"github.com/dfirebaugh/ggez/graphics/webgpu/internal/shapes"
+	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 

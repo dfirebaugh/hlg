@@ -1,7 +1,7 @@
 package shapes
 
 import (
-	"github.com/dfirebaugh/ggez/pkg/math/matrix"
+	"github.com/dfirebaugh/hlg/pkg/math/matrix"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 

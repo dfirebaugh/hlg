@@ -8,9 +8,9 @@ import (
 
 	_ "image/png"
 
-	"github.com/dfirebaugh/ggez"
-	"github.com/dfirebaugh/ggez/assets"
-	"github.com/dfirebaugh/ggez/pkg/input"
+	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/assets"
+	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
 
@@ -29,7 +29,7 @@ type Player struct {
 	H         float64
 	VelY      float64
 	Ground    bool
-	Sprite    *ggez.Sprite
+	Sprite    *hlg.Sprite
 	LastFrame time.Time
 }
 
@@ -46,15 +46,15 @@ func (p *Player) Update() {
 	}
 
 	// Movement
-	if ggez.IsKeyPressed(input.KeyA) || ggez.IsKeyPressed(input.KeyLeft) {
+	if hlg.IsKeyPressed(input.KeyA) || hlg.IsKeyPressed(input.KeyLeft) {
 		p.X -= playerSpeed
 	}
-	if ggez.IsKeyPressed(input.KeyD) || ggez.IsKeyPressed(input.KeyRight) {
+	if hlg.IsKeyPressed(input.KeyD) || hlg.IsKeyPressed(input.KeyRight) {
 		p.X += playerSpeed
 	}
 
 	// Jumping
-	if ggez.IsKeyPressed(input.KeySpace) && p.Ground {
+	if hlg.IsKeyPressed(input.KeySpace) && p.Ground {
 		p.VelY = -jumpSpeed
 		p.Ground = false
 	}
@@ -73,8 +73,8 @@ func (p *Player) Render() {
 }
 
 func main() {
-	ggez.SetWindowSize(windowWidth, windowHeight)
-	ggez.SetScreenSize(windowWidth, windowHeight)
+	hlg.SetWindowSize(windowWidth, windowHeight)
+	hlg.SetScreenSize(windowWidth, windowHeight)
 
 	// Load sprite sheet (replace assets.BuddyDanceSpriteSheet with your sprite sheet)
 	reader := bytes.NewReader(assets.BuddyDanceSpriteSheet)
@@ -84,7 +84,7 @@ func main() {
 	}
 	frameSize := image.Point{X: 32, Y: 32}
 	sheetSize := image.Point{X: 4, Y: 1}
-	sprite := ggez.NewSprite(img, frameSize, sheetSize)
+	sprite := hlg.NewSprite(img, frameSize, sheetSize)
 
 	player := &Player{
 		X:         100,
@@ -96,14 +96,14 @@ func main() {
 	}
 	sprite.Resize(float32(player.W), float32(player.H))
 
-	ggez.Update(func() {
-		ggez.Clear(colornames.White)
+	hlg.Update(func() {
+		hlg.Clear(colornames.White)
 
 		player.Update()
 		player.Render()
 
 		// Display player coordinates
-		ggez.PrintAt(fmt.Sprintf("Player X: %d Y: %d", int(player.X), int(player.Y)),
+		hlg.PrintAt(fmt.Sprintf("Player X: %d Y: %d", int(player.X), int(player.Y)),
 			10, windowHeight-20, colornames.Black)
 	})
 }

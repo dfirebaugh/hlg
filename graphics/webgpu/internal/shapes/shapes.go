@@ -5,7 +5,7 @@ import (
 
 	_ "embed"
 
-	"github.com/dfirebaugh/ggez/graphics"
+	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 

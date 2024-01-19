@@ -12,7 +12,6 @@ import (
 
 type GraphicsBackend interface {
 	Close()
-	PrintPlatformAndVersion()
 	ScreenSize() (int, int)
 
 	WindowManager
@@ -85,6 +84,7 @@ type Shape interface {
 }
 
 type ShapeRenderer interface {
+	AddPolygon(cx, cy int, width float32, c color.Color, sides int) Shape
 	AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Shape
 	AddRectangle(x, y, width, height int, c color.Color) Shape
 	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape

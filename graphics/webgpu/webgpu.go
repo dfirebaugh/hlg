@@ -67,5 +67,3 @@ func (backend *GraphicsBackend) Close() {
 func (backend *GraphicsBackend) PollEvents() bool {
 	return backend.Window.Poll()
 }
-
-func (backend *GraphicsBackend) PrintPlatformAndVersion() {}

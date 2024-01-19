@@ -146,8 +146,15 @@ func (rq *RenderQueue) AddRectangle(x, y, width, height int, c color.Color) grap
 
 // AddCircle creates a new Circle renderable and adds it to the RenderQueue.
 // It returns a reference to the created Circle.
-// note: we could probably more efficiently draw circles with a custom shader -- but this is a good start
 func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segments int) graphics.Shape {
+	// note: we could probably more efficiently draw circles with a custom shader -- but this is a good start
+	circle := rq.AddPolygon(cx, cy, radius*2, c, segments)
+	return circle
+}
+
+// AddPolygon creates a new Polygon renderable and adds it to the RenderQueue.
+// It returns a reference to the created Polygon.
+func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, sides int) graphics.Shape {
 	r, g, b, a := c.RGBA()
 	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
 	var vertices []shapes.Vertex
@@ -156,10 +163,10 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 		Color:    colorArray,
 	}
 
-	for i := 0; i <= segments; i++ {
-		angle := float32(i) * 2 * float32(math.Pi) / float32(segments)
-		x := float32(cx) + radius*float32(math.Cos(float64(angle)))
-		y := float32(cy) + radius*float32(math.Sin(float64(angle)))
+	for i := 0; i <= sides; i++ {
+		angle := float32(i) * 2 * float32(math.Pi) / float32(sides)
+		x := float32(cx) + (width/2)*float32(math.Cos(float64(angle)))
+		y := float32(cy) + (width/2)*float32(math.Sin(float64(angle)))
 
 		vertex := shapes.Vertex{
 			Position: [3]float32{x, y, 0},
@@ -168,10 +175,10 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 
 		vertices = append(vertices, center, vertex)
 
-		if i < segments {
-			nextAngle := float32(i+1) * 2 * float32(math.Pi) / float32(segments)
-			nextX := float32(cx) + radius*float32(math.Cos(float64(nextAngle)))
-			nextY := float32(cy) + radius*float32(math.Sin(float64(nextAngle)))
+		if i < sides {
+			nextAngle := float32(i+1) * 2 * float32(math.Pi) / float32(sides)
+			nextX := float32(cx) + (width/2)*float32(math.Cos(float64(nextAngle)))
+			nextY := float32(cy) + (width/2)*float32(math.Sin(float64(nextAngle)))
 
 			nextVertex := shapes.Vertex{
 				Position: [3]float32{nextX, nextY, 0},
@@ -182,9 +189,9 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 		}
 	}
 
-	circle := shapes.NewPolygon(rq.Device, rq.SwapChainDescriptor, rq, vertices, shapes.RenderFilled)
-	rq.AddToRenderQueue(circle)
-	return circle
+	polygon := shapes.NewPolygon(rq.Device, rq.SwapChainDescriptor, rq, vertices, shapes.RenderFilled)
+	rq.AddToRenderQueue(polygon)
+	return polygon
 }
 
 // AddLine creates a new Line renderable and adds it to the RenderQueue.

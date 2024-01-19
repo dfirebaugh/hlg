@@ -12,3 +12,4 @@
   - [Shapes](./shapes.md)
   - [Sprites](./sprites.md)
 - [Debug](./debug.md)
+- [Examples](./examples.md)

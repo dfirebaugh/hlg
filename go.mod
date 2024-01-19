@@ -7,8 +7,6 @@ require (
 	tinygo.org/x/tinyfont v0.3.0
 )
 
-require github.com/qmuntal/gltf v0.24.2
-
 require (
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231124074035-2de0cf0c80af
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect

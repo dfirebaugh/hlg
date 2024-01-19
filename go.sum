@@ -3,8 +3,6 @@ github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7j
 github.com/frankban/quicktest v1.10.2/go.mod h1:K+q6oSqb0W0Ininfk863uOk1lMy69l/P6txr3mVT54s=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231124074035-2de0cf0c80af h1:zclgNFqP+NXDgGX2BiDvIonxKIom8j65wQlOyFtyujc=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20231124074035-2de0cf0c80af/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
-github.com/go-test/deep v1.0.1 h1:UQhStjbkDClarlmv0am7OXXO4/GaPdCGiUiMTvi28sg=
-github.com/go-test/deep v1.0.1/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/google/go-cmp v0.5.2/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaUGG7oYTSPP8MxqL4YI3kZKwcP4=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
@@ -14,8 +12,6 @@ github.com/hajimehoshi/go-jisx0208 v1.0.0/go.mod h1:yYxEStHL7lt9uL+AbdWgW9gBumwi
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/qmuntal/gltf v0.24.2 h1:Cy9gabbcuWl/LJb3EIFXQIiWZ1Jf2V8ZygtiLc7Piyg=
-github.com/qmuntal/gltf v0.24.2/go.mod h1:7FR0CRHoOehIgKTBVq/QVyvPn0i6tzp2AdIghb2bPg4=
 github.com/rajveermalviya/go-webgpu/wgpu v0.17.1 h1:BlPsyVdDfTdDh50nZypBH5Qu+on03AJgiRs0Lt7TFaI=
 github.com/rajveermalviya/go-webgpu/wgpu v0.17.1/go.mod h1:fr08XXRX3QNhQW6ylg9ihJl3NXFU0oMuqOglGpSgSJo=
 github.com/sago35/go-bdf v0.0.0-20200313142241-6c17821c91c4/go.mod h1:rOebXGuMLsXhZAC6mF/TjxONsm45498ZyzVhel++6KM=

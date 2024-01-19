@@ -2,6 +2,7 @@
 # Renderables
 
 
+
 `hlg` allows you to create create objects (e.g. textures, sprites, shapes) and render them to the screen.
 
 These objects implement the `Renderable` interface.

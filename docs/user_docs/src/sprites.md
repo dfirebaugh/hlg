@@ -3,17 +3,6 @@
 
 The `Sprite` struct in the `hlg` package provides a way to handle sprite sheets for rendering animations or a series of images in a grid-like structure. Each `Sprite` is a subset of a larger texture, representing a single frame of an animation or a single image within a sprite sheet.
 
-## Definition
-
-```golang
-type Sprite struct {
-    *Texture          // Embedded texture representing the entire sprite sheet.
-    frameSize    image.Point // Size of a single frame in the sprite sheet.
-    sheetSize    image.Point // Size of the sprite sheet in terms of number of frames (columns and rows).
-    currentFrame image.Point // Current frame coordinates (column and row) in the sprite sheet.
-}
-```
-
 ## Constructor Function
 
 ### NewSprite

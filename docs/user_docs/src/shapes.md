@@ -1,7 +1,17 @@
 
 # Shapes
 
-We can create and render multiple shapes.
+The `hlg` package provides functionality to create and render various shapes. These shapes include triangles, rectangles, circles, and lines. Each shape can be manipulated through transformations such as move, rotate, and scale.
+
+```golang
+func Triangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Shape 
+func Rectangle(x, y, width, height int, c color.Color) graphics.Shape 
+func Polygon(x, y int, width float32, sides int, c color.Color) graphics.Shape 
+func Circle(x, y int, radius float32, c color.Color) graphics.Shape 
+func Line(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape 
+```
+
+## Example Usage
 
 ```golang
 package main
@@ -33,10 +43,7 @@ func main() {
 }
 ```
 
-The above code should render:
-![shapes_example](./assets/shapes.png)
-
-Shapes implement the `Transformable` interface.
+## Shape Interfaces
 
 ```golang
 type Transformable interface {

@@ -33,16 +33,7 @@ func Line(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {
 	return hlg.graphicsBackend.AddLine(x1, y1, x2, y2, width, c)
 }
 
-func DrawTexture(t Texture) {
-	ensureSetupCompletion()
-	t.Render()
-}
-
 func PrintAt(s string, x int, y int, c color.Color) {
 	ensureSetupCompletion()
 	tinyfont.WriteLine(hlg.uifb, &proggy.TinySZ8pt7b, int16(x), int16(y), s, c.(color.RGBA))
-}
-
-func DrawModel(m graphics.Model, t graphics.Texture) {
-	// graphicsBackend.RenderModel(m, t)
 }

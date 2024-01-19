@@ -11,3 +11,4 @@
   - [Textures](./textures.md)
   - [Shapes](./shapes.md)
   - [Sprites](./sprites.md)
+- [Debug](./debug.md)

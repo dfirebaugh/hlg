@@ -1,7 +1,9 @@
 
 # Textures
 
-Textures can be created from images using `hlg.CreateTextureFromImage(img image.Image)`.
+Textures in the `hlg` package can be created from images, allowing for more complex and detailed visuals. Textures are particularly useful for rendering images or sprites.
+
+## Creating a Texture from an Image
 
 ```golang
 package main
@@ -9,13 +11,10 @@ package main
 import (
 	"image"
 	"net/http"
-
-	_ "image/jpeg" // This is necessary to decode jpeg images
-
+	_ "image/jpeg"
 	"github.com/dfirebaugh/hlg"
 )
 
-// downloadImage fetches the image from the given URL and returns it as an image.Image
 func downloadImage(url string) image.Image {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -35,9 +34,7 @@ func main() {
 	hlg.SetWindowSize(154, 240)
 	hlg.SetTitle("hlg texture example")
 
-	t, _ := hlg.CreateTextureFromImage(
-		downloadImage(`https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg`),
-	)
+	t, _ := hlg.CreateTextureFromImage(downloadImage(`https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg`))
 
 	hlg.Update(func() {
 		t.Render()
@@ -45,17 +42,13 @@ func main() {
 }
 ```
 
-The above code should render this image.
+## Texture Interfaces
 
-![img](https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg)
-> sourced from: https://commons.wikimedia.org/w/index.php?curid=31678974
-
-Textures implement the `Transformable` interface.
 ```golang
 type Renderable interface {
-  Render()
-  Dispose()
-  Hide()
+	Render()
+	Dispose()
+	Hide()
 }
 
 type Transformable interface {
@@ -63,7 +56,6 @@ type Transformable interface {
 	Rotate(angle float32)
 	Scale(sx, sy float32)
 }
-
 
 type Texture interface {
 	Renderable

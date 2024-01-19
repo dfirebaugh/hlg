@@ -30,7 +30,7 @@ jobs:
     - name: Run bbook
       run: |
         cd docs/user_docs
-        ../bbook build
+        ../../bbook build
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3

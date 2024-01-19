@@ -42,6 +42,13 @@ func main() {
 }
 ```
 
+The above code should render this image.
+
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg)
+
+> sourced from: https://commons.wikimedia.org/w/index.php?curid=31678974
+
+
 ## Texture Interfaces
 
 ```golang

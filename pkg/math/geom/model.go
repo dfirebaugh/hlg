@@ -3,7 +3,7 @@ package geom
 import (
 	"math"
 
-	"github.com/dfirebaugh/ggez/pkg/math/matrix"
+	"github.com/dfirebaugh/hlg/pkg/math/matrix"
 )
 
 type Texture struct {

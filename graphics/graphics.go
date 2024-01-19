@@ -20,9 +20,7 @@ type GraphicsBackend interface {
 	Renderer
 	TextureManager
 	ShapeRenderer
-	ModelRenderer
 	InputManager
-	Camera
 }
 
 type Texture interface {
@@ -49,10 +47,8 @@ type Renderable interface {
 }
 
 type Renderer interface {
-	// PrintRendererInfo()
 	Clear(c color.Color)
 	Render()
-	// ToggleWireframeMode()
 }
 
 type Transformable interface {
@@ -75,7 +71,6 @@ type WindowManager interface {
 type TextureManager interface {
 	CreateTextureFromImage(img image.Image) (Texture, error)
 	UpdateTextureFromImage(texture Texture, img image.Image)
-	// ClearTexture(textureInstance uintptr, c color.Color)
 	DisposeTexture(h uintptr)
 }
 
@@ -96,35 +91,6 @@ type ShapeRenderer interface {
 	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
 }
 
-type Model interface {
-	// 	Rotate(angle float32, axis geom.Vector3D)
-	// 	Scale(factor float32)
-	// 	SetPosition(v geom.Vector3D)
-	// 	Translate(v geom.Vector3D)
-	// 	GetMeshes() []*geom.Mesh
-	// 	GetScaleFactor() float32
-	// 	GetPosition() geom.Vector3D
-	// 	GetRotation() geom.Matrix4
-}
-
-type ModelRenderer interface {
-	// 	RenderModel(m Model, t Texture)
-}
-
-type Shader interface {
-	// 	Handle() uint32
-	// 	Delete()
-}
-
-type ShaderProgram interface {
-	// 	Handle() uint32
-	// 	Attach(shaders ...Shader)
-	// 	Delete()
-	// 	GetUniformLocation(name string) int32
-	// 	Link() error
-	// 	Use()
-}
-
 type CubeFace int
 
 const (
@@ -135,12 +101,6 @@ const (
 	CubeTop
 	CubeBottom
 )
-
-type Camera interface {
-	// 	GetProjectionMatrix() mgl32.Mat4
-	// 	GetViewMatrix() mgl32.Mat4
-	// 	SetCameraPosition(position geom.Vector3D, target geom.Vector3D, up geom.Vector3D)
-}
 
 type InputManager interface {
 	SetInputCallback(fn func(eventChan chan input.Event))

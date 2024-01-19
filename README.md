@@ -1,6 +1,9 @@
 # hlg  (High Level Graphics)
 This project is a WIP. The goal is to make a high level graphics api for golang.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/dfirebaugh/hlg.svg)](https://pkg.go.dev/github.com/dfirebaugh/hlg)
+Some documentation: https://dfirebaugh.github.io/hlg/
+
 ### Examples
 check the `./examples` dir for some basic examples
 

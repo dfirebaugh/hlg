@@ -3,6 +3,8 @@
 
 
 
+
+
 `hlg` allows you to create create objects (e.g. textures, sprites, shapes) and render them to the screen.
 
 These objects implement the `Renderable` interface.
@@ -15,5 +17,4 @@ type Renderable interface {
 }
 ```
 
-Objects are rendered in the order in which `Render()` was called.
-
+Renderables are rendered in the order in which `Render()` was called and are retained until `Dispose()` is called.

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/hlg/css/themes/catppuccin.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark-blue.css" rel="stylesheet">
+    <link href="/hlg/css/themes/simple.css" rel="stylesheet">
+    <link href="/hlg/css/themes/navy.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark.css" rel="stylesheet">
+
+    <link href="/hlg/css/core/prose.css" rel="stylesheet">
+    <link href="/hlg/css/core/main.css" rel="stylesheet">
+    <link href="/hlg/css/theme.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/hlg/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    
+    <title>Shapes</title>
+
+    
+</head>
+
+<body class="catppuccin-simple frappe">
+    <script type="module" src="/hlg/js/index.js"></script>
+    <script>
+        function reloadPage() {
+            location.reload();
+        }
+
+        function hamburgerClick() {
+            const sideNav = document.getElementById("sidenav")
+            const contentContainer = document.getElementById("content-container")
+            console.log(sideNav.style.display)
+            if (sideNav.style.display !== "block") {
+                sideNav.style.display = "block"
+                contentContainer.style.gridTemplateColumns = "1fr 1fr 14fr 1fr"
+            } else if (sideNav.style.display === "block") {
+                contentContainer.style.gridTemplateColumns = "1fr 14fr 1fr"
+                sideNav.style.display = "none"
+            }
+        }
+    </script>
+
+
+    <div class="container">
+        <bb-topbar
+            url="/hlg"
+            title="hlg"
+            hideSideBar="false"
+            repoIcon=""
+            repoURL=""
+            editPageURL="%25!%28EXTRA%20string=/hlg,%20string=./shapes.md%29"
+            >
+        </bb-topbar>
+        <div id="content-container" class="flex flex-row flex-wrap py-4">
+            
+            <bb-navmenu id="sidenav" class="fixed top-0 left-0 h-full w-64 bg-white shadow-md hidden">
+                <ol class="navbar prose lg:prose-sm flex flex-col overflow-hidden" slot="nav-content">
+                    <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2><ul>
+<li><a href="/hlg/intro.html">Intro</a></li>
+<li><a href="/hlg/renderables.html">Renderables</a>
+<ul>
+<li><a href="/hlg/textures.html">Textures</a></li>
+<li><a href="/hlg/shapes.html">Shapes</a></li>
+<li><a href="/hlg/sprites.html">Sprites</a></li>
+</ul>
+</li>
+<li><a href="/hlg/debug.html">Debug</a></li>
+<li><a href="/hlg/examples.html">Examples</a></li>
+</ul>
+
+                </ol>
+            </bb-navmenu>
+            
+            <bb-navbtn class=".navbtn" nav-type="prev" href="/hlg/textures.html"></bb-navbtn>
+            <main-container>
+                <main role="main" class="prose md-content">
+                    <h1 id="shapes"><a href="#shapes" class="header-anchor">Shapes</a></h1><p>The <code>hlg</code> package provides functionality to create and render various shapes. These shapes include triangles, rectangles, circles, and lines. Each shape can be manipulated through transformations such as move, rotate, and scale.</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Triangle</span>(<span style="color:#a6e22e">x1</span>, <span style="color:#a6e22e">y1</span>, <span style="color:#a6e22e">x2</span>, <span style="color:#a6e22e">y2</span>, <span style="color:#a6e22e">x3</span>, <span style="color:#a6e22e">y3</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>) <span style="color:#a6e22e">graphics</span>.<span style="color:#a6e22e">Shape</span> 
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Rectangle</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>, <span style="color:#a6e22e">width</span>, <span style="color:#a6e22e">height</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>) <span style="color:#a6e22e">graphics</span>.<span style="color:#a6e22e">Shape</span> 
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Polygon</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">width</span> <span style="color:#66d9ef">float32</span>, <span style="color:#a6e22e">sides</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>) <span style="color:#a6e22e">graphics</span>.<span style="color:#a6e22e">Shape</span> 
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Circle</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">radius</span> <span style="color:#66d9ef">float32</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>) <span style="color:#a6e22e">graphics</span>.<span style="color:#a6e22e">Shape</span> 
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Line</span>(<span style="color:#a6e22e">x1</span>, <span style="color:#a6e22e">y1</span>, <span style="color:#a6e22e">x2</span>, <span style="color:#a6e22e">y2</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">width</span> <span style="color:#66d9ef">float32</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>) <span style="color:#a6e22e">graphics</span>.<span style="color:#a6e22e">Shape</span> 
+</span></span></code></pre><h2 id="example-usage"><a href="#example-usage" class="header-anchor">Example Usage</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>	<span style="color:#e6db74">&#34;golang.org/x/image/colornames&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Triangle</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">160</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">160</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Green</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Rectangle</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">60</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Blue</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	<span style="color:#a6e22e">r2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Rectangle</span>(<span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">60</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Red</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Circle</span>(<span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">80</span>, <span style="color:#ae81ff">20</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Red</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>	<span style="color:#a6e22e">l</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Line</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">160</span>, <span style="color:#ae81ff">2</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">White</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SetColor</span>(<span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Purple</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Move</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>		<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Clear</span>(<span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Skyblue</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>		<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>		<span style="color:#a6e22e">r2</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>		<span style="color:#a6e22e">r2</span>.<span style="color:#a6e22e">Hide</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>	})
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>}
+</span></span></code></pre><h2 id="shape-interfaces"><a href="#shape-interfaces" class="header-anchor">Shape Interfaces</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Transformable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>	<span style="color:#a6e22e">Move</span>(<span style="color:#a6e22e">screenX</span>, <span style="color:#a6e22e">screenY</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>	<span style="color:#a6e22e">Rotate</span>(<span style="color:#a6e22e">angle</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#a6e22e">Scale</span>(<span style="color:#a6e22e">sx</span>, <span style="color:#a6e22e">sy</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Renderable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>	<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#a6e22e">Dispose</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	<span style="color:#a6e22e">Hide</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Shape</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	<span style="color:#a6e22e">Renderable</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">Transformable</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	<span style="color:#a6e22e">SetColor</span>(<span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>}
+</span></span></code></pre>
+                </main>
+            </main-container>
+            <bb-navbtn class=".navbtn" nav-type="next" href="/hlg/sprites.html"></bb-navbtn>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

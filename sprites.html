@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/hlg/css/themes/catppuccin.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark-blue.css" rel="stylesheet">
+    <link href="/hlg/css/themes/simple.css" rel="stylesheet">
+    <link href="/hlg/css/themes/navy.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark.css" rel="stylesheet">
+
+    <link href="/hlg/css/core/prose.css" rel="stylesheet">
+    <link href="/hlg/css/core/main.css" rel="stylesheet">
+    <link href="/hlg/css/theme.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/hlg/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    
+    <title>Sprites</title>
+
+    
+</head>
+
+<body class="catppuccin-simple frappe">
+    <script type="module" src="/hlg/js/index.js"></script>
+    <script>
+        function reloadPage() {
+            location.reload();
+        }
+
+        function hamburgerClick() {
+            const sideNav = document.getElementById("sidenav")
+            const contentContainer = document.getElementById("content-container")
+            console.log(sideNav.style.display)
+            if (sideNav.style.display !== "block") {
+                sideNav.style.display = "block"
+                contentContainer.style.gridTemplateColumns = "1fr 1fr 14fr 1fr"
+            } else if (sideNav.style.display === "block") {
+                contentContainer.style.gridTemplateColumns = "1fr 14fr 1fr"
+                sideNav.style.display = "none"
+            }
+        }
+    </script>
+
+
+    <div class="container">
+        <bb-topbar
+            url="/hlg"
+            title="hlg"
+            hideSideBar="false"
+            repoIcon=""
+            repoURL=""
+            editPageURL="%25!%28EXTRA%20string=/hlg,%20string=./sprites.md%29"
+            >
+        </bb-topbar>
+        <div id="content-container" class="flex flex-row flex-wrap py-4">
+            
+            <bb-navmenu id="sidenav" class="fixed top-0 left-0 h-full w-64 bg-white shadow-md hidden">
+                <ol class="navbar prose lg:prose-sm flex flex-col overflow-hidden" slot="nav-content">
+                    <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2><ul>
+<li><a href="/hlg/intro.html">Intro</a></li>
+<li><a href="/hlg/renderables.html">Renderables</a>
+<ul>
+<li><a href="/hlg/textures.html">Textures</a></li>
+<li><a href="/hlg/shapes.html">Shapes</a></li>
+<li><a href="/hlg/sprites.html">Sprites</a></li>
+</ul>
+</li>
+<li><a href="/hlg/debug.html">Debug</a></li>
+<li><a href="/hlg/examples.html">Examples</a></li>
+</ul>
+
+                </ol>
+            </bb-navmenu>
+            
+            <bb-navbtn class=".navbtn" nav-type="prev" href="/hlg/shapes.html"></bb-navbtn>
+            <main-container>
+                <main role="main" class="prose md-content">
+                    <h1 id="sprites"><a href="#sprites" class="header-anchor">Sprites</a></h1><p>The <code>Sprite</code> struct in the <code>hlg</code> package provides a way to handle sprite sheets for rendering animations or a series of images in a grid-like structure. Each <code>Sprite</code> is a subset of a larger texture, representing a single frame of an animation or a single image within a sprite sheet.</p>
+<h2 id="constructor-function"><a href="#constructor-function" class="header-anchor">Constructor Function</a></h2><h3 id="newsprite"><a href="#newsprite" class="header-anchor">NewSprite</a></h3><p>Creates a new <code>Sprite</code> instance from a given image, frame size, and sheet size.</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewSprite</span>(<span style="color:#a6e22e">img</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Image</span>, <span style="color:#a6e22e">frameSize</span>, <span style="color:#a6e22e">sheetSize</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Point</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Sprite</span>
+</span></span></code></pre><ul>
+<li><code>img</code>: The source image, typically a sprite sheet.</li>
+<li><code>frameSize</code>: The size of a single frame within the sprite sheet.</li>
+<li><code>sheetSize</code>: The size of the sprite sheet in terms of the number of frames horizontally and vertically.</li>
+</ul>
+<h2 id="methods"><a href="#methods" class="header-anchor">Methods</a></h2><h3 id="nextframe"><a href="#nextframe" class="header-anchor">NextFrame</a></h3><p>Advances the sprite to the next frame in the sprite sheet. The method updates the clipping region of the underlying texture to display the next frame.</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Sprite</span>) <span style="color:#a6e22e">NextFrame</span>()
+</span></span></code></pre><ul>
+<li>This method increments the current frame and wraps around if it reaches the end of the sprite sheet.</li>
+<li>Automatically updates the clip region to render the new current frame.</li>
+<li>Calls <code>Render()</code> to render the sprite with the updated frame.</li>
+</ul>
+<h2 id="usage-example"><a href="#usage-example" class="header-anchor">Usage Example</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#75715e">// Assuming you have a sprite sheet image and you know the frame and sheet sizes
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#75715e"></span><span style="color:#a6e22e">spriteSheetImage</span> <span style="color:#f92672">:=</span> <span style="color:#75715e">// Load your sprite sheet image
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#75715e"></span><span style="color:#a6e22e">frameSize</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Pt</span>(<span style="color:#ae81ff">32</span>, <span style="color:#ae81ff">32</span>) <span style="color:#75715e">// Each frame is 32x32 pixels
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#75715e"></span><span style="color:#a6e22e">sheetSize</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Pt</span>(<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">4</span>)  <span style="color:#75715e">// 4 columns and 4 rows in the sprite sheet
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#a6e22e">sprite</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">NewSprite</span>(<span style="color:#a6e22e">spriteSheetImage</span>, <span style="color:#a6e22e">frameSize</span>, <span style="color:#a6e22e">sheetSize</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>    <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Clear</span>(<span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Black</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>    <span style="color:#a6e22e">sprite</span>.<span style="color:#a6e22e">NextFrame</span>() <span style="color:#75715e">// Update the sprite to the next frame each update call
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span><span style="color:#75715e"></span>})
+</span></span></code></pre><p>In this usage example, <code>sprite.NextFrame()</code> is called in the <code>hlg.Update</code> loop to animate the sprite by cycling through frames on each update.</p>
+<h2 id="full-example"><a href="#full-example" class="header-anchor">Full Example</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#e6db74">&#34;bytes&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>	<span style="color:#e6db74">&#34;image&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>	<span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;image/png&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg/assets&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetWindowSize</span>(<span style="color:#ae81ff">600</span>, <span style="color:#ae81ff">600</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetTitle</span>(<span style="color:#e6db74">&#34;hlg sprite example&#34;</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#a6e22e">reader</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">assets</span>.<span style="color:#a6e22e">BuddyDanceSpriteSheet</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>	<span style="color:#a6e22e">img</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Decode</span>(<span style="color:#a6e22e">reader</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>	<span style="color:#a6e22e">frameSize</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Point</span>{<span style="color:#a6e22e">X</span>: <span style="color:#ae81ff">32</span>, <span style="color:#a6e22e">Y</span>: <span style="color:#ae81ff">32</span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>	<span style="color:#a6e22e">sheetSize</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Point</span>{<span style="color:#a6e22e">X</span>: <span style="color:#ae81ff">4</span>, <span style="color:#a6e22e">Y</span>: <span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>	<span style="color:#a6e22e">sprite</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">NewSprite</span>(<span style="color:#a6e22e">img</span>, <span style="color:#a6e22e">frameSize</span>, <span style="color:#a6e22e">sheetSize</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28</span><span>	<span style="color:#a6e22e">sprite</span>.<span style="color:#a6e22e">Scale</span>(<span style="color:#ae81ff">.5</span>, <span style="color:#ae81ff">.5</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30</span><span>	<span style="color:#a6e22e">lastFrameTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31</span><span>	<span style="color:#a6e22e">frameDuration</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34</span><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">lastFrameTime</span>) <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">frameDuration</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35</span><span>			<span style="color:#a6e22e">lastFrameTime</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36</span><span>			<span style="color:#a6e22e">sprite</span>.<span style="color:#a6e22e">NextFrame</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37</span><span>		}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38</span><span>	})
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39</span><span>}
+</span></span></code></pre>
+                </main>
+            </main-container>
+            <bb-navbtn class=".navbtn" nav-type="next" href="/hlg/debug.html"></bb-navbtn>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

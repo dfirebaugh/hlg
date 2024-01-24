@@ -1,0 +1,41 @@
+.simple {
+  --primary-color: #111827;
+  --secondary-color: #f3f4f6;
+  --primnary-background-color: #fff;
+  --secondary-background-color: whitesmoke;
+  --body: #374151;
+  --headings: #111827;
+  --lead: #4b5563;
+  --links: #111827;
+  --bold: #111827;
+  --counters: #6b7280;
+  --bullets: #d1d5db;
+  --hr: #e5e7eb;
+  --quotes: #111827;
+  --quote-borders: #e5e7eb;
+  --captions: #6b7280;
+  --code: #111827;
+  --pre-code: #e5e7eb;
+  --pre-bg: #1f2937;
+  --th-borders: #d1d5db;
+  --td-borders: #e5e7eb;
+  --invert-body: #d1d5db;
+  --invert-headings: #fff;
+  --invert-lead: #9ca3af;
+  --invert-links: #fff;
+  --invert-bold: #fff;
+  --invert-counters: #9ca3af;
+  --invert-bullets: #4b5563;
+  --invert-hr: #374151;
+  --invert-quotes: #f3f4f6;
+  --invert-quote-borders: #374151;
+  --invert-captions: #9ca3af;
+  --invert-code: #fff;
+  --invert-pre-code: #d1d5db;
+  --invert-pre-bg: rgb(0 0 0 / 50%);
+  --invert-th-borders: #4b5563;
+  --invert-td-borders: #374151;
+
+  font-size: 1rem;
+  line-height: 1.75;
+}

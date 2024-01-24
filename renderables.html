@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/hlg/css/themes/catppuccin.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark-blue.css" rel="stylesheet">
+    <link href="/hlg/css/themes/simple.css" rel="stylesheet">
+    <link href="/hlg/css/themes/navy.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark.css" rel="stylesheet">
+
+    <link href="/hlg/css/core/prose.css" rel="stylesheet">
+    <link href="/hlg/css/core/main.css" rel="stylesheet">
+    <link href="/hlg/css/theme.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/hlg/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    
+    <title>Renderables</title>
+
+    
+</head>
+
+<body class="catppuccin-simple frappe">
+    <script type="module" src="/hlg/js/index.js"></script>
+    <script>
+        function reloadPage() {
+            location.reload();
+        }
+
+        function hamburgerClick() {
+            const sideNav = document.getElementById("sidenav")
+            const contentContainer = document.getElementById("content-container")
+            console.log(sideNav.style.display)
+            if (sideNav.style.display !== "block") {
+                sideNav.style.display = "block"
+                contentContainer.style.gridTemplateColumns = "1fr 1fr 14fr 1fr"
+            } else if (sideNav.style.display === "block") {
+                contentContainer.style.gridTemplateColumns = "1fr 14fr 1fr"
+                sideNav.style.display = "none"
+            }
+        }
+    </script>
+
+
+    <div class="container">
+        <bb-topbar
+            url="/hlg"
+            title="hlg"
+            hideSideBar="false"
+            repoIcon=""
+            repoURL=""
+            editPageURL="%25!%28EXTRA%20string=/hlg,%20string=./renderables.md%29"
+            >
+        </bb-topbar>
+        <div id="content-container" class="flex flex-row flex-wrap py-4">
+            
+            <bb-navmenu id="sidenav" class="fixed top-0 left-0 h-full w-64 bg-white shadow-md hidden">
+                <ol class="navbar prose lg:prose-sm flex flex-col overflow-hidden" slot="nav-content">
+                    <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2><ul>
+<li><a href="/hlg/intro.html">Intro</a></li>
+<li><a href="/hlg/renderables.html">Renderables</a>
+<ul>
+<li><a href="/hlg/textures.html">Textures</a></li>
+<li><a href="/hlg/shapes.html">Shapes</a></li>
+<li><a href="/hlg/sprites.html">Sprites</a></li>
+</ul>
+</li>
+<li><a href="/hlg/debug.html">Debug</a></li>
+<li><a href="/hlg/examples.html">Examples</a></li>
+</ul>
+
+                </ol>
+            </bb-navmenu>
+            
+            <bb-navbtn class=".navbtn" nav-type="prev" href="/hlg/intro.html"></bb-navbtn>
+            <main-container>
+                <main role="main" class="prose md-content">
+                    <h1 id="renderables"><a href="#renderables" class="header-anchor">Renderables</a></h1><p><code>hlg</code> allows you to create create objects (e.g. textures, sprites, shapes) and render them to the screen.</p>
+<p>These objects implement the <code>Renderable</code> interface.</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Renderable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>	<span style="color:#a6e22e">Render</span>() <span style="color:#75715e">// add the Renderable to the render queue
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Dispose</span>() <span style="color:#75715e">// remove the Renderable from the render queue and destroy the Renderable
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Hide</span>() <span style="color:#75715e">// keep the Renderable in memory but don&#39;t render it to the screen
+</span></span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#75715e"></span>}
+</span></span></code></pre><p>Renderables are rendered in the order in which <code>Render()</code> was called and are retained until <code>Dispose()</code> is called.</p>
+
+                </main>
+            </main-container>
+            <bb-navbtn class=".navbtn" nav-type="next" href="/hlg/textures.html"></bb-navbtn>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

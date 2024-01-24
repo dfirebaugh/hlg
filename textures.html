@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/hlg/css/themes/catppuccin.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark-blue.css" rel="stylesheet">
+    <link href="/hlg/css/themes/simple.css" rel="stylesheet">
+    <link href="/hlg/css/themes/navy.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark.css" rel="stylesheet">
+
+    <link href="/hlg/css/core/prose.css" rel="stylesheet">
+    <link href="/hlg/css/core/main.css" rel="stylesheet">
+    <link href="/hlg/css/theme.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/hlg/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    
+    <title>Textures</title>
+
+    
+</head>
+
+<body class="catppuccin-simple frappe">
+    <script type="module" src="/hlg/js/index.js"></script>
+    <script>
+        function reloadPage() {
+            location.reload();
+        }
+
+        function hamburgerClick() {
+            const sideNav = document.getElementById("sidenav")
+            const contentContainer = document.getElementById("content-container")
+            console.log(sideNav.style.display)
+            if (sideNav.style.display !== "block") {
+                sideNav.style.display = "block"
+                contentContainer.style.gridTemplateColumns = "1fr 1fr 14fr 1fr"
+            } else if (sideNav.style.display === "block") {
+                contentContainer.style.gridTemplateColumns = "1fr 14fr 1fr"
+                sideNav.style.display = "none"
+            }
+        }
+    </script>
+
+
+    <div class="container">
+        <bb-topbar
+            url="/hlg"
+            title="hlg"
+            hideSideBar="false"
+            repoIcon=""
+            repoURL=""
+            editPageURL="%25!%28EXTRA%20string=/hlg,%20string=./textures.md%29"
+            >
+        </bb-topbar>
+        <div id="content-container" class="flex flex-row flex-wrap py-4">
+            
+            <bb-navmenu id="sidenav" class="fixed top-0 left-0 h-full w-64 bg-white shadow-md hidden">
+                <ol class="navbar prose lg:prose-sm flex flex-col overflow-hidden" slot="nav-content">
+                    <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2><ul>
+<li><a href="/hlg/intro.html">Intro</a></li>
+<li><a href="/hlg/renderables.html">Renderables</a>
+<ul>
+<li><a href="/hlg/textures.html">Textures</a></li>
+<li><a href="/hlg/shapes.html">Shapes</a></li>
+<li><a href="/hlg/sprites.html">Sprites</a></li>
+</ul>
+</li>
+<li><a href="/hlg/debug.html">Debug</a></li>
+<li><a href="/hlg/examples.html">Examples</a></li>
+</ul>
+
+                </ol>
+            </bb-navmenu>
+            
+            <bb-navbtn class=".navbtn" nav-type="prev" href="/hlg/renderables.html"></bb-navbtn>
+            <main-container>
+                <main role="main" class="prose md-content">
+                    <h1 id="textures"><a href="#textures" class="header-anchor">Textures</a></h1><p>Textures in the <code>hlg</code> package can be created from images, allowing for more complex and detailed visuals. Textures are particularly useful for rendering images or sprites.</p>
+<h2 id="creating-a-texture-from-an-image"><a href="#creating-a-texture-from-an-image" class="header-anchor">Creating a Texture from an Image</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#e6db74">&#34;image&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>	<span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;image/jpeg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">downloadImage</span>(<span style="color:#a6e22e">url</span> <span style="color:#66d9ef">string</span>) <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Image</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">url</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>	<span style="color:#a6e22e">img</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Decode</span>(<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">img</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetWindowSize</span>(<span style="color:#ae81ff">154</span>, <span style="color:#ae81ff">240</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetTitle</span>(<span style="color:#e6db74">&#34;hlg texture example&#34;</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29</span><span>	<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">CreateTextureFromImage</span>(<span style="color:#a6e22e">downloadImage</span>(<span style="color:#e6db74">`https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg`</span>))
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32</span><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33</span><span>	})
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34</span><span>}
+</span></span></code></pre><p>The above code should render this image.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg" alt="img"/></p>
+<blockquote>
+<p>sourced from: <a href="https://commons.wikimedia.org/w/index.php?curid=31678974">https://commons.wikimedia.org/w/index.php?curid=31678974</a></p>
+</blockquote>
+<h2 id="texture-interfaces"><a href="#texture-interfaces" class="header-anchor">Texture Interfaces</a></h2><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Renderable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>	<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>	<span style="color:#a6e22e">Dispose</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#a6e22e">Hide</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Transformable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>	<span style="color:#a6e22e">Move</span>(<span style="color:#a6e22e">screenX</span>, <span style="color:#a6e22e">screenY</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#a6e22e">Rotate</span>(<span style="color:#a6e22e">angle</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	<span style="color:#a6e22e">Scale</span>(<span style="color:#a6e22e">sx</span>, <span style="color:#a6e22e">sy</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Texture</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	<span style="color:#a6e22e">Renderable</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">Transformable</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	<span style="color:#a6e22e">Handle</span>() <span style="color:#66d9ef">uintptr</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>	<span style="color:#a6e22e">UpdateImage</span>(<span style="color:#a6e22e">img</span> <span style="color:#a6e22e">image</span>.<span style="color:#a6e22e">Image</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#a6e22e">Resize</span>(<span style="color:#a6e22e">width</span>, <span style="color:#a6e22e">height</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>	<span style="color:#a6e22e">FlipVertical</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>	<span style="color:#a6e22e">FlipHorizontal</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>	<span style="color:#a6e22e">Clip</span>(<span style="color:#a6e22e">minX</span>, <span style="color:#a6e22e">minY</span>, <span style="color:#a6e22e">maxX</span>, <span style="color:#a6e22e">maxY</span> <span style="color:#66d9ef">float32</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>}
+</span></span></code></pre>
+                </main>
+            </main-container>
+            <bb-navbtn class=".navbtn" nav-type="next" href="/hlg/shapes.html"></bb-navbtn>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

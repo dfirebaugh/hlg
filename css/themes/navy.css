@@ -1,0 +1,20 @@
+.navy {
+  --primary-color: #bcbdd0;
+  --secondary-color: #bcbdd0;
+  --primary-background-color: #1a202c;
+  --secondary-background-color: #282d3f;
+  --body: #cbd5e0;
+  --headings: #edf2f7;
+  --lead: #a0aec0;
+  --links: #63b3ed;
+  --bold: #e2e8f0;
+  --counters: #718096;
+  --bullets: #4a5568;
+  --hr: #4a5568;
+  --quotes: #e2e8f0;
+  --quote-borders: #4a5568;
+  --captions: #718096;
+  --code: #fbd38d;
+  --pre-code: #edf2f7;
+  --pre-bg: #2d3748;
+}

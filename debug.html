@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/hlg/css/themes/catppuccin.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark-blue.css" rel="stylesheet">
+    <link href="/hlg/css/themes/simple.css" rel="stylesheet">
+    <link href="/hlg/css/themes/navy.css" rel="stylesheet">
+    <link href="/hlg/css/themes/dark.css" rel="stylesheet">
+
+    <link href="/hlg/css/core/prose.css" rel="stylesheet">
+    <link href="/hlg/css/core/main.css" rel="stylesheet">
+    <link href="/hlg/css/theme.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="/hlg/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    
+    <title>Debug</title>
+
+    
+</head>
+
+<body class="catppuccin-simple frappe">
+    <script type="module" src="/hlg/js/index.js"></script>
+    <script>
+        function reloadPage() {
+            location.reload();
+        }
+
+        function hamburgerClick() {
+            const sideNav = document.getElementById("sidenav")
+            const contentContainer = document.getElementById("content-container")
+            console.log(sideNav.style.display)
+            if (sideNav.style.display !== "block") {
+                sideNav.style.display = "block"
+                contentContainer.style.gridTemplateColumns = "1fr 1fr 14fr 1fr"
+            } else if (sideNav.style.display === "block") {
+                contentContainer.style.gridTemplateColumns = "1fr 14fr 1fr"
+                sideNav.style.display = "none"
+            }
+        }
+    </script>
+
+
+    <div class="container">
+        <bb-topbar
+            url="/hlg"
+            title="hlg"
+            hideSideBar="false"
+            repoIcon=""
+            repoURL=""
+            editPageURL="%25!%28EXTRA%20string=/hlg,%20string=./debug.md%29"
+            >
+        </bb-topbar>
+        <div id="content-container" class="flex flex-row flex-wrap py-4">
+            
+            <bb-navmenu id="sidenav" class="fixed top-0 left-0 h-full w-64 bg-white shadow-md hidden">
+                <ol class="navbar prose lg:prose-sm flex flex-col overflow-hidden" slot="nav-content">
+                    <h2 id="summary"><a href="#summary" class="header-anchor">Summary</a></h2><ul>
+<li><a href="/hlg/intro.html">Intro</a></li>
+<li><a href="/hlg/renderables.html">Renderables</a>
+<ul>
+<li><a href="/hlg/textures.html">Textures</a></li>
+<li><a href="/hlg/shapes.html">Shapes</a></li>
+<li><a href="/hlg/sprites.html">Sprites</a></li>
+</ul>
+</li>
+<li><a href="/hlg/debug.html">Debug</a></li>
+<li><a href="/hlg/examples.html">Examples</a></li>
+</ul>
+
+                </ol>
+            </bb-navmenu>
+            
+            <bb-navbtn class=".navbtn" nav-type="prev" href="/hlg/sprites.html"></bb-navbtn>
+            <main-container>
+                <main role="main" class="prose md-content">
+                    <h1 id="debug"><a href="#debug" class="header-anchor">Debug</a></h1><h2 id="printat"><a href="#printat" class="header-anchor">PrintAt</a></h2><p>You can print to the screen with the following:</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PrintAt</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">y</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">c</span> <span style="color:#a6e22e">color</span>.<span style="color:#a6e22e">Color</span>)
+</span></span></code></pre><h3 id="example"><a href="#example" class="header-anchor">Example</a></h3><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>	<span style="color:#e6db74">&#34;golang.org/x/image/colornames&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">update</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Clear</span>(<span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Grey</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">PrintAt</span>(<span style="color:#e6db74">&#34;hello, world&#34;</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Red</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>}
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetWindowSize</span>(<span style="color:#ae81ff">200</span>, <span style="color:#ae81ff">200</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">update</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>}
+</span></span></code></pre><h2 id="fps"><a href="#fps" class="header-anchor">FPS</a></h2><p>To see the current FPS (frames per second), you can call this function</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GetFPS</span>() <span style="color:#66d9ef">float64</span>
+</span></span></code></pre><p>To show the fps in the window title, you can enable it with:</p>
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">EnableFPS</span>()
+</span></span></code></pre><h3 id="example-1"><a href="#example-1" class="header-anchor">Example</a></h3><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;"><code><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>	<span style="color:#e6db74">&#34;github.com/dfirebaugh/hlg&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>	<span style="color:#e6db74">&#34;golang.org/x/image/colornames&#34;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetWindowSize</span>(<span style="color:#ae81ff">720</span>, <span style="color:#ae81ff">480</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">SetScreenSize</span>(<span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">160</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>	<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Triangle</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">160</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">160</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Orangered</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">EnableFPS</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>	<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>		<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">Clear</span>(<span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Skyblue</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Render</span>()
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>		<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">PrintAt</span>(<span style="color:#e6db74">&#34;hello, world&#34;</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Red</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>		<span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">PrintAt</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%f&#34;</span>, <span style="color:#a6e22e">hlg</span>.<span style="color:#a6e22e">GetFPS</span>()), <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">50</span>, <span style="color:#a6e22e">colornames</span>.<span style="color:#a6e22e">Red</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>	})
+</span></span><span style="display:flex;"><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>}
+</span></span></code></pre><p><img src="./assets/debug_example.png" alt="debug_example"/></p>
+
+                </main>
+            </main-container>
+            <bb-navbtn class=".navbtn" nav-type="next" href="/hlg/examples.html"></bb-navbtn>
+        </div>
+    </div>
+
+    
+</body>
+
+</html>

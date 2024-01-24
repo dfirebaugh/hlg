@@ -1,11 +1,10 @@
 #!/bin/bash
 
+source ./scripts/build_docs.sh
 
 GIT_REPO_URL=$(git config --get remote.origin.url)
 
-cd docs/user_docs
-bbook build
-cd .book
+cd .dist/web/
 
 git init .
 git remote add github $GIT_REPO_URL

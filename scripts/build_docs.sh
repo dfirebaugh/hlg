@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 source ./scripts/download_bbook.sh
 

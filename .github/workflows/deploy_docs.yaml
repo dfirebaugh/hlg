@@ -1,0 +1,29 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install mdBook
+        run: |
+          curl -sSL https://github.com/dfirebaugh/bbook/releases/download/v0.0.0/bbook-x86_64_unknown-linux.tar.gz | sudo tar -xz --directory=/usr/local/bin/
+
+      - name: Build with Make
+        run: make build-docs
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./.dist/web

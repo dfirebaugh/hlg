@@ -3,7 +3,7 @@ build-docs:
 	bash ./scripts/build_docs.sh
 
 serve-docs:
-	cd docs/user_docs/ && bbook serve
+	bash ./scripts/serve_docs.sh
 
 deploy-docs:
 	bash scripts/deploy_docs.sh

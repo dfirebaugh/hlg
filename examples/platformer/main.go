@@ -17,9 +17,9 @@ import (
 const (
 	windowWidth        = 800
 	windowHeight       = 600
-	playerSpeed        = 5
-	gravity            = 0.2
-	jumpSpeed          = 10
+	playerSpeed        = 10
+	gravity            = 0.5
+	jumpSpeed          = 15
 	coyoteTimeDuration = 400 // milliseconds
 	debug              = false
 )

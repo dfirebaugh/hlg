@@ -2,41 +2,55 @@ package texture
 
 import "github.com/rajveermalviya/go-webgpu/wgpu"
 
+// ScreenToNDC transforms screen space coordinates to NDC.
+// screenWidth and screenHeight are the dimensions of the screen.
+func ScreenToNDC(x, y, screenWidth, screenHeight float32) [3]float32 {
+	// Normalize coordinates to [0, 1]
+	normalizedX := x / screenWidth
+	normalizedY := y / screenHeight
+
+	// Map to NDC [-1, 1]
+	ndcX := normalizedX*2 - 1
+	ndcY := 1 - normalizedY*2 // Y is inverted in NDC
+
+	return [3]float32{ndcX, ndcY, 0} // Assuming Z coordinate to be 0 for 2D
+}
+
 func (t *Texture) Resize(width, height float32) {
 	t.ResizeInScreenSpace(width, height)
 }
 
 func (t *Texture) ResizeInScreenSpace(screenWidth, screenHeight float32) {
-	ndcWidth := (2.0 * screenWidth) / float32(t.SwapChainDescriptor.Width)
-	ndcHeight := (2.0 * screenHeight) / float32(t.SwapChainDescriptor.Height)
+	scaleX := screenWidth / t.originalWidth
+	scaleY := screenHeight / t.originalHeight
+	uniformScale := min(scaleX, scaleY)
 
-	scaleX := ndcWidth
-	scaleY := ndcHeight
+	t.transform = t.transform.Scale(uniformScale, uniformScale)
 
-	t.transform = t.transform.Scale(scaleX, scaleY)
-	t.UpdateTransformBuffer()
+	t.updateTransformBuffer()
+}
+
+func (t *Texture) Move(dx, dy float32) {
+	t.MoveInScreenSpace(dx, dy)
 }
 
 func (t *Texture) MoveInScreenSpace(screenX, screenY float32) {
-	clipWidth, clipHeight := t.GetCurrentClipSize()
+	ndcCoords := ScreenToNDC(screenX, screenY, t.originalScreenWidth, t.originalScreenHeight)
 
-	ndcX := (2.0 * (screenX + clipWidth/2) / float32(t.SwapChainDescriptor.Width)) - 1.0
-	ndcY := 1.0 - (2.0 * (screenY + clipHeight/2) / float32(t.SwapChainDescriptor.Height))
+	t.transform[12] = ndcCoords[0]
+	t.transform[13] = ndcCoords[1]
 
-	t.transform[12] = ndcX
-	t.transform[13] = ndcY
-
-	t.UpdateTransformBuffer()
+	t.updateTransformBuffer()
 }
 
 func (t *Texture) Rotate(a float32) {
 	t.transform = t.transform.Rotate(a)
-	t.UpdateTransformBuffer()
+	t.updateTransformBuffer()
 }
 
 func (t *Texture) Scale(x, y float32) {
 	t.transform = t.transform.Scale(x, y)
-	t.UpdateTransformBuffer()
+	t.updateTransformBuffer()
 }
 
 func (t *Texture) FlipVertical() {

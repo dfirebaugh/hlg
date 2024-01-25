@@ -8,6 +8,10 @@ import (
 	"tinygo.org/x/tinyfont/proggy"
 )
 
+type Shape interface {
+	graphics.Shape
+}
+
 // Polygon creates a polygon shape with a specified number of sides, position, width, and color.
 // x, y define the center of the polygon.
 // width defines the diameter of the circumcircle of the polygon.

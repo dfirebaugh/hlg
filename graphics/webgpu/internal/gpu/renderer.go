@@ -105,16 +105,20 @@ func (r *Renderer) Resize(width int, height int) {
 		return
 	}
 
-	// Update window size
 	r.windowSize.Width = width
 	r.windowSize.Height = height
 
-	// Update screen size used by the swap chain
-	r.SetScreenSize(width, height)
+	r.SwapChainDescriptor.Width = uint32(width)
+	r.SwapChainDescriptor.Height = uint32(height)
 
-	// Recreate swap chain with new dimensions
+	if r.SwapChain != nil {
+		r.SwapChain.Release()
+		r.SwapChain = nil
+	}
+
 	var err error
-	if r.SwapChain, err = r.createSwapChain(); err != nil {
+	r.SwapChain, err = r.createSwapChain()
+	if err != nil {
 		panic(err)
 	}
 }

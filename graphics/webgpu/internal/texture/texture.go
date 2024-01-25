@@ -27,6 +27,9 @@ type Texture struct {
 	originalWidth  float32
 	originalHeight float32
 
+	originalScreenWidth  float32
+	originalScreenHeight float32
+
 	transform matrix.Matrix
 
 	flipHorizontal bool
@@ -81,6 +84,9 @@ func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.I
 	if err != nil {
 		return
 	}
+
+	t.originalScreenHeight = float32(scd.Height)
+	t.originalScreenWidth = float32(scd.Width)
 
 	d.GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
@@ -453,7 +459,7 @@ func (t *Texture) Destroy() {
 	t.isDisposed = true
 }
 
-func (t *Texture) UpdateTransformBuffer() {
+func (t *Texture) updateTransformBuffer() {
 	t.Device.GetQueue().WriteBuffer(t.transformBuffer, 0, wgpu.ToBytes(t.transform[:]))
 }
 

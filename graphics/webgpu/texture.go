@@ -40,7 +40,7 @@ func (t *Texture) Resize(width, height float32) {
 	t.gpuTexture.Resize(width, height)
 }
 func (t *Texture) Move(x, y float32) {
-	t.gpuTexture.MoveInScreenSpace(x, y)
+	t.gpuTexture.Move(x, y)
 }
 func (t *Texture) Rotate(a, pivotX, pivotY float32) {
 	t.gpuTexture.Rotate(a)

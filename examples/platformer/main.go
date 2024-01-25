@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	windowWidth  = 800
-	windowHeight = 600
-	playerSpeed  = 5
-	gravity      = 0.2
-	jumpSpeed    = 10
+	windowWidth        = 800
+	windowHeight       = 600
+	playerSpeed        = 5
+	gravity            = 0.2
+	jumpSpeed          = 10
+	coyoteTimeDuration = 400 // milliseconds
 )
 
 type Player struct {
@@ -32,42 +33,31 @@ type Player struct {
 	Sprite    *hlg.Sprite
 	LastFrame time.Time
 	platforms []*Platform
+
+	CoyoteTimeLeft int
 }
 
-func (p *Player) Update() {
-	// Basic gravity
-	p.VelY += gravity
-	p.Y += p.VelY
-
-	// Collision with ground
-	if p.Y > float64(windowHeight)-p.H {
-		p.Y = float64(windowHeight) - p.H
-		p.VelY = 0
-		p.Ground = true
-	}
-
-	// Movement
+func (p *Player) handleMovement() {
 	if hlg.IsKeyPressed(input.KeyA) || hlg.IsKeyPressed(input.KeyLeft) {
 		p.X -= playerSpeed
 	}
 	if hlg.IsKeyPressed(input.KeyD) || hlg.IsKeyPressed(input.KeyRight) {
 		p.X += playerSpeed
 	}
+}
 
-	// Jumping
-	if hlg.IsKeyPressed(input.KeySpace) && p.Ground {
-		p.VelY = -jumpSpeed
-		p.Ground = false
+func (p *Player) handleCoyoteTime() {
+	if p.Ground {
+		p.CoyoteTimeLeft = coyoteTimeDuration
+	} else {
+		p.CoyoteTimeLeft -= 17
+		if p.CoyoteTimeLeft < 0 {
+			p.CoyoteTimeLeft = 0
+		}
 	}
+}
 
-	// Update sprite frame
-	if time.Since(p.LastFrame) >= time.Millisecond*200 {
-		p.LastFrame = time.Now()
-		p.Sprite.NextFrame()
-	}
-
-	p.Sprite.Move(float32(p.X), float32(p.Y))
-
+func (p *Player) handlePlatformCollision() {
 	p.Ground = false
 
 	playerBottomCenterX := p.X + p.W/2
@@ -83,6 +73,49 @@ func (p *Player) Update() {
 			}
 		}
 	}
+}
+
+func (p *Player) handleGroundCollision() {
+	if p.Y > float64(windowHeight)-p.H {
+		p.Y = float64(windowHeight) - p.H
+		p.VelY = 0
+		p.Ground = true
+	}
+}
+
+func (p *Player) updateVelocity() {
+	if p.CoyoteTimeLeft <= 0 {
+		p.VelY += gravity
+	}
+	p.Y += p.VelY
+}
+
+func (p *Player) updateSpriteFrame() {
+	if time.Since(p.LastFrame) >= time.Millisecond*200 {
+		p.LastFrame = time.Now()
+		p.Sprite.NextFrame()
+	}
+}
+
+func (p *Player) handleJump() {
+	if hlg.IsKeyPressed(input.KeySpace) && (p.Ground || p.CoyoteTimeLeft > 0) {
+		p.VelY = -jumpSpeed
+		p.Ground = false
+		p.CoyoteTimeLeft = 0
+	}
+}
+
+func (p *Player) Update() {
+	p.updateVelocity()
+	p.handleGroundCollision()
+	p.handleMovement()
+	p.handleCoyoteTime()
+
+	p.handleJump()
+	p.updateSpriteFrame()
+
+	p.Sprite.Move(float32(p.X), float32(p.Y))
+	p.handlePlatformCollision()
 }
 
 func (p *Player) Render() {
@@ -111,7 +144,7 @@ func main() {
 		X:         100,
 		Y:         float64(windowHeight) - 100,
 		W:         16,
-		H:         16,
+		H:         32,
 		Sprite:    sprite,
 		LastFrame: time.Now(),
 		platforms: platforms,
@@ -130,6 +163,7 @@ func main() {
 
 		hlg.PrintAt(fmt.Sprintf("Player X: %d Y: %d", int(player.X), int(player.Y)),
 			10, windowHeight-20, colornames.Black)
+		hlg.PrintAt(fmt.Sprintf("VelY: %.2f, Ground: %t, CoyoteTimeLeft: %d", player.VelY, player.Ground, player.CoyoteTimeLeft), 10, windowHeight-40, colornames.Black)
 	})
 }
 

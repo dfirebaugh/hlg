@@ -21,6 +21,7 @@ const (
 	gravity            = 0.2
 	jumpSpeed          = 10
 	coyoteTimeDuration = 400 // milliseconds
+	debug              = false
 )
 
 type Player struct {
@@ -35,6 +36,7 @@ type Player struct {
 	platforms []*Platform
 
 	CoyoteTimeLeft int
+	hlg.Shape
 }
 
 func (p *Player) handleMovement() {
@@ -61,12 +63,12 @@ func (p *Player) handlePlatformCollision() {
 	p.Ground = false
 
 	playerBottomCenterX := p.X + p.W/2
-	playerBottomCenterY := p.Y + p.H
+	playerBottomCenterY := p.Y + p.H - 8
 
 	for _, pl := range p.platforms {
 		if playerBottomCenterX > pl.X && playerBottomCenterX < (pl.X+pl.W) {
 			if playerBottomCenterY >= pl.Y && playerBottomCenterY <= (pl.Y+pl.H) && p.VelY >= 0 {
-				p.Y = pl.Y - p.H
+				p.Y = pl.Y - p.H + (p.H / 2)
 				p.VelY = 0
 				p.Ground = true
 				break
@@ -76,8 +78,8 @@ func (p *Player) handlePlatformCollision() {
 }
 
 func (p *Player) handleGroundCollision() {
-	if p.Y > float64(windowHeight)-p.H {
-		p.Y = float64(windowHeight) - p.H
+	if p.Y > float64(windowHeight)-p.H+(p.H/2) {
+		p.Y = float64(windowHeight) - p.H + (p.H / 2)
 		p.VelY = 0
 		p.Ground = true
 	}
@@ -116,15 +118,23 @@ func (p *Player) Update() {
 
 	p.Sprite.Move(float32(p.X), float32(p.Y))
 	p.handlePlatformCollision()
+	p.Shape.Move(float32(p.X), float32(p.Y))
 }
 
 func (p *Player) Render() {
 	p.Sprite.Render()
+
+	if debug {
+		p.Shape.Render()
+	}
 }
 
 func main() {
 	hlg.SetWindowSize(windowWidth, windowHeight)
 	hlg.SetScreenSize(windowWidth, windowHeight)
+	if debug {
+		hlg.EnableFPS()
+	}
 
 	reader := bytes.NewReader(assets.BuddyDanceSpriteSheet)
 	img, _, err := image.Decode(reader)
@@ -143,12 +153,13 @@ func main() {
 	player := &Player{
 		X:         100,
 		Y:         float64(windowHeight) - 100,
-		W:         16,
+		W:         32,
 		H:         32,
 		Sprite:    sprite,
 		LastFrame: time.Now(),
 		platforms: platforms,
 	}
+	player.Shape = hlg.Rectangle(int(player.X), int(player.Y), int(player.W), int(player.H), colornames.Mediumpurple)
 	sprite.Resize(float32(player.W), float32(player.H))
 
 	hlg.Update(func() {

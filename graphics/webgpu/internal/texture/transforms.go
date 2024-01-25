@@ -21,11 +21,11 @@ func (t *Texture) Resize(width, height float32) {
 }
 
 func (t *Texture) ResizeInScreenSpace(screenWidth, screenHeight float32) {
-	scaleX := screenWidth / t.originalWidth
-	scaleY := screenHeight / t.originalHeight
-	uniformScale := min(scaleX, scaleY)
+	scaleFactor := (t.originalWidth / t.originalHeight) * 100
+	scaleX := screenWidth / scaleFactor
+	scaleY := screenHeight / scaleFactor
 
-	t.transform = t.transform.Scale(uniformScale, uniformScale)
+	t.transform = t.transform.Scale(scaleX, scaleY)
 
 	t.updateTransformBuffer()
 }

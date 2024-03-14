@@ -36,6 +36,7 @@ type Texture interface {
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()
 	Dispose()
+	IsDisposed() bool
 }
 
 type Renderable interface {

@@ -54,6 +54,7 @@ type Transformable interface {
 	Move(screenX, screenY float32)
 	Rotate(angle float32)
 	Scale(sx, sy float32)
+	Resize(width, height float32)
 }
 
 type WindowManager interface {

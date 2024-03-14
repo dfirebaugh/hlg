@@ -27,45 +27,6 @@ func (p *Polygon) Scale(sx, sy float32) {
 	p.updateTransformBuffer()
 }
 
-func (p *Polygon) Resize(newWidth, newHeight float32) {
-	minX, maxX, minY, maxY := p.vertices[0].Position[0], p.vertices[0].Position[0], p.vertices[0].Position[1], p.vertices[0].Position[1]
-	for _, vertex := range p.vertices[1:] {
-		if vertex.Position[0] < minX {
-			minX = vertex.Position[0]
-		}
-		if vertex.Position[0] > maxX {
-			maxX = vertex.Position[0]
-		}
-		if vertex.Position[1] < minY {
-			minY = vertex.Position[1]
-		}
-		if vertex.Position[1] > maxY {
-			maxY = vertex.Position[1]
-		}
-	}
-
-	currentWidth := maxX - minX
-	currentHeight := maxY - minY
-
-	scaleX := newWidth / currentWidth
-	scaleY := newHeight / currentHeight
-
-	centerX := (minX + maxX) / 2
-	centerY := (minY + maxY) / 2
-
-	for i := range p.vertices {
-		dx := (p.vertices[i].Position[0] - centerX) * scaleX
-		dy := (p.vertices[i].Position[1] - centerY) * scaleY
-		p.vertices[i].Position[0] = centerX + dx
-		p.vertices[i].Position[1] = centerY + dy
-	}
-
-	p.vertexBuffer.Release()
-	p.vertexBuffer = createVertexBuffer(p.device, p.vertices, float32(p.SwapChainDescriptor.Width), float32(p.SwapChainDescriptor.Height))
-
-	p.updateTransformBuffer()
-}
-
 func (p *Polygon) updateTransformBuffer() {
 	if p.transform.IsZero() {
 		return

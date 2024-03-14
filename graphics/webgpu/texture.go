@@ -73,3 +73,6 @@ func (t *Texture) Hide() {
 func (t *Texture) Dispose() {
 	t.renderQueue.DisposeTexture(uintptr(t.handle))
 }
+func (t *Texture) IsDisposed() bool {
+	return t.gpuTexture.IsDisposed()
+}

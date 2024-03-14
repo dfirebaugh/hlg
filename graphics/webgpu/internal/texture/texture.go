@@ -459,6 +459,10 @@ func (t *Texture) Destroy() {
 	t.isDisposed = true
 }
 
+func (t *Texture) IsDisposed() bool {
+	return t.isDisposed
+}
+
 func (t *Texture) updateTransformBuffer() {
 	t.Device.GetQueue().WriteBuffer(t.transformBuffer, 0, wgpu.ToBytes(t.transform[:]))
 }

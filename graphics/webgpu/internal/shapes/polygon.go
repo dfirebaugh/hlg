@@ -153,6 +153,9 @@ func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
 }
 
 func (p *Polygon) Render() {
+	if p.isDisposed {
+		return
+	}
 	p.shouldeRender = true
 	p.renderQueue.AddToRenderQueue(p)
 }
@@ -182,6 +185,10 @@ func (p *Polygon) Dispose() {
 		p.bindGroupLayout = nil
 	}
 	p.isDisposed = true
+}
+
+func (p *Polygon) IsDisposed() bool {
+	return p.isDisposed
 }
 
 func (p *Polygon) Hide() {

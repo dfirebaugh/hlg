@@ -141,6 +141,10 @@ func GetWindowSize() (int, int) {
 	return hlg.graphicsBackend.GetWindowSize()
 }
 
+func GetWindowPosition() (int, int) {
+	return hlg.graphicsBackend.GetWindowPosition()
+}
+
 // SetScreenSize sets the size of the screen.
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()

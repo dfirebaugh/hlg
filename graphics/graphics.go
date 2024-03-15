@@ -64,6 +64,7 @@ type WindowManager interface {
 	SetWindowSize(width int, height int)
 	SetScreenSize(width int, height int)
 	GetWindowSize() (int, int)
+	GetWindowPosition() (x int, y int)
 	SetScaleFactor(f int)
 	IsDisposed() bool
 	Renderer

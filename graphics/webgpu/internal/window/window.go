@@ -35,6 +35,10 @@ func NewWindow(width, height int) (*Window, error) {
 	return w, nil
 }
 
+func (w *Window) GetWindowPosition() (x int, y int) {
+	return w.Window.GetPos()
+}
+
 func (w *Window) SetAspectRatio(numerator, denominator int) {
 	w.aspectRatio = float64(numerator) / float64(denominator)
 	w.Window.SetAspectRatio(numerator, denominator)

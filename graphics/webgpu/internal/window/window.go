@@ -78,9 +78,9 @@ func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
 	})
 }
 
-func (w *Window) SetResizedCallback(fn func(physicalWidth, physicalHeight uint32, scaleFactor float64)) {
+func (w *Window) SetResizedCallback(fn func(physicalWidth, physicalHeight uint32)) {
 	w.Window.SetSizeCallback(func(window *glfw.Window, width, height int) {
-		fn(uint32(width), uint32(height), 1)
+		fn(uint32(width), uint32(height))
 	})
 }
 func (w *Window) SetCloseRequestedCallback(fn func()) {
@@ -94,7 +94,7 @@ func (w *Window) SetWindowTitle(title string) {
 }
 
 func (w *Window) GetWindowSize() (int, int) {
-	if w.isDisposed {
+	if w == nil || w.isDisposed {
 		return 0, 0
 	}
 	return w.Window.GetSize()
@@ -104,8 +104,6 @@ func (w *Window) SetWindowSize(width int, height int) {
 	w.SetAspectRatio(width, height)
 	w.SetSize(width, height)
 }
-
-func (w *Window) SetScaleFactor(f int) {}
 
 func (w *Window) DestroyWindow() {
 	w.Destroy()

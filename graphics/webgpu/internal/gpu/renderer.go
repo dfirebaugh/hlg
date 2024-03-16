@@ -7,6 +7,7 @@ import (
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
@@ -16,37 +17,36 @@ type RenderQueue interface {
 	RenderClear()
 }
 
+type size struct {
+	Width  int
+	Height int
+}
+
 type Renderer struct {
-	windowSize struct {
-		Width  int
-		Height int
-	}
+	windowSize size
 	*wgpu.Surface
 	*wgpu.Device
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
 	*window.Window
 	RenderQueue
-
+	surface    common.Surface
 	clearColor wgpu.Color
 }
 
-func NewRenderer(w *window.Window) (r *Renderer, err error) {
-	wgpu.SetLogLevel(wgpu.LogLevel_Off)
+func NewRenderer(s common.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
+	wgpu.SetLogLevel(wgpu.LogLevel_Error)
 
-	width, height := w.GetWindowSize()
 	r = &Renderer{
-		Window: w,
-		windowSize: struct {
-			Width  int
-			Height int
-		}{
+		surface: s,
+		Window:  w,
+		windowSize: size{
 			Width:  width,
 			Height: height,
 		},
 	}
-	err = r.setupDevice(w)
 
+	r.setupDevice(w)
 	defer func() {
 		if rec := recover(); rec != nil {
 			log.Printf("Recovered from panic: %v\n", r)
@@ -56,10 +56,6 @@ func NewRenderer(w *window.Window) (r *Renderer, err error) {
 		}
 	}()
 	wgpu.SetLogLevel(wgpu.LogLevel_Error)
-
-	w.SetCloseCallback(func() {
-		r.Destroy()
-	})
 
 	return r, err
 }
@@ -250,7 +246,7 @@ func (r *Renderer) Destroy() {
 	if r.SwapChainDescriptor != nil {
 		r.SwapChainDescriptor = nil
 	}
-	if r.Device.GetQueue() != nil {
+	if r.Device != nil && r.Device.GetQueue() != nil {
 		r.Device.GetQueue().Release()
 	}
 	if r.Device != nil {
@@ -261,8 +257,4 @@ func (r *Renderer) Destroy() {
 		r.Surface.Release()
 		r.Surface = nil
 	}
-}
-
-func (r *Renderer) ScreenSize() (int, int) {
-	return int(r.SwapChainDescriptor.Width), int(r.SwapChainDescriptor.Height)
 }

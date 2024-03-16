@@ -42,7 +42,7 @@ func (b *Ball) Update() {
 	b.X += b.Velocity.X
 	b.Y += b.Velocity.Y
 
-	sw, sh := hlg.ScreenSize()
+	sw, sh := hlg.GetScreenSize()
 	r := float32(b.Circle.R)
 
 	if b.X-r < 0 || b.X+r > float32(sw) {
@@ -56,7 +56,7 @@ func (b *Ball) Update() {
 }
 
 func NewBall() Ball {
-	sw, sh := hlg.ScreenSize()
+	sw, sh := hlg.GetScreenSize()
 
 	radius := float32(rand.Intn(35) + 10)
 	x := radius + float32(rand.Float64()*(float64(sw)-2*float64(radius)))

@@ -7,12 +7,14 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/hlg/pkg/input"
+	"github.com/dfirebaugh/hlg/pkg/math/matrix"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type GraphicsBackend interface {
 	Close()
-	ScreenSize() (int, int)
+	GetScreenSize() (int, int)
+	SetScreenSize(width int, height int)
 
 	WindowManager
 	EventManager
@@ -54,18 +56,16 @@ type Renderer interface {
 
 type Transformable interface {
 	Move(screenX, screenY float32)
-	Rotate(angle float32)
-	Scale(sx, sy float32)
+	Rotate(angle float32) matrix.Matrix
+	Scale(sx, sy float32) matrix.Matrix
 }
 
 type WindowManager interface {
 	SetWindowTitle(title string)
 	DestroyWindow()
 	SetWindowSize(width int, height int)
-	SetScreenSize(width int, height int)
 	GetWindowSize() (int, int)
 	GetWindowPosition() (x int, y int)
-	SetScaleFactor(f int)
 	IsDisposed() bool
 	Renderer
 }

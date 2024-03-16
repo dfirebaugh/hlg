@@ -5,11 +5,12 @@ import (
 	"image/draw"
 	"unsafe"
 
-	"github.com/dfirebaugh/hlg/pkg/math/matrix"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Texture struct {
+	surface common.Surface
 	*wgpu.SwapChainDescriptor
 	*wgpu.Device
 	*wgpu.Texture
@@ -21,16 +22,12 @@ type Texture struct {
 	vertexBuffer *wgpu.Buffer
 	indexBuffer  *wgpu.Buffer
 
-	transformBuffer *wgpu.Buffer
-	numIndices      uint32
+	numIndices uint32
+
+	*common.Transform
 
 	originalWidth  float32
 	originalHeight float32
-
-	originalScreenWidth  float32
-	originalScreenHeight float32
-
-	transform matrix.Matrix
 
 	flipHorizontal bool
 	flipVertical   bool
@@ -42,7 +39,7 @@ type Texture struct {
 	isDisposed bool
 }
 
-func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
+func TextureFromImage(surface common.Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
 	defer func() {
 		if err != nil {
 			t.Destroy()
@@ -56,7 +53,6 @@ func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.I
 	t = &Texture{
 		Device:              d,
 		SwapChainDescriptor: scd,
-		transform:           matrix.MatrixIdentity(),
 		originalWidth:       float32(width),
 		originalHeight:      float32(height),
 	}
@@ -84,9 +80,6 @@ func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.I
 	if err != nil {
 		return
 	}
-
-	t.originalScreenHeight = float32(scd.Height)
-	t.originalScreenWidth = float32(scd.Width)
 
 	d.GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
@@ -122,7 +115,9 @@ func TextureFromImage(d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.I
 	if err != nil {
 		return nil, err
 	}
-	t.createTransformBuffer()
+
+	t.Transform = common.NewTransform(surface, d, scd, "Texture Transform Buffer")
+
 	err = t.createFlipBuffer()
 	if err != nil {
 		return nil, err
@@ -336,9 +331,9 @@ func (t *Texture) createBindGroup() error {
 			},
 			{
 				Binding: 2,
-				Buffer:  t.transformBuffer,
+				Buffer:  t.Transform.Buffer,
 				Offset:  0,
-				Size:    uint64(unsafe.Sizeof(t.transform)),
+				Size:    uint64(unsafe.Sizeof(t.Transform.Matrix)),
 			},
 			{
 				Binding: 3,
@@ -383,15 +378,6 @@ func (t *Texture) createIndexBuffer() error {
 	return err
 }
 
-func (t *Texture) createTransformBuffer() {
-	usage := wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst
-	t.transformBuffer, _ = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Transform Buffer",
-		Usage:    usage,
-		Contents: wgpu.ToBytes(t.transform[:]),
-	})
-}
-
 func (t *Texture) createFlipBuffer() error {
 	flipInfo := [2]float32{0.0, 0.0}
 
@@ -408,7 +394,7 @@ func (t *Texture) createClipBuffer() error {
 
 	var err error
 	t.clipBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Flip Buffer",
+		Label:    "Clip Buffer",
 		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
 		Contents: wgpu.ToBytes(clipInfo[:]),
 	})
@@ -456,15 +442,13 @@ func (t *Texture) Destroy() {
 		t.clipBuffer.Release()
 		t.clipBuffer = nil
 	}
+
+	t.Transform.Destroy()
 	t.isDisposed = true
 }
 
 func (t *Texture) IsDisposed() bool {
 	return t.isDisposed
-}
-
-func (t *Texture) updateTransformBuffer() {
-	t.Device.GetQueue().WriteBuffer(t.transformBuffer, 0, wgpu.ToBytes(t.transform[:]))
 }
 
 func (t *Texture) updateFlipBuffer() {

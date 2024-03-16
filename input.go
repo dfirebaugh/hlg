@@ -20,9 +20,20 @@ func PressButton(buttonCode input.MouseButton) {
 func ReleaseButton(buttonCode input.MouseButton) {
 	hlg.inputState.ReleaseButton(buttonCode)
 }
-func GetCursorPosition() (x, y int) {
-	return hlg.inputState.GetCursorPosition()
+func GetCursorPosition() (int, int) {
+	sw, sh := hlg.graphicsBackend.GetScreenSize()
+	w, h := hlg.graphicsBackend.GetWindowSize()
+
+	x, y := hlg.inputState.GetCursorPosition()
+	scaleX := float64(sw) / float64(w)
+	scaleY := float64(sh) / float64(h)
+
+	virtualX := int(float64(x) * scaleX)
+	virtualY := int(float64(y) * scaleY)
+
+	return virtualX, virtualY
 }
+
 func SetScrollCallback(cb func(x float64, y float64)) {
 	hlg.inputState.SetScrollCallback(cb)
 }

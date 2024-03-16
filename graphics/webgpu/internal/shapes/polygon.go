@@ -5,43 +5,41 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/dfirebaugh/hlg/pkg/math/matrix"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Polygon struct {
-	device *wgpu.Device
+	surface common.Surface
+	device  *wgpu.Device
 	renderQueue
 	*wgpu.SwapChainDescriptor
 	bindGroup       *wgpu.BindGroup
 	bindGroupLayout *wgpu.BindGroupLayout
-	vertices        []Vertex
-	center          [2]float32
-	pipeline        map[RenderMode]*wgpu.RenderPipeline
-	vertexBuffer    *wgpu.Buffer
+	pipeline        *wgpu.RenderPipeline
+
+	*common.Transform
+	vertexBuffer *wgpu.Buffer
+	vertices     []common.Vertex
 
 	shouldeRender bool
-	renderMode    RenderMode
-
-	transform       matrix.Matrix
-	transformBuffer *wgpu.Buffer
-
-	isDisposed bool
+	isDisposed    bool
 }
 
-func NewPolygon(device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQueue, vertices []Vertex, renderMode RenderMode) *Polygon {
+func NewPolygon(surface common.Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQueue, vertices []common.Vertex) *Polygon {
 	p := &Polygon{
+		surface:             surface,
 		device:              device,
 		SwapChainDescriptor: scd,
 		vertices:            vertices,
-		renderMode:          renderMode,
 		renderQueue:         rq,
 	}
 
-	p.center = p.calculateCenter()
+	sw, sh := surface.GetSurfaceSize()
 
-	p.vertexBuffer = createVertexBuffer(p.device, p.vertices, float32(scd.Width), float32(scd.Height))
-	p.createTransformBuffer()
+	p.Transform = common.NewTransform(surface, device, scd, "Polygon Transform Buffer")
+	p.vertexBuffer = common.CreateVertexBuffer(p.device, p.vertices, float32(sw), float32(sh))
+
 	p.createBindGroupLayout(device)
 	p.createBindGroup(device, p.bindGroupLayout)
 
@@ -53,24 +51,9 @@ func NewPolygon(device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQue
 	}
 	defer shaderModule.Release()
 
-	filledPipeline := p.createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_TriangleList)
-	outlinedPipeline := p.createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_LineStrip)
-	p.pipeline = map[RenderMode]*wgpu.RenderPipeline{
-		RenderFilled:   filledPipeline,
-		RenderOutlined: outlinedPipeline,
-	}
+	p.pipeline = p.createPipeline(device, shaderModule, scd, wgpu.PrimitiveTopology_TriangleList)
 
 	return p
-}
-
-func (p *Polygon) calculateCenter() [2]float32 {
-	var sumX, sumY float32
-	for _, vertex := range p.vertices {
-		sumX += vertex.Position[0]
-		sumY += vertex.Position[1]
-	}
-	count := float32(len(p.vertices))
-	return [2]float32{sumX / count, sumY / count}
 }
 
 func (p *Polygon) createBindGroupLayout(device *wgpu.Device) {
@@ -99,9 +82,9 @@ func (p *Polygon) createBindGroup(device *wgpu.Device, layout *wgpu.BindGroupLay
 		Entries: []wgpu.BindGroupEntry{
 			{
 				Binding: 0,
-				Buffer:  p.transformBuffer,
+				Buffer:  p.Transform.Buffer,
 				Offset:  0,
-				Size:    uint64(unsafe.Sizeof(p.transform)),
+				Size:    uint64(unsafe.Sizeof(p.Transform.Matrix)),
 			},
 		},
 		Label: "Polygon Bind Group",
@@ -109,20 +92,6 @@ func (p *Polygon) createBindGroup(device *wgpu.Device, layout *wgpu.BindGroupLay
 	if err != nil {
 		panic(err)
 	}
-}
-
-func (p *Polygon) SetColor(c color.Color) {
-	r, g, b, a := c.RGBA()
-	for i := range p.vertices {
-		p.vertices[i].Color = [4]float32{
-			float32(r) / 0xffff, // RGBA values are 0-65535 so divide by 0xffff
-			float32(g) / 0xffff,
-			float32(b) / 0xffff,
-			float32(a) / 0xffff,
-		}
-	}
-
-	p.vertexBuffer = createVertexBuffer(p.device, p.vertices, float32(p.SwapChainDescriptor.Width), float32(p.SwapChainDescriptor.Height))
 }
 
 func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
@@ -135,16 +104,16 @@ func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
 		log.Println("Polygon RenderPass: bindGroup is nil")
 		return
 	}
-	if p.vertexBuffer == nil {
+	if p.Transform.Buffer == nil {
 		log.Println("Polygon RenderPass: vertexBuffer is nil")
 		return
 	}
-	if p.pipeline == nil || p.pipeline[p.renderMode] == nil {
+	if p.pipeline == nil {
 		log.Println("Polygon RenderPass: pipeline is nil or not set for the current render mode")
 		return
 	}
 
-	encoder.SetPipeline(p.pipeline[p.renderMode])
+	encoder.SetPipeline(p.pipeline)
 	encoder.SetBindGroup(0, p.bindGroup, nil)
 	encoder.SetVertexBuffer(0, p.vertexBuffer, 0, wgpu.WholeSize)
 
@@ -163,18 +132,13 @@ func (p *Polygon) Render() {
 // Dispose releases any resources used by the Triangle.
 func (p *Polygon) Dispose() {
 	if p.pipeline != nil {
-		for _, pipeline := range p.pipeline {
-			pipeline.Release()
-			pipeline = nil
-		}
+		p.pipeline.Release()
+		p.pipeline = nil
 	}
+	p.Transform.Destroy()
 	if p.vertexBuffer != nil {
 		p.vertexBuffer.Release()
 		p.vertexBuffer = nil
-	}
-	if p.transformBuffer != nil {
-		p.transformBuffer.Release()
-		p.transformBuffer = nil
 	}
 	if p.bindGroup != nil {
 		p.bindGroup.Release()
@@ -193,4 +157,23 @@ func (p *Polygon) IsDisposed() bool {
 
 func (p *Polygon) Hide() {
 	p.shouldeRender = false
+}
+
+func (p *Polygon) SetColor(c color.Color) {
+	r, g, b, a := c.RGBA()
+	for i := range p.vertices {
+		p.vertices[i].Color = [4]float32{
+			float32(r) / 0xffff, // RGBA values are 0-65535 so divide by 0xffff
+			float32(g) / 0xffff,
+			float32(b) / 0xffff,
+			float32(a) / 0xffff,
+		}
+	}
+
+	p.createVertexBuffer()
+}
+
+func (p *Polygon) createVertexBuffer() {
+	w, h := p.surface.GetSurfaceSize()
+	p.vertexBuffer = common.CreateVertexBuffer(p.device, p.vertices, float32(w), float32(h))
 }

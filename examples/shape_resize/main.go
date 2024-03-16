@@ -86,23 +86,29 @@ func (g *RectOverlay) Update() {
 		if handle.IsDragging {
 			switch index {
 			case 0:
-				g.X = x
-				g.Y = y
+				g.X = x - g.Width/2
+				g.Y = y - g.Height/2
 				handle.UpdatePosition(x, y)
 				g.Handles[1].UpdatePosition(x+g.Width/2, y+g.Height/2)
-				g.Shape.Move(float32(g.Position.X), float32(g.Position.Y))
+				g.newRect()
 			case 1:
 				g.Width = x - g.X
 				g.Height = y - g.Y
-				g.Shape.Dispose()
-				g.Shape = hlg.Rectangle(g.X, g.Y, g.Width, g.Height, g.Color)
-				g.Handles[0].UpdatePosition(x-g.Width/2, y-g.Height/2)
 				handle.UpdatePosition(x, y)
+				g.Handles[0].UpdatePosition(x-g.Width/2, y-g.Height/2)
+				g.newRect()
 			}
 
 			break // Only one handle can be dragged at a time
 		}
 	}
+}
+
+func (g *RectOverlay) newRect() {
+	if !g.Shape.IsDisposed() {
+		g.Shape.Dispose()
+	}
+	g.Shape = hlg.Rectangle(g.X, g.Y, g.Width, g.Height, g.Color)
 }
 
 func (g *RectOverlay) Render() {

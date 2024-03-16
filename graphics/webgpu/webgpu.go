@@ -1,7 +1,7 @@
 package webgpu
 
 import (
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/gpu"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/surface"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
@@ -20,47 +20,34 @@ import (
 
 type GraphicsBackend struct {
 	*window.Window
-	*gpu.Renderer
-	*RenderQueue
+	*surface.Surface
 }
 
-const (
-	width  = 600
-	height = 412
-)
-
-func NewGraphicsBackend() (*GraphicsBackend, error) {
+func NewGraphicsBackend(width, height int) (*GraphicsBackend, error) {
 	w, err := window.NewWindow(width, height)
 	if err != nil {
 		panic(err)
 	}
 
-	w.SetAspectRatio(width, height)
-
-	s, err := gpu.NewRenderer(w)
-	if err != nil {
-		panic(err)
+	gb := &GraphicsBackend{
+		Window:  w,
+		Surface: surface.New(width, height, w),
 	}
-	rq := NewRenderQueue(s.Device, s.SwapChainDescriptor)
-	s.SetRenderQueue(rq)
 
-	w.SetResizedCallback(func(physicalWidth, physicalHeight uint32, scaleFactor float64) {
-		s.Resize(int(physicalWidth), int(physicalHeight))
+	w.SetResizedCallback(func(physicalWidth, physicalHeight uint32) {
+		gb.Resize(physicalWidth, physicalHeight)
 	})
 
 	w.SetCloseRequestedCallback(func() {
 		w.Destroy()
+		gb.Close()
 	})
 
-	return &GraphicsBackend{
-		Window:      w,
-		Renderer:    s,
-		RenderQueue: rq,
-	}, nil
+	return gb, nil
 }
 
 func (backend *GraphicsBackend) Close() {
-	backend.Renderer.Destroy()
+	backend.Surface.Destroy()
 	backend.Window.Destroy()
 }
 

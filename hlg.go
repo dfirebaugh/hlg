@@ -38,7 +38,7 @@ func setup() {
 	hlg.inputState = input.NewInputState()
 	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
 	var err error
-	hlg.graphicsBackend, err = webgpu.NewGraphicsBackend()
+	hlg.graphicsBackend, err = webgpu.NewGraphicsBackend(windowWidth, windowHeight)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -47,7 +47,6 @@ func setup() {
 
 func initWindow() {
 	SetWindowSize(windowWidth, windowHeight)
-	SetScaleFactor(3)
 	SetTitle("hlg")
 }
 
@@ -145,6 +144,11 @@ func GetWindowPosition() (int, int) {
 	return hlg.graphicsBackend.GetWindowPosition()
 }
 
+func GetScreenSize() (int, int) {
+	ensureSetupCompletion()
+	return hlg.graphicsBackend.GetScreenSize()
+}
+
 // SetScreenSize sets the size of the screen.
 func SetScreenSize(width, height int) {
 	ensureSetupCompletion()
@@ -155,18 +159,6 @@ func SetScreenSize(width, height int) {
 func SetWindowSize(width, height int) {
 	ensureSetupCompletion()
 
-	windowWidth = width
-	windowHeight = height
-
-	hlg.graphicsBackend.SetWindowSize(windowWidth, windowHeight)
-}
-
-// SetScaleFactor sets the scale factor for the window.
-func SetScaleFactor(f int) {
-	hlg.graphicsBackend.SetScaleFactor(f)
-}
-
-// ScreenSize returns the current screen size.
-func ScreenSize() (int, int) {
-	return hlg.graphicsBackend.ScreenSize()
+	hlg.graphicsBackend.SetScreenSize(width, height)
+	hlg.graphicsBackend.SetWindowSize(width, height)
 }

@@ -6,6 +6,7 @@ import (
 	_ "embed"
 
 	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -14,60 +15,6 @@ var ShapesShaderCode string
 
 type renderQueue interface {
 	AddToRenderQueue(r graphics.Renderable)
-}
-
-type RenderMode int
-
-const (
-	RenderFilled RenderMode = iota
-	RenderOutlined
-)
-
-// Vertex represents a single vertex in the shape.
-type Vertex struct {
-	Position [3]float32 // x, y, z coordinates
-	Color    [4]float32 // RGBA color
-}
-
-// ScreenToNDC transforms screen space coordinates to NDC.
-// screenWidth and screenHeight are the dimensions of the screen.
-func ScreenToNDC(x, y, screenWidth, screenHeight float32) [3]float32 {
-	// Normalize coordinates to [0, 1]
-	normalizedX := x / screenWidth
-	normalizedY := y / screenHeight
-
-	// Map to NDC [-1, 1]
-	ndcX := normalizedX*2 - 1
-	ndcY := 1 - normalizedY*2 // Y is inverted in NDC
-
-	return [3]float32{ndcX, ndcY, 0} // Assuming Z coordinate to be 0 for 2D
-}
-
-// convertVerticesToNDC converts an array of vertices from screen space to NDC.
-func convertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) []Vertex {
-	ndcVertices := make([]Vertex, len(vertices))
-	for i, v := range vertices {
-		ndcPosition := ScreenToNDC(v.Position[0], v.Position[1], screenWidth, screenHeight)
-		ndcVertices[i] = Vertex{
-			Position: ndcPosition,
-			Color:    v.Color,
-		}
-	}
-	return ndcVertices
-}
-
-func createVertexBuffer(device *wgpu.Device, vertices []Vertex, width float32, height float32) *wgpu.Buffer {
-	ndcVertices := convertVerticesToNDC(vertices, width, height)
-	vertexBuffer, err := device.CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Vertex Buffer",
-		Contents: wgpu.ToBytes(ndcVertices[:]),
-		Usage:    wgpu.BufferUsage_Vertex,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return vertexBuffer
 }
 
 func (p *Polygon) createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderModule, scd *wgpu.SwapChainDescriptor, topology wgpu.PrimitiveTopology) *wgpu.RenderPipeline {
@@ -87,7 +34,7 @@ func (p *Polygon) createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderM
 			Module:     shaderModule,
 			EntryPoint: "vs_main",
 			Buffers: []wgpu.VertexBufferLayout{{
-				ArrayStride: uint64(unsafe.Sizeof(Vertex{})),
+				ArrayStride: uint64(unsafe.Sizeof(common.Vertex{})),
 				Attributes: []wgpu.VertexAttribute{
 					{
 						ShaderLocation: 0,
@@ -103,7 +50,7 @@ func (p *Polygon) createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderM
 			}},
 		},
 		Primitive: wgpu.PrimitiveState{
-			Topology:         wgpu.PrimitiveTopology_TriangleList,
+			Topology:         topology,
 			StripIndexFormat: wgpu.IndexFormat_Undefined,
 			FrontFace:        wgpu.FrontFace_CCW,
 			CullMode:         wgpu.CullMode_None,

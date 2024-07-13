@@ -13,15 +13,20 @@ type Transform struct {
 
 	matrix.Matrix
 	label string
+
+	originalWidth  float32
+	originalHeight float32
 }
 
-func NewTransform(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, bufferLabel string) *Transform {
+func NewTransform(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, bufferLabel string, originalWidth, originalHeight float32) *Transform {
 	t := &Transform{
 		surface:             surface,
 		Device:              device,
 		SwapChainDescriptor: scd,
 		Matrix:              matrix.MatrixIdentity(),
 		label:               bufferLabel,
+		originalWidth:       originalWidth,
+		originalHeight:      originalHeight,
 	}
 
 	t.CreateBuffer()
@@ -57,14 +62,20 @@ func (t *Transform) Scale(sx, sy float32) matrix.Matrix {
 	return t.Matrix
 }
 
-func (t *Transform) Resize(screenWidth, screenHeight float32) {
-	sw, sh := t.surface.GetSurfaceSize()
+func (t *Transform) Resize(targetWidth, targetHeight float32) {
+	scaleX := targetWidth / (t.originalWidth * 2)
+	scaleY := targetHeight / (t.originalHeight * 2)
 
-	scaleFactor := float32(sw/sh) * 100
-	scaleX := screenWidth / scaleFactor
-	scaleY := screenHeight / scaleFactor
+	// Maintain aspect ratio by choosing the smaller scale factor
+	scaleFactor := scaleX
+	if scaleY < scaleX {
+		scaleFactor = scaleY
+	}
 
-	t.Matrix = t.Scale(scaleX, scaleY)
+	// Apply scale factor directly to the matrix elements
+	t.Matrix[0] = scaleFactor
+	t.Matrix[5] = scaleFactor
+	t.Matrix[10] = 1 // Ensure no depth scaling
 	t.Update()
 }
 

@@ -17,42 +17,43 @@ import (
 const (
 	windowWidth        = 800
 	windowHeight       = 600
-	playerSpeed        = 10
-	gravity            = 0.5
-	jumpSpeed          = 15
-	coyoteTimeDuration = 400 // milliseconds
+	playerSpeed        = 800.0  // pixels per second
+	gravity            = 3200.0 // pixels per second^2
+	jumpSpeed          = 1300.0 // pixels per second
+	coyoteTimeDuration = 0.2    // seconds
 	debug              = false
 )
 
 type Player struct {
-	X         float64
-	Y         float64
-	W         float64
-	H         float64
-	VelY      float64
-	Ground    bool
-	Sprite    *hlg.Sprite
-	LastFrame time.Time
-	platforms []*Platform
+	X              float64
+	Y              float64
+	W              float64
+	H              float64
+	VelY           float64
+	Ground         bool
+	Sprite         *hlg.Sprite
+	LastFrame      time.Time
+	LastUpdateTime time.Time
+	platforms      []*Platform
 
-	CoyoteTimeLeft int
+	CoyoteTimeLeft float64
 	hlg.Shape
 }
 
-func (p *Player) handleMovement() {
+func (p *Player) handleMovement(deltaTime float64) {
 	if hlg.IsKeyPressed(input.KeyA) || hlg.IsKeyPressed(input.KeyLeft) {
-		p.X -= playerSpeed
+		p.X -= playerSpeed * deltaTime
 	}
 	if hlg.IsKeyPressed(input.KeyD) || hlg.IsKeyPressed(input.KeyRight) {
-		p.X += playerSpeed
+		p.X += playerSpeed * deltaTime
 	}
 }
 
-func (p *Player) handleCoyoteTime() {
+func (p *Player) handleCoyoteTime(deltaTime float64) {
 	if p.Ground {
 		p.CoyoteTimeLeft = coyoteTimeDuration
 	} else {
-		p.CoyoteTimeLeft -= 17
+		p.CoyoteTimeLeft -= deltaTime
 		if p.CoyoteTimeLeft < 0 {
 			p.CoyoteTimeLeft = 0
 		}
@@ -85,11 +86,11 @@ func (p *Player) handleGroundCollision() {
 	}
 }
 
-func (p *Player) updateVelocity() {
+func (p *Player) updateVelocity(deltaTime float64) {
 	if p.CoyoteTimeLeft <= 0 {
-		p.VelY += gravity
+		p.VelY += gravity * deltaTime
 	}
-	p.Y += p.VelY
+	p.Y += p.VelY * deltaTime
 }
 
 func (p *Player) updateSpriteFrame() {
@@ -107,11 +108,11 @@ func (p *Player) handleJump() {
 	}
 }
 
-func (p *Player) Update() {
-	p.updateVelocity()
+func (p *Player) Update(deltaTime float64) {
+	p.updateVelocity(deltaTime)
 	p.handleGroundCollision()
-	p.handleMovement()
-	p.handleCoyoteTime()
+	p.handleMovement(deltaTime)
+	p.handleCoyoteTime(deltaTime)
 
 	p.handleJump()
 	p.updateSpriteFrame()
@@ -151,13 +152,14 @@ func main() {
 	}
 
 	player := &Player{
-		X:         100,
-		Y:         float64(windowHeight) - 100,
-		W:         32,
-		H:         32,
-		Sprite:    sprite,
-		LastFrame: time.Now(),
-		platforms: platforms,
+		X:              100,
+		Y:              float64(windowHeight) - 100,
+		W:              32,
+		H:              32,
+		Sprite:         sprite,
+		LastFrame:      time.Now(),
+		LastUpdateTime: time.Now(),
+		platforms:      platforms,
 	}
 	player.Shape = hlg.Rectangle(int(player.X), int(player.Y), int(player.W), int(player.H), colornames.Mediumpurple)
 	sprite.Resize(float32(player.W), float32(player.H))
@@ -165,7 +167,11 @@ func main() {
 	hlg.Update(func() {
 		hlg.Clear(colornames.White)
 
-		player.Update()
+		now := time.Now()
+		deltaTime := now.Sub(player.LastUpdateTime).Seconds()
+		player.LastUpdateTime = now
+
+		player.Update(deltaTime)
 		player.Render()
 
 		for _, pl := range platforms {
@@ -174,7 +180,7 @@ func main() {
 
 		hlg.PrintAt(fmt.Sprintf("Player X: %d Y: %d", int(player.X), int(player.Y)),
 			10, windowHeight-20, colornames.Black)
-		hlg.PrintAt(fmt.Sprintf("VelY: %.2f, Ground: %t, CoyoteTimeLeft: %d", player.VelY, player.Ground, player.CoyoteTimeLeft), 10, windowHeight-40, colornames.Black)
+		hlg.PrintAt(fmt.Sprintf("VelY: %.2f, Ground: %t, CoyoteTimeLeft: %.2f", player.VelY, player.Ground, player.CoyoteTimeLeft), 10, windowHeight-40, colornames.Black)
 	})
 }
 

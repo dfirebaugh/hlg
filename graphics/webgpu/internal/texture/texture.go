@@ -116,7 +116,7 @@ func TextureFromImage(surface common.Surface, d *wgpu.Device, scd *wgpu.SwapChai
 		return nil, err
 	}
 
-	t.Transform = common.NewTransform(surface, d, scd, "Texture Transform Buffer")
+	t.Transform = common.NewTransform(surface, d, scd, "Texture Transform Buffer", float32(width), float32(height))
 
 	err = t.createFlipBuffer()
 	if err != nil {
@@ -389,6 +389,7 @@ func (t *Texture) createFlipBuffer() error {
 	})
 	return err
 }
+
 func (t *Texture) createClipBuffer() error {
 	clipInfo := [4]float32{0.0, 0.0, t.originalWidth, t.originalWidth}
 

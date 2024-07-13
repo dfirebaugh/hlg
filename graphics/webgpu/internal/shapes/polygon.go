@@ -37,7 +37,7 @@ func NewPolygon(surface common.Surface, device *wgpu.Device, scd *wgpu.SwapChain
 
 	sw, sh := surface.GetSurfaceSize()
 
-	p.Transform = common.NewTransform(surface, device, scd, "Polygon Transform Buffer")
+	p.Transform = common.NewTransform(surface, device, scd, "Polygon Transform Buffer", float32(sw), float32(sh))
 	p.vertexBuffer = common.CreateVertexBuffer(p.device, p.vertices, float32(sw), float32(sh))
 
 	p.createBindGroupLayout(device)

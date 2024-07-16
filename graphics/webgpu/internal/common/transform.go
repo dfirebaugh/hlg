@@ -58,7 +58,6 @@ func (t *Transform) Move(screenX, screenY float32) {
 func (t *Transform) Scale(sx, sy float32) matrix.Matrix {
 	t.Matrix = t.Matrix.Scale(sx, sy)
 	t.Update()
-	println("should scale and update")
 	return t.Matrix
 }
 

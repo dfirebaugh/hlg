@@ -12,6 +12,34 @@ type Shape interface {
 	graphics.Shape
 }
 
+type Vertex struct {
+	Position [3]float32
+	Color    [4]float32
+}
+
+// PolygonFromVertices creates a polygon shape using a specified array of vertices.
+// The vertices should be defined with their positions and colors. The function converts
+// the input vertices from the local Vertex type to the graphics.Vertex type required by
+// the graphics backend. The created polygon is then added to the render queue.
+//
+// Parameters:
+//   - x, y: The x and y coordinates of the polygon's position.
+//   - width: The width of the polygon (not used directly in this function, included for interface consistency).
+//   - vertices: A slice of Vertex that defines the positions and colors of the polygon's vertices.
+//
+// Returns:
+//   - A graphics.Shape that represents the created polygon.
+func PolygonFromVertices(x, y int, width float32, vertices []Vertex) graphics.Shape {
+	ensureSetupCompletion()
+
+	graphicsVertices := make([]graphics.Vertex, len(vertices))
+	for i, v := range vertices {
+		graphicsVertices[i] = graphics.Vertex(v)
+	}
+
+	return hlg.graphicsBackend.AddPolygonFromVertices(x, y, width, graphicsVertices)
+}
+
 // Polygon creates a polygon shape with a specified number of sides, position, width, and color.
 // x, y define the center of the polygon.
 // width defines the diameter of the circumcircle of the polygon.

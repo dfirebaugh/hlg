@@ -38,9 +38,11 @@ func (rq *RenderQueue) RenderClear() {
 		r.Hide()
 	}
 }
+
 func (rq *RenderQueue) AddToRenderQueue(r graphics.Renderable) {
 	rq.renderQueue = append(rq.renderQueue, r)
 }
+
 func (rq *RenderQueue) Pop() (graphics.Renderable, bool) {
 	if len(rq.renderQueue) == 0 {
 		return nil, false
@@ -82,9 +84,11 @@ func (rq *RenderQueue) CreateTextureFromImage(img image.Image) (graphics.Texture
 	rq.Textures[textureHandle(handle)] = tex
 	return tex, nil
 }
+
 func (rq *RenderQueue) UpdateTextureFromImage(texture graphics.Texture, img image.Image) {
 	texture.UpdateImage(img)
 }
+
 func (rq *RenderQueue) DisposeTexture(h uintptr) {
 	rq.Textures[textureHandle(h)].gpuTexture.Destroy()
 	delete(rq.Textures, textureHandle(h))
@@ -151,6 +155,20 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 	// note: we could probably more efficiently draw circles with a custom shader -- but this is a good start
 	circle := rq.AddPolygon(cx, cy, radius*2, c, segments)
 	return circle
+}
+
+func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vertex) graphics.Shape {
+	commonVertices := make([]common.Vertex, len(vertices))
+	for i, v := range vertices {
+		commonVertices[i] = common.Vertex{
+			Position: [3]float32{v.Position[0], v.Position[1], v.Position[2]},
+			Color:    [4]float32{v.Color[0], v.Color[1], v.Color[2], v.Color[3]},
+		}
+	}
+
+	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, commonVertices)
+	rq.AddToRenderQueue(polygon)
+	return polygon
 }
 
 // AddPolygon creates a new Polygon renderable and adds it to the RenderQueue.

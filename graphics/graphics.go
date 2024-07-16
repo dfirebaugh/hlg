@@ -86,7 +86,13 @@ type Shape interface {
 	SetColor(c color.Color)
 }
 
+type Vertex struct {
+	Position [3]float32 // x, y, z coordinates
+	Color    [4]float32 // RGBA color
+}
+
 type ShapeRenderer interface {
+	AddPolygonFromVertices(cx, cy int, width float32, vertices []Vertex) Shape
 	AddPolygon(cx, cy int, width float32, c color.Color, sides int) Shape
 	AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) Shape
 	AddRectangle(x, y, width, height int, c color.Color) Shape

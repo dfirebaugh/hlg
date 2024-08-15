@@ -11,17 +11,18 @@ func main() {
 	r2 := hlg.Rectangle(50, 50, 120, 60, colornames.Red)
 	c := hlg.Circle(120, 80, 20, colornames.Red)
 	l := hlg.Line(0, 0, 240, 160, 2, colornames.White)
-	hlg.Clear(colornames.Skyblue)
-	t.Render()
-	r.Render()
-	c.Render()
-	l.Render()
-	r2.Render()
 
-	c.SetColor(colornames.Purple)
+	// c.SetColor(colornames.Purple)
 	c.Move(0, 0)
-	r2.Hide()
 
 	hlg.Run(func() {
-	}, func() {})
+	}, func() {
+		hlg.Clear(colornames.Skyblue)
+		t.Render()
+		r.Render()
+		c.Render()
+		l.Render()
+		r2.Render()
+		r2.Hide()
+	})
 }

@@ -17,64 +17,59 @@ type RenderQueue struct {
 	*wgpu.Device
 	*wgpu.SwapChainDescriptor
 	Textures     map[textureHandle]*Texture
-	renderQueue  []graphics.Renderable
+	queue        []graphics.Renderable
 	nextFrame    []graphics.Renderable
 	currentFrame []graphics.Renderable
 }
 
 func NewRenderQueue(surface *Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor) *RenderQueue {
-	return &RenderQueue{
+	rq := &RenderQueue{
 		surface:             surface,
 		Device:              d,
 		SwapChainDescriptor: scd,
 		Textures:            make(map[textureHandle]*Texture),
 		nextFrame:           []graphics.Renderable{},
 		currentFrame:        []graphics.Renderable{},
+		queue:               []graphics.Renderable{},
 	}
+
+	return rq
 }
 
 func (rq *RenderQueue) RenderClear() {
-	for _, r := range rq.renderQueue {
+	for _, r := range rq.queue {
 		r.Hide()
 	}
 }
 
 func (rq *RenderQueue) AddToRenderQueue(r graphics.Renderable) {
-	rq.renderQueue = append(rq.renderQueue, r)
+	rq.queue = append(rq.queue, r)
 }
 
 func (rq *RenderQueue) Pop() (graphics.Renderable, bool) {
-	if len(rq.renderQueue) == 0 {
+	if len(rq.queue) == 0 {
 		return nil, false
 	}
 
-	renderable := rq.renderQueue[0]
-	rq.renderQueue = rq.renderQueue[1:]
+	renderable := rq.queue[0]
+	rq.queue = rq.queue[1:]
 
 	return renderable, true
 }
 
 func (rq *RenderQueue) PrepareFrame() {
-	if len(rq.nextFrame) > 64 {
-		rq.nextFrame = rq.nextFrame[:64]
-	}
-	for {
-		if renderable, ok := rq.Pop(); ok {
-			rq.nextFrame = append(rq.nextFrame, renderable)
-			continue
-		}
-		break
-	}
-	rq.currentFrame = rq.nextFrame
+	rq.currentFrame = make([]graphics.Renderable, len(rq.queue))
+	copy(rq.currentFrame, rq.queue)
 }
 
 func (rq *RenderQueue) RenderFrame(pass *wgpu.RenderPassEncoder) {
 	for _, renderable := range rq.currentFrame {
-		if renderable == nil {
-			continue
+		if renderable != nil {
+			renderable.RenderPass(pass)
 		}
-		renderable.RenderPass(pass)
 	}
+	rq.currentFrame = nil
+	rq.queue = nil
 }
 
 func (rq *RenderQueue) CreateTextureFromImage(img image.Image) (graphics.Texture, error) {
@@ -113,8 +108,6 @@ func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) gr
 		},
 	})
 
-	rq.AddToRenderQueue(triangle)
-
 	return triangle
 }
 
@@ -145,7 +138,6 @@ func (rq *RenderQueue) AddRectangle(x, y, width, height int, c color.Color) grap
 
 	rectangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, rectangleVertices)
 
-	rq.AddToRenderQueue(rectangle)
 	return rectangle
 }
 
@@ -167,7 +159,6 @@ func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertice
 	}
 
 	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, commonVertices)
-	rq.AddToRenderQueue(polygon)
 	return polygon
 }
 
@@ -209,7 +200,6 @@ func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, side
 	}
 
 	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, vertices)
-	rq.AddToRenderQueue(polygon)
 	return polygon
 }
 
@@ -238,6 +228,5 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 	lineVertices := []common.Vertex{vertices[0], vertices[1], vertices[2], vertices[0], vertices[2], vertices[3]}
 
 	line := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, lineVertices)
-	rq.AddToRenderQueue(line)
 	return line
 }

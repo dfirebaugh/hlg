@@ -9,6 +9,7 @@ import (
 
 	"github.com/dfirebaugh/hlg"
 	"github.com/dfirebaugh/hlg/assets"
+	"golang.org/x/image/colornames"
 )
 
 func main() {
@@ -36,6 +37,7 @@ func main() {
 			sprite.NextFrame()
 		}
 	}, func() {
+		hlg.Clear(colornames.Skyblue)
 		sprite.Render()
 	})
 }

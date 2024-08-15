@@ -38,6 +38,4 @@ func (s *Sprite) NextFrame() {
 	x1 := x0 + s.frameSize.X
 	y1 := y0 + s.frameSize.Y
 	s.Clip(float32(x0), float32(y0), float32(x1), float32(y1))
-
-	s.Render()
 }

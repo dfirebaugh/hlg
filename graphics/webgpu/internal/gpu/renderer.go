@@ -29,9 +29,10 @@ type Renderer struct {
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
 	*window.Window
-	RenderQueue
 	surface    common.Surface
 	clearColor wgpu.Color
+
+	RenderQueue
 }
 
 func NewRenderer(s common.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
@@ -88,8 +89,8 @@ func (r *Renderer) setupDevice(w *window.Window) error {
 		Format:      r.Surface.GetPreferredFormat(adapter),
 		Width:       uint32(r.windowSize.Width),
 		Height:      uint32(r.windowSize.Height),
-		PresentMode: wgpu.PresentMode_Fifo,
-	}
+		PresentMode: wgpu.PresentMode_Immediate,
+  }
 	r.SwapChain, err = r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
 
 	return err
@@ -193,7 +194,7 @@ func (r *Renderer) Render() {
 		r.RecreateSwapChain()
 	}
 
-	r.RenderQueue.PrepareFrame()
+	r.PrepareFrame()
 	view, err := r.SwapChain.GetCurrentTextureView()
 	if err != nil {
 		fmt.Println("Error getting texture view:", err)

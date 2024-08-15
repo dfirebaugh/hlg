@@ -77,27 +77,27 @@ func Run(updateFn func(), renderFn func()) {
 	var accumulator time.Duration
 
 	lastUpdateTime = time.Now()
-	for {
-		if !hlg.graphicsBackend.PollEvents() {
-			break
-		}
-
+	for hlg.graphicsBackend.PollEvents() {
 		currentTime := time.Now()
 		deltaTime := currentTime.Sub(lastUpdateTime)
 		lastUpdateTime = currentTime
 		accumulator += deltaTime
 
+		frameRendered := false
 		for accumulator >= targetFrameDuration {
 			updateFn()
 			accumulator -= targetFrameDuration
+			frameRendered = true
 		}
 
-		hlg.uiTexture.UpdateTextureFromImage(hlg.uifb.ToImage())
-		hlg.uiTexture.Render()
-		hlg.graphicsBackend.Render()
-		renderFn()
+		if frameRendered {
+			hlg.uiTexture.UpdateTextureFromImage(hlg.uifb.ToImage())
+			hlg.uiTexture.Render()
+			hlg.graphicsBackend.Render()
+			renderFn()
 
-		calculateFPS()
+			calculateFPS()
+		}
 	}
 }
 

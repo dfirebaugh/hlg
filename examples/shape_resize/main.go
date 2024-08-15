@@ -124,9 +124,10 @@ func (g *RectOverlay) Render() {
 func main() {
 	hlg.SetWindowSize(640, 480)
 	overlay := NewRectOverlay(100, 100, 100, 100, colornames.Green)
-	hlg.Update(func() {
-		hlg.Clear(colornames.Skyblue)
+	hlg.Run(func() {
 		overlay.Update()
+	}, func() {
+		hlg.Clear(colornames.Skyblue)
 		overlay.Render()
 	})
 }

@@ -63,12 +63,15 @@ func main() {
 		{Vertices: [4]int{4, 5, 1, 0}}, // Bottom face
 	}
 
-	hlg.Update(update)
+	hlg.Run(update, render)
 }
 
 func update() {
-	hlg.Clear(colornames.Black)
 	handleMouseInput()
+}
+
+func render() {
+	hlg.Clear(colornames.Black)
 	drawCube()
 }
 

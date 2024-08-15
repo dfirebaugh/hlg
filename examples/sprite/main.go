@@ -30,10 +30,12 @@ func main() {
 	lastFrameTime := time.Now()
 	frameDuration := time.Millisecond * 200
 
-	hlg.Update(func() {
+	hlg.Run(func() {
 		if time.Since(lastFrameTime) >= frameDuration {
 			lastFrameTime = time.Now()
 			sprite.NextFrame()
 		}
+	}, func() {
+		sprite.Render()
 	})
 }

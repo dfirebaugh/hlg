@@ -66,11 +66,12 @@ func main() {
 		{3, 7},
 	}
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.Black)
+	hlg.Run(func() {
 		angleX += 0.01
 		angleY += 0.01
 		angleZ += 0.01
+	}, func() {
+		hlg.Clear(colornames.Black)
 		drawCube()
 	})
 }

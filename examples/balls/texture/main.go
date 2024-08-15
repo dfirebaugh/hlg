@@ -14,10 +14,15 @@ import (
 var balls []Ball
 
 func update() {
+	for i := range balls {
+		balls[i].Update()
+	}
+}
+
+func render() {
 	hlg.Clear(colornames.Grey)
 
 	for i := range balls {
-		balls[i].Update()
 		balls[i].Render()
 	}
 }
@@ -32,7 +37,7 @@ func main() {
 		balls[i] = NewBall()
 	}
 
-	hlg.Update(update)
+	hlg.Run(update, render)
 }
 
 type Ball struct {

@@ -164,14 +164,14 @@ func main() {
 	player.Shape = hlg.Rectangle(int(player.X), int(player.Y), int(player.W), int(player.H), colornames.Mediumpurple)
 	sprite.Resize(float32(player.W), float32(player.H))
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.White)
-
+	hlg.Run(func() {
 		now := time.Now()
 		deltaTime := now.Sub(player.LastUpdateTime).Seconds()
 		player.LastUpdateTime = now
 
 		player.Update(deltaTime)
+	}, func() {
+		hlg.Clear(colornames.White)
 		player.Render()
 
 		for _, pl := range platforms {

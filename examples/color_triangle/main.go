@@ -7,11 +7,23 @@ import (
 	"golang.org/x/image/colornames"
 )
 
+var triangle hlg.Shape
+
+// update operations happen less frequently than render operations
+func update() {
+}
+
+func render() {
+	hlg.Clear(colornames.Skyblue)
+	triangle.Render()
+}
+
 func main() {
 	hlg.SetWindowSize(720, 480)
 	hlg.SetScreenSize(240, 160)
+	hlg.SetTitle("color triangle")
 
-	t := hlg.PolygonFromVertices(0, 0, 0, []hlg.Vertex{
+	triangle = hlg.PolygonFromVertices(0, 0, 0, []hlg.Vertex{
 		{
 			Position: [3]float32{0, 160, 0},
 			Color:    toRGBA(colornames.Red),
@@ -26,10 +38,7 @@ func main() {
 		},
 	})
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.Skyblue)
-		t.Render()
-	})
+	hlg.Run(update, render)
 }
 
 func toRGBA(c color.Color) [4]float32 {

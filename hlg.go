@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"runtime"
-	"strings"
+	"time"
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu"
@@ -29,9 +29,7 @@ type engine struct {
 	hasSetupCompleted bool
 }
 
-var (
-	hlg = &engine{}
-)
+var hlg = &engine{}
 
 func setup() {
 	runtime.LockOSThread()
@@ -58,8 +56,8 @@ func ensureSetupCompletion() {
 	initWindow()
 }
 
-// Update is the main update function called to refresh the engine state.
-func Update(updateFn func()) {
+// Run is the main update function called to refresh the engine state.
+func Run(updateFn func(), renderFn func()) {
 	ensureSetupCompletion()
 	defer close()
 	hlg.fpsCounter = newFPSCounter()
@@ -72,32 +70,34 @@ func Update(updateFn func()) {
 		evt := <-eventChan
 		handleEvent(evt, hlg.inputState)
 	})
+	targetFPS := 120.0
+	targetFrameDuration := time.Second / time.Duration(targetFPS)
 
-	var err error
+	var lastUpdateTime time.Time
+	var accumulator time.Duration
+
+	lastUpdateTime = time.Now()
 	for {
 		if !hlg.graphicsBackend.PollEvents() {
 			break
 		}
 
-		updateFn()
+		currentTime := time.Now()
+		deltaTime := currentTime.Sub(lastUpdateTime)
+		lastUpdateTime = currentTime
+		accumulator += deltaTime
+
+		for accumulator >= targetFrameDuration {
+			updateFn()
+			accumulator -= targetFrameDuration
+		}
+
 		hlg.uiTexture.UpdateTextureFromImage(hlg.uifb.ToImage())
 		hlg.uiTexture.Render()
 		hlg.graphicsBackend.Render()
+		renderFn()
 
 		calculateFPS()
-
-		if err != nil {
-			fmt.Println("error occured while rendering:", err)
-
-			errstr := err.Error()
-			switch {
-			case strings.Contains(errstr, "Surface timed out"): // do nothing
-			case strings.Contains(errstr, "Surface is outdated"): // do nothing
-			case strings.Contains(errstr, "Surface was lost"): // do nothing
-			default:
-				panic(err)
-			}
-		}
 	}
 }
 

@@ -20,17 +20,23 @@ func main() {
 	hlg.SetTitle("Bouncing Balls")
 	hlg.SetWindowSize(960, 640)
 
-	numBalls = 10
+	hlg.EnableFPS()
+
+	numBalls = 3
 	balls = make([]Ball, numBalls)
 	for i := 0; i < numBalls; i++ {
 		balls[i] = NewBall()
 	}
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.Aliceblue)
+	hlg.Run(func() {
 		handleInput()
 		for i := range balls {
 			balls[i].Update()
+		}
+	}, func() {
+		hlg.Clear(colornames.Aliceblue)
+		handleInput()
+		for i := range balls {
 			balls[i].Render()
 		}
 	})

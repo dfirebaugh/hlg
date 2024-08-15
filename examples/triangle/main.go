@@ -5,13 +5,21 @@ import (
 	"golang.org/x/image/colornames"
 )
 
+var triangle hlg.Shape
+
+// update operation need to happen less frequently than render operations
+func update() {
+}
+
+func render() {
+	hlg.Clear(colornames.Skyblue)
+	triangle.Render()
+}
+
 func main() {
 	hlg.SetWindowSize(720, 480)
 	hlg.SetScreenSize(240, 160)
-	t := hlg.Triangle(0, 160, 120, 0, 240, 160, colornames.Orangered)
+	triangle = hlg.Triangle(0, 160, 120, 0, 240, 160, colornames.Orangered)
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.Skyblue)
-		t.Render()
-	})
+	hlg.Run(update, render)
 }

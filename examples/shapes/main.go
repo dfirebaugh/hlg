@@ -22,6 +22,6 @@ func main() {
 	c.Move(0, 0)
 	r2.Hide()
 
-	hlg.Update(func() {
-	})
+	hlg.Run(func() {
+	}, func() {})
 }

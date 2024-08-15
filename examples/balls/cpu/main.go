@@ -23,10 +23,13 @@ func main() {
 		balls[i] = NewBall(screen)
 	}
 
-	hlg.Update(func() {
-		screen.Clear(colornames.Grey)
+	hlg.Run(func() {
 		for i := range balls {
 			balls[i].Update()
+		}
+	}, func() {
+		screen.Clear(colornames.Grey)
+		for i := range balls {
 			balls[i].Render()
 		}
 
@@ -73,7 +76,7 @@ func NewBall(screen Screen) Ball {
 		Circle: geom.Circle{
 			X: x, Y: y, R: radius,
 		},
-		Velocity: geom.Point{X: float32(rand.Float64()*4 - 2), Y: float32(rand.Float64()*4 - 2)},
+		Velocity: geom.Point{X: float32(rand.Float64()*9 - 2), Y: float32(rand.Float64()*9 - 2)},
 		Color:    color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255},
 	}
 }

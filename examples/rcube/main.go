@@ -60,11 +60,12 @@ func main() {
 		{Vertices: [4]int{4, 5, 1, 0}}, // Bottom face
 	}
 
-	hlg.Update(func() {
-		hlg.Clear(colornames.Black)
+	hlg.Run(func() {
 		angleX += 0.01
 		angleY += 0.01
 		angleZ += 0.01
+	}, func() {
+		hlg.Clear(colornames.Black)
 		drawCube()
 	})
 }

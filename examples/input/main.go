@@ -10,17 +10,15 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-var (
-	colors = []color.Color{
-		colornames.Red,
-		colornames.Cadetblue,
-		colornames.Black,
-		colornames.Violet,
-		colornames.Blue,
-		colornames.Blueviolet,
-		colornames.Orange,
-	}
-)
+var colors = []color.Color{
+	colornames.Red,
+	colornames.Cadetblue,
+	colornames.Black,
+	colornames.Violet,
+	colornames.Blue,
+	colornames.Blueviolet,
+	colornames.Orange,
+}
 
 func main() {
 	hlg.SetWindowSize(200, 200)
@@ -29,7 +27,8 @@ func main() {
 
 	circle := hlg.Circle(10, 10, 10, colornames.Red)
 
-	hlg.Update(func() {
+	hlg.Run(func() {
+	}, func() {
 		hlg.Clear(colornames.Grey)
 		if hlg.IsKeyPressed(input.KeySpace) {
 			triangle.SetColor(colors[rand.Intn(len(colors))])

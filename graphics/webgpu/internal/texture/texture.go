@@ -1,6 +1,7 @@
 package texture
 
 import (
+	"fmt"
 	"image"
 	"image/draw"
 	"unsafe"
@@ -52,6 +53,7 @@ func TextureFromImage(surface common.Surface, d *wgpu.Device, scd *wgpu.SwapChai
 
 	t = &Texture{
 		Device:              d,
+		surface:             surface,
 		SwapChainDescriptor: scd,
 		originalWidth:       float32(width),
 		originalHeight:      float32(height),
@@ -356,13 +358,57 @@ func (t *Texture) createBindGroup() error {
 
 func (t *Texture) createVertexBuffer() error {
 	var err error
+	sw, sh := t.surface.GetSurfaceSize()
+
+	clipWidth := (t.clipRect[2] - t.clipRect[0]) * t.originalWidth
+	clipHeight := (t.clipRect[3] - t.clipRect[1]) * t.originalHeight
+
+	offsetX := (float32(sw) - clipWidth) / 2
+	offsetY := (float32(sh) - clipHeight) / 2
+
+	bottomLeft := common.ScreenToNDC(offsetX, offsetY+clipHeight, float32(sw), float32(sh))
+	bottomRight := common.ScreenToNDC(offsetX+clipWidth, offsetY+clipHeight, float32(sw), float32(sh))
+	topLeft := common.ScreenToNDC(offsetX, offsetY, float32(sw), float32(sh))
+	topRight := common.ScreenToNDC(offsetX+clipWidth, offsetY, float32(sw), float32(sh))
+
 	t.vertexBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Vertex Buffer",
-		Contents: wgpu.ToBytes(VERTICES[:]),
-		Usage:    wgpu.BufferUsage_Vertex,
+		Label: "Vertex Buffer",
+		Contents: wgpu.ToBytes(
+			[]Vertex{
+				{
+					position:  bottomLeft,
+					texCoords: [2]float32{0.0, 1.0},
+				},
+				{
+					position:  bottomRight,
+					texCoords: [2]float32{1.0, 1.0},
+				},
+				{
+					position:  topLeft,
+					texCoords: [2]float32{0.0, 0.0},
+				},
+				{
+					position:  topRight,
+					texCoords: [2]float32{1.0, 0.0},
+				},
+			}),
+		Usage: wgpu.BufferUsage_Vertex,
 	})
 
 	return err
+}
+
+func (t *Texture) updateVertexBuffer() error {
+	if t.vertexBuffer != nil {
+		t.vertexBuffer.Release()
+	}
+
+	err := t.createVertexBuffer()
+	if err != nil {
+		return fmt.Errorf("failed to update vertex buffer: %w", err)
+	}
+
+	return nil
 }
 
 func (t *Texture) createIndexBuffer() error {

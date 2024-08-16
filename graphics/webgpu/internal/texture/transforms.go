@@ -1,6 +1,10 @@
 package texture
 
-import "github.com/rajveermalviya/go-webgpu/wgpu"
+import (
+	"log"
+
+	"github.com/rajveermalviya/go-webgpu/wgpu"
+)
 
 func (t *Texture) FlipVertical() {
 	t.flipVertical = !t.flipVertical
@@ -25,6 +29,10 @@ func (t *Texture) SetClipRect(minX, minY, maxX, maxY float32) {
 	}
 
 	t.Device.GetQueue().WriteBuffer(t.clipBuffer, 0, wgpu.ToBytes(t.clipRect[:]))
+
+	if err := t.updateVertexBuffer(); err != nil {
+		log.Printf("Failed to update vertex buffer: %v", err)
+	}
 }
 
 func (t *Texture) GetCurrentSize() (float32, float32) {
@@ -45,4 +53,17 @@ func (t *Texture) GetCurrentClipSize() (float32, float32) {
 	clipHeight := ((t.clipRect[3] * t.originalHeight) - (t.clipRect[1] * t.originalHeight)) * scaleY
 
 	return clipWidth, clipHeight
+}
+
+func (t *Texture) Resize(targetWidth, targetHeight float32) {
+	clipWidth := (t.clipRect[2] - t.clipRect[0]) * t.originalWidth
+	clipHeight := (t.clipRect[3] - t.clipRect[1]) * t.originalHeight
+
+	scaleX := targetWidth / clipWidth
+	scaleY := targetHeight / clipHeight
+
+	t.Matrix[0] = scaleX
+	t.Matrix[5] = scaleY
+	t.Matrix[10] = 1
+	t.Update()
 }

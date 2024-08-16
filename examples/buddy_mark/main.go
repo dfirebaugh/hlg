@@ -89,7 +89,9 @@ func NewBuddy(x, y float32) *Buddy {
 	sheetSize := image.Point{X: 4, Y: 1}
 
 	sprite := hlg.NewSprite(img, frameSize, sheetSize)
-	sprite.Scale(0.09, 0.09)
+	// sprite.Scale(0.09, 0.09)
+	// sprite.Resize(32, 32)
+	sprite.Scale(2, 2)
 
 	return &Buddy{
 		X:         x,

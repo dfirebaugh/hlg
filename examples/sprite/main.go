@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	hlg.SetWindowSize(600, 600)
+	hlg.SetWindowSize(800, 600)
 	hlg.SetTitle("hlg sprite example")
 
 	reader := bytes.NewReader(assets.BuddyDanceSpriteSheet)
@@ -26,10 +26,12 @@ func main() {
 	sheetSize := image.Point{X: 4, Y: 1}
 
 	sprite := hlg.NewSprite(img, frameSize, sheetSize)
-	sprite.Scale(.5, .5)
+	sprite.Resize(512, 512)
+	// sprite.Scale(4, 4)
 
 	lastFrameTime := time.Now()
 	frameDuration := time.Millisecond * 200
+	sprite.Move(400, 300)
 
 	hlg.Run(func() {
 		if time.Since(lastFrameTime) >= frameDuration {

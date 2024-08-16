@@ -162,7 +162,7 @@ func main() {
 		platforms:      platforms,
 	}
 	player.Shape = hlg.Rectangle(int(player.X), int(player.Y), int(player.W), int(player.H), colornames.Mediumpurple)
-	sprite.Resize(float32(player.W), float32(player.H))
+	// sprite.Resize(float32(player.W), float32(player.H))
 
 	hlg.Run(func() {
 		now := time.Now()

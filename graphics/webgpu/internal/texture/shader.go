@@ -32,25 +32,6 @@ var VertexBufferLayout = wgpu.VertexBufferLayout{
 	},
 }
 
-var VERTICES = [...]Vertex{
-	{
-		position:  [3]float32{-1.0, -1.0, 0.0}, // bottom left
-		texCoords: [2]float32{0.0, 1},
-	},
-	{
-		position:  [3]float32{1.0, -1.0, 0.0}, // bottom right
-		texCoords: [2]float32{1.0, 1},
-	},
-	{
-		position:  [3]float32{-1.0, 1.0, 0.0}, // top left
-		texCoords: [2]float32{0.0, 0},
-	},
-	{
-		position:  [3]float32{1.0, 1.0, 0.0}, // top right
-		texCoords: [2]float32{1.0, 0},
-	},
-}
-
 var INDICES = [...]uint16{
 	0, 1, 2, // first triangle
 	2, 1, 3, // second triangle

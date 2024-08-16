@@ -62,7 +62,8 @@ func Run(updateFn func(), renderFn func()) {
 	defer close()
 	hlg.fpsCounter = newFPSCounter()
 
-	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
+	sw, sh := hlg.graphicsBackend.GetScreenSize()
+	hlg.uifb = fb.New(sw, sh)
 	hlg.uiTexture, _ = CreateTextureFromImage(hlg.uifb.ToImage())
 	defer hlg.uiTexture.Destroy()
 

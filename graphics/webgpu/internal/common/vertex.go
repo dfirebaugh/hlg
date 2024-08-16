@@ -14,11 +14,12 @@ type Vertex struct {
 
 func (v *Vertex) SetColor(c color.Color) {
 	r, g, b, a := c.RGBA()
+	alpha := float32(a) / 0xffff
 	v.Color = [4]float32{
-		float32(r) / 0xffff, // RGBA values are 0-65535 so divide by 0xffff
-		float32(g) / 0xffff,
-		float32(b) / 0xffff,
-		float32(a) / 0xffff,
+		float32(r) / 0xffff / alpha,
+		float32(g) / 0xffff / alpha,
+		float32(b) / 0xffff / alpha,
+		alpha,
 	}
 }
 

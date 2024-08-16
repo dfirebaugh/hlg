@@ -64,7 +64,7 @@ func (p *Player) handlePlatformCollision() {
 	p.Ground = false
 
 	playerBottomCenterX := p.X + p.W/2
-	playerBottomCenterY := p.Y + p.H - 8
+	playerBottomCenterY := p.Y + p.H - (p.W / 2)
 
 	for _, pl := range p.platforms {
 		if playerBottomCenterX > pl.X && playerBottomCenterX < (pl.X+pl.W) {
@@ -154,15 +154,15 @@ func main() {
 	player := &Player{
 		X:              100,
 		Y:              float64(windowHeight) - 100,
-		W:              32,
-		H:              32,
+		W:              64,
+		H:              64,
 		Sprite:         sprite,
 		LastFrame:      time.Now(),
 		LastUpdateTime: time.Now(),
 		platforms:      platforms,
 	}
 	player.Shape = hlg.Rectangle(int(player.X), int(player.Y), int(player.W), int(player.H), colornames.Mediumpurple)
-	// sprite.Resize(float32(player.W), float32(player.H))
+	sprite.Resize(float32(player.W), float32(player.H))
 
 	hlg.Run(func() {
 		now := time.Now()

@@ -34,7 +34,7 @@ func main() {
 			balls[i].Update()
 		}
 	}, func() {
-		hlg.Clear(colornames.Aliceblue)
+		hlg.Clear(colornames.Black)
 		handleInput()
 		for i := range balls {
 			balls[i].Render()

@@ -125,6 +125,16 @@ func (t *Transform) FlipHorizontal() {
 	t.updateFlipBuffer()
 }
 
+func (t *Transform) SetFlipHorizontal(shouldFlip bool) {
+	t.flipHorizontal = shouldFlip
+  t.updateFlipBuffer()
+}
+
+func (t *Transform) SetFlipVertical(shouldFlip bool) {
+	t.flipVertical = shouldFlip
+  t.updateFlipBuffer()
+}
+
 func (t *Transform) updateFlipBuffer() {
 	t.FlipMatrix[0] = 0.0
 	t.FlipMatrix[1] = 0.0

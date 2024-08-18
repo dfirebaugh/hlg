@@ -68,6 +68,14 @@ func (t *Texture) FlipHorizontal() {
 	t.gpuTexture.FlipHorizontal()
 }
 
+func (t *Texture) SetFlipHorizontal(shouldFlip bool) {
+	t.gpuTexture.SetFlipHorizontal(shouldFlip)
+}
+
+func (t *Texture) SetFlipVertical(shouldFlip bool) {
+	t.gpuTexture.SetFlipVertical(shouldFlip)
+}
+
 func (t *Texture) Clip(minX, minY, maxX, maxY float32) {
 	t.gpuTexture.SetClipRect(minX, minY, maxX, maxY)
 }

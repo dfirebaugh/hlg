@@ -34,6 +34,8 @@ type Texture interface {
 	Scale(x, y float32)
 	FlipVertical()
 	FlipHorizontal()
+	SetFlipHorizontal(shouldFlip bool)
+	SetFlipVertical(shouldFlip bool)
 	Clip(minX, minY, maxX, maxY float32)
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()

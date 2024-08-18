@@ -162,4 +162,6 @@ func SetWindowSize(width, height int) {
 
 	hlg.graphicsBackend.SetScreenSize(width, height)
 	hlg.graphicsBackend.SetWindowSize(width, height)
+	windowWidth = width
+	windowHeight = height
 }

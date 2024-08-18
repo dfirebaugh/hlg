@@ -109,23 +109,6 @@ func (t *Transform) Scale(sx, sy float32) matrix.Matrix {
 	return t.Matrix
 }
 
-// func (t *Transform) Resize(targetWidth, targetHeight float32) {
-// 	scaleX := targetWidth / (t.originalWidth * 2)
-// 	scaleY := targetHeight / (t.originalHeight * 2)
-//
-// 	// Maintain aspect ratio by choosing the smaller scale factor
-// 	scaleFactor := scaleX
-// 	if scaleY < scaleX {
-// 		scaleFactor = scaleY
-// 	}
-//
-// 	// Apply scale factor directly to the matrix elements
-// 	t.Matrix[0] = scaleFactor
-// 	t.Matrix[5] = scaleFactor
-// 	t.Matrix[10] = 1 // Ensure no depth scaling
-// 	t.Update()
-// }
-
 func (t *Transform) Rotate(a float32) matrix.Matrix {
 	t.Matrix = t.Matrix.Rotate(a)
 	t.Update()

@@ -1,26 +1,13 @@
 package webgpu
 
 import (
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/surface"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/renderer"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
-// GraphicsBackend
-// Renderer
-// WindowManager
-// TextureManager
-// EventManager
-// ShapeRenderer
-// Model
-// ModelRenderer
-// Texture
-// Shader
-// ShaderProgram
-// Camera
-
 type GraphicsBackend struct {
 	*window.Window
-	*surface.Surface
+	*renderer.Surface
 }
 
 func NewGraphicsBackend(width, height int) (*GraphicsBackend, error) {
@@ -31,7 +18,7 @@ func NewGraphicsBackend(width, height int) (*GraphicsBackend, error) {
 
 	gb := &GraphicsBackend{
 		Window:  w,
-		Surface: surface.New(width, height, w),
+		Surface: renderer.NewSurface(width, height, w),
 	}
 
 	w.SetResizedCallback(func(physicalWidth, physicalHeight uint32) {

@@ -1,4 +1,4 @@
-package gpu
+package renderer
 
 import (
 	"fmt"
@@ -10,12 +10,6 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
-
-type RenderQueue interface {
-	PrepareFrame()
-	RenderFrame(pass *wgpu.RenderPassEncoder)
-	RenderClear()
-}
 
 type size struct {
 	Width  int
@@ -32,7 +26,7 @@ type Renderer struct {
 	surface    common.Surface
 	clearColor wgpu.Color
 
-	RenderQueue
+	*RenderQueue
 }
 
 func NewRenderer(s common.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
@@ -61,7 +55,7 @@ func NewRenderer(s common.Surface, width, height int, w *window.Window) (r *Rend
 	return r, err
 }
 
-func (r *Renderer) SetRenderQueue(rq RenderQueue) {
+func (r *Renderer) SetRenderQueue(rq *RenderQueue) {
 	r.RenderQueue = rq
 }
 
@@ -90,7 +84,7 @@ func (r *Renderer) setupDevice(w *window.Window) error {
 		Width:       uint32(r.windowSize.Width),
 		Height:      uint32(r.windowSize.Height),
 		PresentMode: wgpu.PresentMode_Immediate,
-  }
+	}
 	r.SwapChain, err = r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
 
 	return err

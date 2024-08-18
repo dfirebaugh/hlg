@@ -1,21 +1,20 @@
-package surface
+package renderer
 
 import (
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/gpu"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
 type Surface struct {
-	*gpu.Renderer
+	*Renderer
 	*RenderQueue
 
 	Width  int
 	Height int
 }
 
-func New(w, h int, win *window.Window) *Surface {
+func NewSurface(w, h int, win *window.Window) *Surface {
 	surface := &Surface{}
-	s, err := gpu.NewRenderer(surface, w, h, win)
+	s, err := NewRenderer(surface, w, h, win)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +38,6 @@ func (s *Surface) GetSurfaceSize() (int, int) {
 
 func (s *Surface) SetScreenSize(w, h int) {
 	s.SetSurfaceSize(w, h)
-	// s.Renderer.SetScreenSize(w, h)
 }
 
 func (s *Surface) SetSurfaceSize(w, h int) {

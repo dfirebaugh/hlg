@@ -1,4 +1,4 @@
-package surface
+package renderer
 
 import (
 	"image"
@@ -18,7 +18,6 @@ type RenderQueue struct {
 	*wgpu.SwapChainDescriptor
 	Textures     map[textureHandle]*Texture
 	queue        []graphics.Renderable
-	nextFrame    []graphics.Renderable
 	currentFrame []graphics.Renderable
 }
 
@@ -28,7 +27,6 @@ func NewRenderQueue(surface *Surface, d *wgpu.Device, scd *wgpu.SwapChainDescrip
 		Device:              d,
 		SwapChainDescriptor: scd,
 		Textures:            make(map[textureHandle]*Texture),
-		nextFrame:           []graphics.Renderable{},
 		currentFrame:        []graphics.Renderable{},
 		queue:               []graphics.Renderable{},
 	}
@@ -44,17 +42,6 @@ func (rq *RenderQueue) RenderClear() {
 
 func (rq *RenderQueue) AddToRenderQueue(r graphics.Renderable) {
 	rq.queue = append(rq.queue, r)
-}
-
-func (rq *RenderQueue) Pop() (graphics.Renderable, bool) {
-	if len(rq.queue) == 0 {
-		return nil, false
-	}
-
-	renderable := rq.queue[0]
-	rq.queue = rq.queue[1:]
-
-	return renderable, true
 }
 
 func (rq *RenderQueue) PrepareFrame() {

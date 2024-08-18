@@ -138,10 +138,10 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 
 func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vertex) graphics.Shape {
 	v := make([]primitives.Vertex, len(vertices))
-	for i, v := range vertices {
-		vertices[i] = graphics.Vertex{
-			Position: [3]float32{v.Position[0], v.Position[1], v.Position[2]},
-			Color:    [4]float32{v.Color[0], v.Color[1], v.Color[2], v.Color[3]},
+	for i, vertex := range vertices {
+		v[i] = primitives.Vertex{
+			Position: [3]float32{vertex.Position[0], vertex.Position[1], vertex.Position[2]},
+			Color:    [4]float32{vertex.Color[0], vertex.Color[1], vertex.Color[2], vertex.Color[3]},
 		}
 	}
 

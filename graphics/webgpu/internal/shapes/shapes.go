@@ -6,7 +6,7 @@ import (
 	_ "embed"
 
 	"github.com/dfirebaugh/hlg/graphics"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -34,7 +34,7 @@ func (p *Polygon) createPipeline(device *wgpu.Device, shaderModule *wgpu.ShaderM
 			Module:     shaderModule,
 			EntryPoint: "vs_main",
 			Buffers: []wgpu.VertexBufferLayout{{
-				ArrayStride: uint64(unsafe.Sizeof(common.Vertex{})),
+				ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),
 				Attributes: []wgpu.VertexAttribute{
 					{
 						ShaderLocation: 0,

@@ -7,7 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/dfirebaugh/hlg/graphics"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
@@ -80,7 +80,7 @@ func (rq *RenderQueue) DisposeTexture(h uintptr) {
 // It returns a reference to the created Triangle.
 func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Shape {
 	r, g, b, a := c.RGBA()
-	triangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, []common.Vertex{
+	triangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, []primitives.Vertex{
 		{
 			Position: [3]float32{float32(x1), float32(y1), 0},
 			Color:    [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff},
@@ -104,24 +104,24 @@ func (rq *RenderQueue) AddRectangle(x, y, width, height int, c color.Color) grap
 	r, g, b, a := c.RGBA()
 	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
 
-	topLeft := common.Vertex{
+	topLeft := primitives.Vertex{
 		Position: [3]float32{float32(x), float32(y), 0},
 		Color:    colorArray,
 	}
-	topRight := common.Vertex{
+	topRight := primitives.Vertex{
 		Position: [3]float32{float32(x + width), float32(y), 0},
 		Color:    colorArray,
 	}
-	bottomLeft := common.Vertex{
+	bottomLeft := primitives.Vertex{
 		Position: [3]float32{float32(x), float32(y + height), 0},
 		Color:    colorArray,
 	}
-	bottomRight := common.Vertex{
+	bottomRight := primitives.Vertex{
 		Position: [3]float32{float32(x + width), float32(y + height), 0},
 		Color:    colorArray,
 	}
 
-	rectangleVertices := []common.Vertex{topLeft, bottomLeft, topRight, bottomLeft, bottomRight, topRight}
+	rectangleVertices := []primitives.Vertex{topLeft, bottomLeft, topRight, bottomLeft, bottomRight, topRight}
 
 	rectangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, rectangleVertices)
 
@@ -137,15 +137,15 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 }
 
 func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vertex) graphics.Shape {
-	commonVertices := make([]common.Vertex, len(vertices))
+	v := make([]primitives.Vertex, len(vertices))
 	for i, v := range vertices {
-		commonVertices[i] = common.Vertex{
+		vertices[i] = graphics.Vertex{
 			Position: [3]float32{v.Position[0], v.Position[1], v.Position[2]},
 			Color:    [4]float32{v.Color[0], v.Color[1], v.Color[2], v.Color[3]},
 		}
 	}
 
-	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, commonVertices)
+	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, v)
 	return polygon
 }
 
@@ -154,8 +154,8 @@ func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertice
 func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, sides int) graphics.Shape {
 	r, g, b, a := c.RGBA()
 	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
-	var vertices []common.Vertex
-	center := common.Vertex{
+	var vertices []primitives.Vertex
+	center := primitives.Vertex{
 		Position: [3]float32{float32(cx), float32(cy), 0},
 		Color:    colorArray,
 	}
@@ -165,7 +165,7 @@ func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, side
 		x := float32(cx) + (width/2)*float32(math.Cos(float64(angle)))
 		y := float32(cy) + (width/2)*float32(math.Sin(float64(angle)))
 
-		vertex := common.Vertex{
+		vertex := primitives.Vertex{
 			Position: [3]float32{x, y, 0},
 			Color:    colorArray,
 		}
@@ -177,7 +177,7 @@ func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, side
 			nextX := float32(cx) + (width/2)*float32(math.Cos(float64(nextAngle)))
 			nextY := float32(cy) + (width/2)*float32(math.Sin(float64(nextAngle)))
 
-			nextVertex := common.Vertex{
+			nextVertex := primitives.Vertex{
 				Position: [3]float32{nextX, nextY, 0},
 				Color:    colorArray,
 			}
@@ -204,7 +204,7 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 
 	// Calculate the four corners of the line (as a very thin rectangle)
 	halfWidth := width / 2
-	vertices := []common.Vertex{
+	vertices := []primitives.Vertex{
 		{Position: [3]float32{float32(x1) - sin*halfWidth, float32(y1) + cos*halfWidth, 0}, Color: colorArray},
 		{Position: [3]float32{float32(x2) - sin*halfWidth, float32(y2) + cos*halfWidth, 0}, Color: colorArray},
 		{Position: [3]float32{float32(x2) + sin*halfWidth, float32(y2) - cos*halfWidth, 0}, Color: colorArray},
@@ -212,7 +212,7 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 	}
 
 	// Creating two triangles to form the line
-	lineVertices := []common.Vertex{vertices[0], vertices[1], vertices[2], vertices[0], vertices[2], vertices[3]}
+	lineVertices := []primitives.Vertex{vertices[0], vertices[1], vertices[2], vertices[0], vertices[2], vertices[3]}
 
 	line := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, lineVertices)
 	return line

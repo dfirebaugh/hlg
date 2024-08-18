@@ -7,7 +7,7 @@ import (
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
@@ -23,13 +23,13 @@ type Renderer struct {
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
 	*window.Window
-	surface    common.Surface
+	surface    transforms.Surface
 	clearColor wgpu.Color
 
 	*RenderQueue
 }
 
-func NewRenderer(s common.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
+func NewRenderer(s transforms.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
 	wgpu.SetLogLevel(wgpu.LogLevel_Error)
 
 	r = &Renderer{

@@ -5,12 +5,13 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/common"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Polygon struct {
-	surface common.Surface
+	surface transforms.Surface
 	device  *wgpu.Device
 	renderQueue
 	*wgpu.SwapChainDescriptor
@@ -18,15 +19,15 @@ type Polygon struct {
 	bindGroupLayout *wgpu.BindGroupLayout
 	pipeline        *wgpu.RenderPipeline
 
-	*common.Transform
+	*transforms.Transform
 	vertexBuffer *wgpu.Buffer
-	vertices     []common.Vertex
+	vertices     []primitives.Vertex
 
 	shouldeRender bool
 	isDisposed    bool
 }
 
-func NewPolygon(surface common.Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQueue, vertices []common.Vertex) *Polygon {
+func NewPolygon(surface transforms.Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq renderQueue, vertices []primitives.Vertex) *Polygon {
 	p := &Polygon{
 		surface:             surface,
 		device:              device,
@@ -37,8 +38,8 @@ func NewPolygon(surface common.Surface, device *wgpu.Device, scd *wgpu.SwapChain
 
 	sw, sh := surface.GetSurfaceSize()
 
-	p.Transform = common.NewTransform(surface, device, scd, "Polygon Transform Buffer", float32(sw), float32(sh))
-	p.vertexBuffer = common.CreateVertexBuffer(p.device, p.vertices, float32(sw), float32(sh))
+	p.Transform = transforms.NewTransform(surface, device, scd, "Polygon Transform Buffer", float32(sw), float32(sh))
+	p.vertexBuffer = primitives.CreateVertexBuffer(p.device, p.vertices, float32(sw), float32(sh))
 
 	p.createBindGroupLayout(device)
 	p.createBindGroup(device, p.bindGroupLayout)
@@ -175,5 +176,5 @@ func (p *Polygon) SetColor(c color.Color) {
 
 func (p *Polygon) createVertexBuffer() {
 	w, h := p.surface.GetSurfaceSize()
-	p.vertexBuffer = common.CreateVertexBuffer(p.device, p.vertices, float32(w), float32(h))
+	p.vertexBuffer = primitives.CreateVertexBuffer(p.device, p.vertices, float32(w), float32(h))
 }

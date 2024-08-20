@@ -3,6 +3,8 @@ package renderer
 import (
 	"image"
 
+	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/texture"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
@@ -10,19 +12,17 @@ import (
 type textureHandle uintptr
 
 type Texture struct {
-	surface      *Surface
+	context.RenderContext
 	handle       textureHandle
 	gpuTexture   *texture.Texture
-	renderQueue  *RenderQueue
 	shouldRender bool
 }
 
-func NewTexture(surface *Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, renderQueue *RenderQueue) *Texture {
-	gpuTexture, _ := texture.TextureFromImage(surface, d, scd, img, "label")
+func NewTexture(ctx context.RenderContext, img image.Image, renderQueue *RenderQueue) *Texture {
+	gpuTexture, _ := texture.TextureFromImage(ctx, img, "label")
 	t := &Texture{
-		surface:     surface,
-		gpuTexture:  gpuTexture,
-		renderQueue: renderQueue,
+		RenderContext: ctx,
+		gpuTexture:    gpuTexture,
 	}
 
 	return t
@@ -89,7 +89,12 @@ func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
 
 func (t *Texture) Render() {
 	t.SetShouldBeRendered(true)
-	t.renderQueue.AddToRenderQueue(t)
+	t.AddToRenderQueue(t)
+}
+
+func (t *Texture) RenderToQueue(rq graphics.RenderQueue) {
+	t.SetShouldBeRendered(true)
+	rq.AddToRenderQueue(t)
 }
 
 func (t *Texture) Hide() {
@@ -97,7 +102,7 @@ func (t *Texture) Hide() {
 }
 
 func (t *Texture) Dispose() {
-	t.renderQueue.DisposeTexture(uintptr(t.handle))
+	t.DisposeTexture(uintptr(t.handle))
 }
 
 func (t *Texture) IsDisposed() bool {

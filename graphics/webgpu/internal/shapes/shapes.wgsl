@@ -1,4 +1,3 @@
-
 struct VertexInput {
 	@location(0) position: vec3<f32>,
 	@location(1) color: vec4<f32>,
@@ -19,8 +18,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     return output;
 }
 
-
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-	return input.color; // Render the color
+    return input.color; // Return the interpolated color from the vertex shader
 }

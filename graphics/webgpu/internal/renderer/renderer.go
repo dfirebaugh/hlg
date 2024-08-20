@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"sort"
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
+	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
@@ -23,13 +25,13 @@ type Renderer struct {
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
 	*window.Window
-	surface    transforms.Surface
+	surface    context.Surface
 	clearColor wgpu.Color
 
-	*RenderQueue
+	RenderQueues []*RenderQueue
 }
 
-func NewRenderer(s transforms.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
+func NewRenderer(s context.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
 	wgpu.SetLogLevel(wgpu.LogLevel_Error)
 
 	r = &Renderer{
@@ -55,8 +57,20 @@ func NewRenderer(s transforms.Surface, width, height int, w *window.Window) (r *
 	return r, err
 }
 
-func (r *Renderer) SetRenderQueue(rq *RenderQueue) {
-	r.RenderQueue = rq
+func (r *Renderer) AddRenderQueue(rq *RenderQueue) {
+	r.RenderQueues = append(r.RenderQueues, rq)
+}
+
+func (r *Renderer) CreateRenderQueue() graphics.RenderQueue {
+	rq := NewRenderQueue(r.surface, r.Device, r.SwapChainDescriptor)
+	r.RenderQueues = append(r.RenderQueues, rq)
+	return rq
+}
+
+func (r *Renderer) SortRenderQueues() {
+	sort.SliceStable(r.RenderQueues, func(i, j int) bool {
+		return r.RenderQueues[i].Priority < r.RenderQueues[j].Priority
+	})
 }
 
 func (r *Renderer) setupDevice(w *window.Window) error {
@@ -128,8 +142,11 @@ func (r *Renderer) SetScreenSize(width int, height int) {
 }
 
 func (r *Renderer) Clear(c color.Color) {
-	if r.RenderQueue != nil {
-		r.RenderQueue.RenderClear()
+	for _, rq := range r.RenderQueues {
+		if !rq.shouldClear {
+			continue
+		}
+		rq.RenderClear()
 	}
 	red, green, blue, alpha := c.RGBA()
 	r.clearColor = wgpu.Color{
@@ -169,26 +186,25 @@ func (r *Renderer) RecreateSwapChain() {
 }
 
 func (r *Renderer) Render() {
-	if r.RenderQueue == nil {
-		log.Println("RenderQueue is not set")
-		return
-	}
-
 	width, height := r.Window.GetWindowSize()
 	if width <= 0 || height <= 0 {
 		return
 	}
 
 	if r.SwapChain == nil {
-		log.Println("RenderQueue is not set")
+		log.Println("swapChain is not set")
 		return
 	}
 
 	if r.SurfaceIsOutdated() {
 		r.RecreateSwapChain()
 	}
+	r.SortRenderQueues()
 
-	r.PrepareFrame()
+	// r.PrepareFrame()
+	for _, rq := range r.RenderQueues {
+		rq.PrepareFrame()
+	}
 	view, err := r.SwapChain.GetCurrentTextureView()
 	if err != nil {
 		fmt.Println("Error getting texture view:", err)
@@ -220,7 +236,9 @@ func (r *Renderer) Render() {
 		}},
 	})
 	defer renderPass.Release()
-	r.RenderQueue.RenderFrame(renderPass)
+	for _, rq := range r.RenderQueues {
+		rq.RenderFrame(renderPass)
+	}
 	renderPass.End()
 
 	cmdBuffer, err := encoder.Finish(nil)

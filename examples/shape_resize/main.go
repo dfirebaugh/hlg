@@ -105,9 +105,6 @@ func (g *RectOverlay) Update() {
 }
 
 func (g *RectOverlay) newRect() {
-	if !g.Shape.IsDisposed() {
-		g.Shape.Dispose()
-	}
 	g.Shape = hlg.Rectangle(g.X, g.Y, g.Width, g.Height, g.Color)
 }
 

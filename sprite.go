@@ -39,3 +39,25 @@ func (s *Sprite) NextFrame() {
 	y1 := y0 + s.frameSize.Y
 	s.Clip(float32(x0), float32(y0), float32(x1), float32(y1))
 }
+
+// SetFrame sets the sprite to a specific frame by index
+func (s *Sprite) SetFrame(index int) {
+	// Calculate the frame position in the sprite sheet based on the index
+	totalFrames := s.sheetSize.X * s.sheetSize.Y
+	if index < 0 || index >= totalFrames {
+		index = 0 // Default to the first frame if the index is out of range
+	}
+
+	s.currentFrame.Y = index / s.sheetSize.X
+	s.currentFrame.X = index % s.sheetSize.X
+
+	s.updateClip()
+}
+
+func (s *Sprite) updateClip() {
+	x0 := s.currentFrame.X * s.frameSize.X
+	y0 := s.currentFrame.Y * s.frameSize.Y
+	x1 := x0 + s.frameSize.X
+	y1 := y0 + s.frameSize.Y
+	s.Clip(float32(x0), float32(y0), float32(x1), float32(y1))
+}

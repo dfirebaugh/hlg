@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"image"
 	"math/rand"
+	"net/http"
 	"time"
 
+	_ "golang.org/x/image/webp" // This is necessary to decode WEBP images
 	_ "image/png"
 
 	"github.com/dfirebaugh/hlg"
@@ -21,6 +23,22 @@ const (
 	buddyWidth  = 32
 	buddyHeight = 32
 )
+
+// downloadImage fetches the image from the given URL and returns it as an image.Image
+func downloadImage(url string) image.Image {
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	img, _, err := image.Decode(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return img
+}
 
 type Buddy struct {
 	X, Y                 float32
@@ -47,6 +65,17 @@ func main() {
 
 	lastFrameTime := time.Now()
 	frameDuration := time.Millisecond * 100
+	backgroundImg := downloadImage(`https://www.gstatic.com/webp/gallery/1.webp`)
+
+	background, _ := hlg.CreateTextureFromImage(
+		backgroundImg,
+	)
+	rq := hlg.CreateRenderQueue()
+	rq.SetPriority(50)
+	background.RenderToQueue(rq)
+
+	background.Resize(800, 600)
+	background.Move(float32(0+800/2), float32(0+600/2))
 
 	hlg.Run(func() {
 		if time.Since(lastFrameTime) >= frameDuration {

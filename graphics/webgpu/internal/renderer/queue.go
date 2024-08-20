@@ -3,25 +3,31 @@ package renderer
 import (
 	"image"
 	"image/color"
-	"math"
+	"log"
 	"unsafe"
 
 	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type RenderQueue struct {
-	surface *Surface
+	surface context.Surface
 	*wgpu.Device
 	*wgpu.SwapChainDescriptor
+	context.RenderContext
+
 	Textures     map[textureHandle]*Texture
 	queue        []graphics.Renderable
 	currentFrame []graphics.Renderable
+
+	Priority    int
+	shouldClear bool
 }
 
-func NewRenderQueue(surface *Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor) *RenderQueue {
+func NewRenderQueue(surface context.Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor) *RenderQueue {
 	rq := &RenderQueue{
 		surface:             surface,
 		Device:              d,
@@ -31,13 +37,22 @@ func NewRenderQueue(surface *Surface, d *wgpu.Device, scd *wgpu.SwapChainDescrip
 		queue:               []graphics.Renderable{},
 	}
 
+	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq)
+
 	return rq
 }
 
+func (rq *RenderQueue) SetPriority(priority int) {
+	rq.Priority = priority
+}
+
+func (rq *RenderQueue) SetShouldClear(shouldClear bool) {
+	rq.shouldClear = shouldClear
+}
+
 func (rq *RenderQueue) RenderClear() {
-	for _, r := range rq.queue {
-		r.Hide()
-	}
+	rq.currentFrame = nil
+	rq.queue = nil
 }
 
 func (rq *RenderQueue) AddToRenderQueue(r graphics.Renderable) {
@@ -55,12 +70,10 @@ func (rq *RenderQueue) RenderFrame(pass *wgpu.RenderPassEncoder) {
 			renderable.RenderPass(pass)
 		}
 	}
-	rq.currentFrame = nil
-	rq.queue = nil
 }
 
 func (rq *RenderQueue) CreateTextureFromImage(img image.Image) (graphics.Texture, error) {
-	tex := NewTexture(rq.surface, rq.Device, rq.SwapChainDescriptor, img, rq)
+	tex := NewTexture(rq.RenderContext, img, rq)
 	handle := uintptr(unsafe.Pointer(tex))
 	tex.SetHandle(textureHandle(handle))
 	rq.Textures[textureHandle(handle)] = tex
@@ -79,21 +92,15 @@ func (rq *RenderQueue) DisposeTexture(h uintptr) {
 // AddTriangle creates a new Triangle renderable and adds it to the RenderQueue.
 // It returns a reference to the created Triangle.
 func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) graphics.Shape {
-	r, g, b, a := c.RGBA()
-	triangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, []primitives.Vertex{
-		{
-			Position: [3]float32{float32(x1), float32(y1), 0},
-			Color:    [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff},
-		},
-		{
-			Position: [3]float32{float32(x2), float32(y2), 0},
-			Color:    [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff},
-		},
-		{
-			Position: [3]float32{float32(x3), float32(y3), 0},
-			Color:    [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff},
-		},
-	})
+	if rq == nil {
+		log.Fatal("RenderQueue is nil")
+	}
+	if rq.RenderContext == nil {
+		log.Fatal("RenderContext in RenderQueue is nil")
+	}
+
+	vertices := primitives.MakeTriangle(x1, y1, x2, y2, x3, y3, c)
+	triangle := shapes.NewPolygon(rq.RenderContext, vertices)
 
 	return triangle
 }
@@ -101,30 +108,8 @@ func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) gr
 // AddRectangle creates a new Rectangle renderable and adds it to the RenderQueue.
 // It returns a reference to the created Rectangle.
 func (rq *RenderQueue) AddRectangle(x, y, width, height int, c color.Color) graphics.Shape {
-	r, g, b, a := c.RGBA()
-	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
-
-	topLeft := primitives.Vertex{
-		Position: [3]float32{float32(x), float32(y), 0},
-		Color:    colorArray,
-	}
-	topRight := primitives.Vertex{
-		Position: [3]float32{float32(x + width), float32(y), 0},
-		Color:    colorArray,
-	}
-	bottomLeft := primitives.Vertex{
-		Position: [3]float32{float32(x), float32(y + height), 0},
-		Color:    colorArray,
-	}
-	bottomRight := primitives.Vertex{
-		Position: [3]float32{float32(x + width), float32(y + height), 0},
-		Color:    colorArray,
-	}
-
-	rectangleVertices := []primitives.Vertex{topLeft, bottomLeft, topRight, bottomLeft, bottomRight, topRight}
-
-	rectangle := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, rectangleVertices)
-
+	rectangleVertices := primitives.MakeRectangle(x, y, width, height, c)
+	rectangle := shapes.NewPolygon(rq.RenderContext, rectangleVertices)
 	return rectangle
 }
 
@@ -137,83 +122,23 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 }
 
 func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vertex) graphics.Shape {
-	v := make([]primitives.Vertex, len(vertices))
-	for i, vertex := range vertices {
-		v[i] = primitives.Vertex{
-			Position: [3]float32{vertex.Position[0], vertex.Position[1], vertex.Position[2]},
-			Color:    [4]float32{vertex.Color[0], vertex.Color[1], vertex.Color[2], vertex.Color[3]},
-		}
-	}
-
-	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, v)
+	v := primitives.MakePolygonFromVertices(cx, cy, width, vertices)
+	polygon := shapes.NewPolygon(rq.RenderContext, v)
 	return polygon
 }
 
 // AddPolygon creates a new Polygon renderable and adds it to the RenderQueue.
 // It returns a reference to the created Polygon.
 func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, sides int) graphics.Shape {
-	r, g, b, a := c.RGBA()
-	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
-	var vertices []primitives.Vertex
-	center := primitives.Vertex{
-		Position: [3]float32{float32(cx), float32(cy), 0},
-		Color:    colorArray,
-	}
-
-	for i := 0; i <= sides; i++ {
-		angle := float32(i) * 2 * float32(math.Pi) / float32(sides)
-		x := float32(cx) + (width/2)*float32(math.Cos(float64(angle)))
-		y := float32(cy) + (width/2)*float32(math.Sin(float64(angle)))
-
-		vertex := primitives.Vertex{
-			Position: [3]float32{x, y, 0},
-			Color:    colorArray,
-		}
-
-		vertices = append(vertices, center, vertex)
-
-		if i < sides {
-			nextAngle := float32(i+1) * 2 * float32(math.Pi) / float32(sides)
-			nextX := float32(cx) + (width/2)*float32(math.Cos(float64(nextAngle)))
-			nextY := float32(cy) + (width/2)*float32(math.Sin(float64(nextAngle)))
-
-			nextVertex := primitives.Vertex{
-				Position: [3]float32{nextX, nextY, 0},
-				Color:    colorArray,
-			}
-
-			vertices = append(vertices, nextVertex)
-		}
-	}
-
-	polygon := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, vertices)
+	vertices := primitives.MakePolygon(cx, cy, width, c, sides)
+	polygon := shapes.NewPolygon(rq.RenderContext, vertices)
 	return polygon
 }
 
 // AddLine creates a new Line renderable and adds it to the RenderQueue.
 // It returns a reference to the created Line.
 func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {
-	r, g, b, a := c.RGBA()
-	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
-
-	dx := float32(x2 - x1)
-	dy := float32(y2 - y1)
-	len := float32(math.Sqrt(float64(dx*dx + dy*dy)))
-	sin := dy / len
-	cos := dx / len
-
-	// Calculate the four corners of the line (as a very thin rectangle)
-	halfWidth := width / 2
-	vertices := []primitives.Vertex{
-		{Position: [3]float32{float32(x1) - sin*halfWidth, float32(y1) + cos*halfWidth, 0}, Color: colorArray},
-		{Position: [3]float32{float32(x2) - sin*halfWidth, float32(y2) + cos*halfWidth, 0}, Color: colorArray},
-		{Position: [3]float32{float32(x2) + sin*halfWidth, float32(y2) - cos*halfWidth, 0}, Color: colorArray},
-		{Position: [3]float32{float32(x1) + sin*halfWidth, float32(y1) - cos*halfWidth, 0}, Color: colorArray},
-	}
-
-	// Creating two triangles to form the line
-	lineVertices := []primitives.Vertex{vertices[0], vertices[1], vertices[2], vertices[0], vertices[2], vertices[3]}
-
-	line := shapes.NewPolygon(rq.surface, rq.Device, rq.SwapChainDescriptor, rq, lineVertices)
+	lineVertices := primitives.MakeLine(x1, y1, x2, y2, width, c)
+	line := shapes.NewPolygon(rq.RenderContext, lineVertices)
 	return line
 }

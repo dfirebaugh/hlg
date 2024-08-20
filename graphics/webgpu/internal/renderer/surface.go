@@ -19,7 +19,9 @@ func NewSurface(w, h int, win *window.Window) *Surface {
 		panic(err)
 	}
 	rq := NewRenderQueue(surface, s.Device, s.SwapChainDescriptor)
-	s.SetRenderQueue(rq)
+	rq.SetPriority(100)
+	rq.SetShouldClear(true)
+	s.AddRenderQueue(rq)
 
 	surface.Renderer = s
 	surface.RenderQueue = rq

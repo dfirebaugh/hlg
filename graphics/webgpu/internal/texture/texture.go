@@ -6,15 +6,15 @@ import (
 	"image/draw"
 	"unsafe"
 
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Texture struct {
-	surface transforms.Surface
-	*wgpu.SwapChainDescriptor
-	*wgpu.Device
+	context.RenderContext
+
 	*wgpu.Texture
 	*wgpu.TextureView
 	*wgpu.Sampler
@@ -34,23 +34,15 @@ type Texture struct {
 	isDisposed bool
 }
 
-func TextureFromImage(surface transforms.Surface, d *wgpu.Device, scd *wgpu.SwapChainDescriptor, img image.Image, label string) (t *Texture, err error) {
-	defer func() {
-		if err != nil {
-			t.Destroy()
-			t = nil
-		}
-	}()
+func TextureFromImage(ctx context.RenderContext, img image.Image, label string) (*Texture, error) {
 	r := img.Bounds()
 	width := r.Dx()
 	height := r.Dy()
 
-	t = &Texture{
-		Device:              d,
-		surface:             surface,
-		SwapChainDescriptor: scd,
-		originalWidth:       float32(width),
-		originalHeight:      float32(height),
+	t := &Texture{
+		RenderContext:  ctx,
+		originalWidth:  float32(width),
+		originalHeight: float32(height),
 	}
 
 	rgbaImg, ok := img.(*image.RGBA)
@@ -64,7 +56,8 @@ func TextureFromImage(surface transforms.Surface, d *wgpu.Device, scd *wgpu.Swap
 		Height:             uint32(height),
 		DepthOrArrayLayers: 1,
 	}
-	t.Texture, err = d.CreateTexture(&wgpu.TextureDescriptor{
+	var err error
+	t.Texture, err = ctx.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
 		Label:         label,
 		Size:          size,
 		MipLevelCount: 1,
@@ -74,10 +67,10 @@ func TextureFromImage(surface transforms.Surface, d *wgpu.Device, scd *wgpu.Swap
 		Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
 	})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	d.GetQueue().WriteTexture(
+	ctx.GetDevice().GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
 			Aspect:   wgpu.TextureAspect_All,
 			Texture:  t.Texture,
@@ -95,15 +88,15 @@ func TextureFromImage(surface transforms.Surface, d *wgpu.Device, scd *wgpu.Swap
 
 	t.TextureView, err = t.Texture.CreateView(nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	t.Sampler, err = d.CreateSampler(nil)
+	t.Sampler, err = ctx.GetDevice().CreateSampler(nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	t.Transform = transforms.NewTransform(surface, d, scd, "Texture Transform Buffer", float32(width), float32(height))
+	t.Transform = transforms.NewTransform(ctx, "Texture Transform Buffer", float32(width), float32(height))
 	err = t.createVertexBuffer()
 	if err != nil {
 		return nil, err
@@ -112,7 +105,6 @@ func TextureFromImage(surface transforms.Surface, d *wgpu.Device, scd *wgpu.Swap
 	if err != nil {
 		return nil, err
 	}
-
 
 	err = t.createBindGroup()
 	if err != nil {
@@ -149,7 +141,7 @@ func (t *Texture) UpdateImage(img image.Image) error {
 		}
 
 		var err error
-		t.Texture, err = t.Device.CreateTexture(&wgpu.TextureDescriptor{
+		t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
 			Label:         "UpdatedTexture",
 			Size:          size,
 			MipLevelCount: 1,
@@ -172,7 +164,7 @@ func (t *Texture) UpdateImage(img image.Image) error {
 		DepthOrArrayLayers: 1,
 	}
 
-	t.Device.GetQueue().WriteTexture(
+	t.GetDevice().GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
 			Aspect:   wgpu.TextureAspect_All,
 			Texture:  t.Texture,
@@ -192,7 +184,7 @@ func (t *Texture) UpdateImage(img image.Image) error {
 }
 
 func (t *Texture) createPipeline() error {
-	shader, err := t.CreateShaderModule(&wgpu.ShaderModuleDescriptor{
+	shader, err := t.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
 		Label: "texture.wgsl",
 		WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{
 			Code: TextureShaderCode,
@@ -203,62 +195,26 @@ func (t *Texture) createPipeline() error {
 	}
 	defer shader.Release()
 
-	renderPipelineLayout, err := t.CreatePipelineLayout(&wgpu.PipelineLayoutDescriptor{
-		Label: "Render Pipeline Layout",
-		BindGroupLayouts: []*wgpu.BindGroupLayout{
-			t.BindGroupLayout,
+	t.RenderPipeline = t.GetPipelineManager().GetPipeline(
+		"texture-pipeline",
+		&wgpu.PipelineLayoutDescriptor{
+			Label: "Render Pipeline Layout",
+			BindGroupLayouts: []*wgpu.BindGroupLayout{
+				t.BindGroupLayout,
+			},
 		},
-	})
-	if err != nil {
-		return err
-	}
-	defer renderPipelineLayout.Release()
+		shader,
+		t.GetSwapChainDescriptor(),
+		wgpu.PrimitiveTopology_TriangleList,
+		[]wgpu.VertexBufferLayout{VertexBufferLayout},
+	)
 
-	t.RenderPipeline, err = t.CreateRenderPipeline(&wgpu.RenderPipelineDescriptor{
-		Label:  "Render Pipeline",
-		Layout: renderPipelineLayout,
-		Vertex: wgpu.VertexState{
-			Module:     shader,
-			EntryPoint: "vs_main",
-			Buffers:    []wgpu.VertexBufferLayout{VertexBufferLayout},
-		},
-		Fragment: &wgpu.FragmentState{
-			Module:     shader,
-			EntryPoint: "fs_main",
-			Targets: []wgpu.ColorTargetState{{
-				Format: t.SwapChainDescriptor.Format,
-				Blend: &wgpu.BlendState{
-					Color: wgpu.BlendComponent{
-						SrcFactor: wgpu.BlendFactor_SrcAlpha,
-						DstFactor: wgpu.BlendFactor_OneMinusSrcAlpha,
-						Operation: wgpu.BlendOperation_Add,
-					},
-					Alpha: wgpu.BlendComponent{
-						SrcFactor: wgpu.BlendFactor_One,
-						DstFactor: wgpu.BlendFactor_Zero,
-						Operation: wgpu.BlendOperation_Add,
-					},
-				}, WriteMask: wgpu.ColorWriteMask_All,
-			}},
-		},
-		Primitive: wgpu.PrimitiveState{
-			Topology:  wgpu.PrimitiveTopology_TriangleList,
-			FrontFace: wgpu.FrontFace_CCW,
-			CullMode:  wgpu.CullMode_Back,
-		},
-		Multisample: wgpu.MultisampleState{
-			Count:                  1,
-			Mask:                   0xFFFFFFFF,
-			AlphaToCoverageEnabled: false,
-		},
-	})
-
-	return err
+	return nil
 }
 
 func (t *Texture) createBindGroup() error {
 	var err error
-	t.BindGroupLayout, err = t.Device.CreateBindGroupLayout(&wgpu.BindGroupLayoutDescriptor{
+	t.BindGroupLayout, err = t.GetDevice().CreateBindGroupLayout(&wgpu.BindGroupLayoutDescriptor{
 		Entries: []wgpu.BindGroupLayoutEntry{
 			{
 				Binding:    0,
@@ -304,7 +260,7 @@ func (t *Texture) createBindGroup() error {
 		return err
 	}
 
-	t.BindGroup, err = t.Device.CreateBindGroup(&wgpu.BindGroupDescriptor{
+	t.BindGroup, err = t.GetDevice().CreateBindGroup(&wgpu.BindGroupDescriptor{
 		Layout: t.BindGroupLayout,
 		Entries: []wgpu.BindGroupEntry{
 			{
@@ -342,7 +298,7 @@ func (t *Texture) createBindGroup() error {
 
 func (t *Texture) createVertexBuffer() error {
 	var err error
-	sw, sh := t.surface.GetSurfaceSize()
+	sw, sh := t.GetSurfaceSize()
 
 	clipWidth := (t.ClipRect[2] - t.ClipRect[0]) * t.originalWidth
 	clipHeight := (t.ClipRect[3] - t.ClipRect[1]) * t.originalHeight
@@ -355,7 +311,7 @@ func (t *Texture) createVertexBuffer() error {
 	topLeft := primitives.ScreenToNDC(offsetX, offsetY, float32(sw), float32(sh))
 	topRight := primitives.ScreenToNDC(offsetX+clipWidth, offsetY, float32(sw), float32(sh))
 
-	t.vertexBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+	t.vertexBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label: "Vertex Buffer",
 		Contents: wgpu.ToBytes(
 			[]Vertex{
@@ -397,7 +353,7 @@ func (t *Texture) updateVertexBuffer() error {
 
 func (t *Texture) createIndexBuffer() error {
 	var err error
-	t.indexBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+	t.indexBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    "Index Buffer",
 		Contents: wgpu.ToBytes(INDICES[:]),
 		Usage:    wgpu.BufferUsage_Index,
@@ -449,7 +405,6 @@ func (t *Texture) Destroy() {
 func (t *Texture) IsDisposed() bool {
 	return t.isDisposed
 }
-
 
 func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
 	if t.isDisposed {

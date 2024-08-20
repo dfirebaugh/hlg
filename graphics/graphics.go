@@ -39,6 +39,7 @@ type Texture interface {
 	Clip(minX, minY, maxX, maxY float32)
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()
+	RenderToQueue(rq RenderQueue)
 	Dispose()
 	IsDisposed() bool
 }
@@ -51,9 +52,15 @@ type Renderable interface {
 	Hide()
 }
 
+type RenderQueue interface {
+	AddToRenderQueue(r Renderable)
+	SetPriority(priority int)
+}
+
 type Renderer interface {
 	Clear(c color.Color)
 	Render()
+	CreateRenderQueue() RenderQueue
 }
 
 type Transformable interface {

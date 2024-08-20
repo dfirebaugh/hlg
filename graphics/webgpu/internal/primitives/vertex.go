@@ -8,8 +8,9 @@ import (
 
 // Vertex represents a single vertex in the shape.
 type Vertex struct {
-	Position [3]float32 // x, y, z coordinates
-	Color    [4]float32 // RGBA color
+	Position  [3]float32 // x, y, z coordinates
+	Color     [4]float32 // RGBA color
+	TexCoords [2]float32
 }
 
 func (v *Vertex) SetColor(c color.Color) {

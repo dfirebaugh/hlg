@@ -14,6 +14,11 @@ import (
 	"github.com/dfirebaugh/hlg/pkg/math/geom"
 )
 
+type Game interface {
+	Update()
+	Render()
+}
+
 var (
 	windowWidth  = 240
 	windowHeight = 160
@@ -56,8 +61,7 @@ func ensureSetupCompletion() {
 	initWindow()
 }
 
-// Run is the main update function called to refresh the engine state.
-func Run(updateFn func(), renderFn func()) {
+func run(updateFn func(), renderFn func()) {
 	ensureSetupCompletion()
 	defer close()
 	hlg.fpsCounter = newFPSCounter()
@@ -100,6 +104,15 @@ func Run(updateFn func(), renderFn func()) {
 			calculateFPS()
 		}
 	}
+}
+
+func RunGame(game Game) {
+	run(game.Update, game.Render)
+}
+
+// Run is the main update function called to refresh the engine state.
+func Run(updateFn func(), renderFn func()) {
+	run(updateFn, renderFn)
 }
 
 func calculateFPS() {
@@ -164,4 +177,8 @@ func SetWindowSize(width, height int) {
 	hlg.graphicsBackend.SetWindowSize(width, height)
 	windowWidth = width
 	windowHeight = height
+}
+
+func CreateRenderQueue() graphics.RenderQueue {
+	return hlg.graphicsBackend.CreateRenderQueue()
 }

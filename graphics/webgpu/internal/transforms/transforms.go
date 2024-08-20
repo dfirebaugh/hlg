@@ -1,19 +1,15 @@
 package transforms
 
 import (
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/pkg/math/matrix"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
-type Surface interface {
-	GetSurfaceSize() (int, int)
-}
-
 type Transform struct {
-	surface Surface
-	*wgpu.Device
-	*wgpu.SwapChainDescriptor
+	context.RenderContext
+
 	*wgpu.Buffer
 
 	matrix.Matrix
@@ -31,15 +27,13 @@ type Transform struct {
 	ClipBuffer *wgpu.Buffer
 }
 
-func NewTransform(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, bufferLabel string, originalWidth, originalHeight float32) *Transform {
+func NewTransform(ctx context.RenderContext, bufferLabel string, originalWidth, originalHeight float32) *Transform {
 	t := &Transform{
-		surface:             surface,
-		Device:              device,
-		SwapChainDescriptor: scd,
-		Matrix:              matrix.MatrixIdentity(),
-		label:               bufferLabel,
-		originalWidth:       originalWidth,
-		originalHeight:      originalHeight,
+		RenderContext:  ctx,
+		Matrix:         matrix.MatrixIdentity(),
+		label:          bufferLabel,
+		originalWidth:  originalWidth,
+		originalHeight: originalHeight,
 	}
 
 	t.CreateBuffer()
@@ -53,7 +47,7 @@ func NewTransform(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescr
 
 func (t *Transform) CreateBuffer() {
 	var err error
-	t.Buffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+	t.Buffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    t.label,
 		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
 		Contents: wgpu.ToBytes(t.Matrix[:]),
@@ -67,7 +61,7 @@ func (t *Transform) createClipBuffer() error {
 	clipInfo := [4]float32{0.0, 0.0, t.originalWidth, t.originalWidth}
 
 	var err error
-	t.ClipBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+	t.ClipBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    "Clip Buffer",
 		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
 		Contents: wgpu.ToBytes(clipInfo[:]),
@@ -79,7 +73,7 @@ func (t *Transform) createFlipBuffer() error {
 	flipInfo := [2]float32{0.0, 0.0}
 
 	var err error
-	t.FlipBuffer, err = t.Device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+	t.FlipBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    "Flip Buffer",
 		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
 		Contents: wgpu.ToBytes(flipInfo[:]),
@@ -96,7 +90,7 @@ func (t *Transform) RecenterAndMove(vertices []primitives.Vertex, destX, destY f
 }
 
 func (t *Transform) MoveToScreenPosition(screenX, screenY float32) {
-	sw, sh := t.surface.GetSurfaceSize()
+	sw, sh := t.GetSurfaceSize()
 	ndcCoords := primitives.ScreenToNDC(screenX, screenY, float32(sw), float32(sh))
 	t.Matrix[12] = ndcCoords[0]
 	t.Matrix[13] = ndcCoords[1]
@@ -127,12 +121,12 @@ func (t *Transform) FlipHorizontal() {
 
 func (t *Transform) SetFlipHorizontal(shouldFlip bool) {
 	t.flipHorizontal = shouldFlip
-  t.updateFlipBuffer()
+	t.updateFlipBuffer()
 }
 
 func (t *Transform) SetFlipVertical(shouldFlip bool) {
 	t.flipVertical = shouldFlip
-  t.updateFlipBuffer()
+	t.updateFlipBuffer()
 }
 
 func (t *Transform) updateFlipBuffer() {
@@ -147,7 +141,7 @@ func (t *Transform) updateFlipBuffer() {
 		t.FlipMatrix[1] = 1.0
 	}
 
-	t.Device.GetQueue().WriteBuffer(t.FlipBuffer, 0, wgpu.ToBytes(t.FlipMatrix[:]))
+	t.GetDevice().GetQueue().WriteBuffer(t.FlipBuffer, 0, wgpu.ToBytes(t.FlipMatrix[:]))
 }
 
 func (t *Transform) SetDefaultClip() {
@@ -162,7 +156,7 @@ func (t *Transform) SetClipRect(minX, minY, maxX, maxY float32) {
 		maxY / t.originalHeight,
 	}
 
-	t.Device.GetQueue().WriteBuffer(t.ClipBuffer, 0, wgpu.ToBytes(t.ClipRect[:]))
+	t.GetDevice().GetQueue().WriteBuffer(t.ClipBuffer, 0, wgpu.ToBytes(t.ClipRect[:]))
 }
 
 func (t *Transform) GetCurrentSize() (float32, float32) {
@@ -199,7 +193,7 @@ func (t *Transform) Resize(targetWidth, targetHeight float32) {
 }
 
 func (t *Transform) Update() {
-	t.Device.GetQueue().WriteBuffer(t.Buffer, 0, wgpu.ToBytes(t.Matrix[:]))
+	t.GetDevice().GetQueue().WriteBuffer(t.Buffer, 0, wgpu.ToBytes(t.Matrix[:]))
 }
 
 func (t *Transform) Destroy() {

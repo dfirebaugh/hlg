@@ -96,7 +96,7 @@ func run(updateFn func(), renderFn func()) {
 		}
 
 		if frameRendered {
-			hlg.uiTexture.UpdateTextureFromImage(hlg.uifb.ToImage())
+			hlg.uiTexture.UpdateImage(hlg.uifb.ToImage())
 			hlg.uiTexture.Render()
 			hlg.graphicsBackend.Render()
 			renderFn()
@@ -107,6 +107,10 @@ func run(updateFn func(), renderFn func()) {
 }
 
 func RunGame(game Game) {
+	run(game.Update, game.Render)
+}
+
+func RunApp(game Game) {
 	run(game.Update, game.Render)
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/renderable"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
@@ -141,4 +142,61 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 	lineVertices := primitives.MakeLine(x1, y1, x2, y2, width, c)
 	line := shapes.NewPolygon(rq.RenderContext, lineVertices)
 	return line
+}
+
+func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderCode string, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
+	if rq == nil {
+		log.Println("RenderQueue is nil, cannot add to queue")
+		return nil
+	}
+	primitivesVertices := convertVertices(vertices)
+	renderableUniforms := convertUniforms(rq.Device, uniforms, dataMap)
+	r := renderable.NewRenderable(rq.RenderContext, primitivesVertices, shaderCode, renderableUniforms)
+
+	return r
+}
+
+func convertVertex(gv graphics.Vertex) primitives.Vertex {
+	return primitives.Vertex{
+		Position:  gv.Position,
+		Color:     gv.Color,
+		TexCoords: [2]float32{},
+	}
+}
+
+func convertVertices(gvs []graphics.Vertex) []primitives.Vertex {
+	pvs := make([]primitives.Vertex, len(gvs))
+	for i, gv := range gvs {
+		pvs[i] = convertVertex(gv)
+	}
+	return pvs
+}
+
+func convertUniform(device *wgpu.Device, gu graphics.Uniform, data []byte) renderable.Uniform {
+	buffer, err := device.CreateBufferInit(&wgpu.BufferInitDescriptor{
+		Label:    "Uniform Buffer",
+		Contents: data,
+		Usage:    wgpu.BufferUsage_Uniform | wgpu.BufferUsage_CopyDst,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return renderable.Uniform{
+		Binding: gu.Binding,
+		Buffer:  buffer,
+		Size:    gu.Size,
+	}
+}
+
+func convertUniforms(device *wgpu.Device, gus map[string]graphics.Uniform, dataMap map[string][]byte) map[string]renderable.Uniform {
+	rus := make(map[string]renderable.Uniform)
+	for name, gu := range gus {
+		data, exists := dataMap[name]
+		if !exists {
+			panic("Uniform data not provided for " + name)
+		}
+		rus[name] = convertUniform(device, gu, data)
+	}
+	return rus
 }

@@ -5,11 +5,16 @@ import (
 	"log"
 	"unsafe"
 
+	_ "embed"
+
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
+
+//go:embed shapes.wgsl
+var ShapesShaderCode string
 
 type Polygon struct {
 	context.RenderContext

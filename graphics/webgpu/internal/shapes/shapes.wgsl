@@ -22,3 +22,4 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     return input.color; // Return the interpolated color from the vertex shader
 }
+

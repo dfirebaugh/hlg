@@ -2,19 +2,13 @@ package hlg
 
 import "github.com/dfirebaugh/hlg/pkg/input"
 
-var previousKeyboardState = map[input.Key]bool{}
-
+// IsKeyPressed checks if a key is currently pressed
 func IsKeyPressed(keyCode input.Key) bool {
 	return hlg.inputState.IsKeyPressed(keyCode)
 }
 
 func IsKeyJustPressed(keyCode input.Key) bool {
-	isPressed := hlg.inputState.IsKeyPressed(keyCode)
-	wasPressed := previousKeyboardState[keyCode]
-
-	previousKeyboardState[keyCode] = isPressed
-
-	return isPressed && !wasPressed
+	return hlg.inputState.IsKeyJustPressed(keyCode)
 }
 
 func PressKey(keyCode input.Key) {
@@ -29,6 +23,12 @@ func IsButtonPressed(buttonCode input.MouseButton) bool {
 	return hlg.inputState.IsButtonPressed(buttonCode)
 }
 
+// IsButtonJustPressed checks if a mouse button was just pressed
+func IsButtonJustPressed(buttonCode input.MouseButton) bool {
+	return hlg.inputState.IsButtonJustPressed(buttonCode)
+}
+
+// PressButton simulates a mouse button press
 func PressButton(buttonCode input.MouseButton) {
 	hlg.inputState.PressButton(buttonCode)
 }

@@ -24,10 +24,6 @@ func CreateTextureFromImage(img image.Image) (*Texture, error) {
 	return &t, err
 }
 
-func (t *Texture) UpdateTextureFromImage(img image.Image) {
-	hlg.graphicsBackend.UpdateTextureFromImage(t, img)
-}
-
 // Destroy removes the texture from the renderer
 func (t Texture) Destroy() {
 	ensureSetupCompletion()

@@ -44,7 +44,9 @@ type Texture interface {
 	IsDisposed() bool
 }
 
-type Renderable interface {
+type ShaderRenderable interface {
+	UpdateUniforms(dataMap map[string][]byte)
+	UpdateUniform(name string, data []byte)
 	RenderPass(pass *wgpu.RenderPassEncoder)
 	Render()
 	Dispose()
@@ -52,12 +54,20 @@ type Renderable interface {
 	Hide()
 }
 
+type Renderable interface {
+	RenderPass(pass *wgpu.RenderPassEncoder)
+	Render()
+	Dispose()
+	IsDisposed() bool
+	Hide()
+}
 type RenderQueue interface {
 	AddToRenderQueue(r Renderable)
 	SetPriority(priority int)
 }
 
 type Renderer interface {
+	RenderQueue
 	Clear(c color.Color)
 	Render()
 	CreateRenderQueue() RenderQueue
@@ -81,7 +91,6 @@ type WindowManager interface {
 
 type TextureManager interface {
 	CreateTextureFromImage(img image.Image) (Texture, error)
-	UpdateTextureFromImage(texture Texture, img image.Image)
 	DisposeTexture(h uintptr)
 }
 
@@ -107,6 +116,7 @@ type ShapeRenderer interface {
 	AddRectangle(x, y, width, height int, c color.Color) Shape
 	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape
 	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
+	AddDynamicRenderable(vertices []Vertex, shaderCode string, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
 }
 
 type CubeFace int
@@ -122,4 +132,9 @@ const (
 
 type InputManager interface {
 	SetInputCallback(fn func(eventChan chan input.Event))
+}
+
+type Uniform struct {
+	Binding uint32
+	Size    uint64
 }

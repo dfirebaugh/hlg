@@ -24,6 +24,14 @@ func New(width, height int) *ImageFB {
 	}
 }
 
+func (fb *ImageFB) Width() int {
+	return fb.img.Rect.Dx()
+}
+
+func (fb *ImageFB) Height() int {
+	return fb.img.Rect.Dy()
+}
+
 // SetPixel sets the pixel color at the specified x and y coordinates within the framebuffer.
 // It does nothing if the coordinates are out of bounds.
 func (i *ImageFB) SetPixel(x, y int16, c color.RGBA) {

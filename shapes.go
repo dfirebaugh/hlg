@@ -12,11 +12,6 @@ type Shape interface {
 	graphics.Shape
 }
 
-type Vertex struct {
-	Position [3]float32
-	Color    [4]float32
-}
-
 // PolygonFromVertices creates a polygon shape using a specified array of vertices.
 // The vertices should be defined with their positions and colors. The function converts
 // the input vertices from the local Vertex type to the graphics.Vertex type required by

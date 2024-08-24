@@ -10,6 +10,7 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/renderable"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
@@ -19,6 +20,7 @@ type RenderQueue struct {
 	*wgpu.Device
 	*wgpu.SwapChainDescriptor
 	context.RenderContext
+	*shader.ShaderManager
 
 	Textures     map[textureHandle]*Texture
 	queue        []graphics.Renderable
@@ -38,7 +40,10 @@ func NewRenderQueue(surface context.Surface, d *wgpu.Device, scd *wgpu.SwapChain
 		queue:               []graphics.Renderable{},
 	}
 
-	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq)
+
+  shaderManager := shader.NewShaderManager(d)
+	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq, shaderManager)
+  rq.ShaderManager = shaderManager
 
 	return rq
 }
@@ -144,14 +149,14 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 	return line
 }
 
-func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderCode string, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
+func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderHandle int, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
 	if rq == nil {
 		log.Println("RenderQueue is nil, cannot add to queue")
 		return nil
 	}
 	primitivesVertices := convertVertices(vertices)
 	renderableUniforms := convertUniforms(rq.Device, uniforms, dataMap)
-	r := renderable.NewRenderable(rq.RenderContext, primitivesVertices, shaderCode, renderableUniforms)
+	r := renderable.NewRenderable(rq.RenderContext, primitivesVertices, shaderHandle, renderableUniforms)
 
 	return r
 }

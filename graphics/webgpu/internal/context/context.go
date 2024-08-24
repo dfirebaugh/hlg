@@ -5,6 +5,7 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/pipeline"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -20,10 +21,14 @@ type RenderQueue interface {
 type Surface interface {
 	GetSurfaceSize() (int, int)
 }
+type ShaderManager interface {
+	GetShader(handle graphics.ShaderHandle) *wgpu.ShaderModule
+}
 
 type RenderContext interface {
 	Surface
 	RenderQueue
+	ShaderManager
 
 	GetPipelineManager() *pipeline.PipelineManager
 	GetDevice() *wgpu.Device
@@ -36,9 +41,10 @@ type renderContext struct {
 	swapChainDescirptor *wgpu.SwapChainDescriptor
 	*pipeline.PipelineManager
 	RenderQueue
+	*shader.ShaderManager
 }
 
-func NewRenderContext(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq RenderQueue) RenderContext {
+func NewRenderContext(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainDescriptor, rq RenderQueue, sm *shader.ShaderManager) RenderContext {
 	if surface == nil || device == nil || scd == nil || rq == nil {
 		log.Fatal("RenderContext dependencies are not initialized")
 	}
@@ -49,6 +55,7 @@ func NewRenderContext(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainD
 		swapChainDescirptor: scd,
 		RenderQueue:         rq,
 		PipelineManager:     pipeline.NewPipelineManager(device),
+		ShaderManager:       sm,
 	}
 
 	if ctx.RenderQueue == nil {

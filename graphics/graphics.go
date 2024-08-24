@@ -22,7 +22,15 @@ type GraphicsBackend interface {
 	TextureManager
 	ShapeRenderer
 	InputManager
+	ShaderManager
 }
+
+type (
+	ShaderHandle  int
+	ShaderManager interface {
+		CompileShader(shaderCode string) ShaderHandle
+	}
+)
 
 type Texture interface {
 	Handle() uintptr
@@ -116,7 +124,7 @@ type ShapeRenderer interface {
 	AddRectangle(x, y, width, height int, c color.Color) Shape
 	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape
 	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
-	AddDynamicRenderable(vertices []Vertex, shaderCode string, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
+	AddDynamicRenderable(vertices []Vertex, shaderHandle int, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
 }
 
 type CubeFace int

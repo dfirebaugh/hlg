@@ -27,7 +27,8 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
 }
 	`
 
-	quad := hlg.CreateRenderable(shaderCode, makeFullScreenQuad(screenWidth, screenHeight), nil, nil)
+	shader := hlg.CompileShader(shaderCode)
+	quad := hlg.CreateRenderable(shader, makeFullScreenQuad(screenWidth, screenHeight), nil, nil)
 
 	if quad == nil {
 		panic("Failed to create full-screen quad renderable")

@@ -4,6 +4,7 @@ import (
 	"log"
 	"unsafe"
 
+	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
@@ -31,7 +32,7 @@ type Uniform struct {
 	Size    uint64
 }
 
-func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shaderCode string, uniforms map[string]Uniform) *Renderable {
+func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shaderHandle int, uniforms map[string]Uniform) *Renderable {
 	if ctx == nil {
 		log.Fatal("RenderContext is nil")
 	}
@@ -57,7 +58,7 @@ func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shad
 		log.Fatal("Vertex buffer is nil")
 	}
 
-	r.loadShader(shaderCode)
+	r.Shader = ctx.GetShader(graphics.ShaderHandle(shaderHandle))
 	if r.Shader == nil {
 		log.Fatal("Shader module is nil")
 	}
@@ -90,16 +91,6 @@ func (r *Renderable) createVertexBuffer() {
 		panic(err)
 	}
 	r.VertexBuffer = vertexBuffer
-}
-
-func (r *Renderable) loadShader(code string) {
-	shaderModule, err := r.Context.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
-		WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{Code: code},
-	})
-	if err != nil {
-		log.Fatalf("Failed to create shader module: %v", err)
-	}
-	r.Shader = shaderModule
 }
 
 func (r *Renderable) createBindGroupLayout() {

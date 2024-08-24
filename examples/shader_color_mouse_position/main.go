@@ -44,7 +44,8 @@ fn fs_main() -> @location(0) vec4<f32> {
 		"mouse_pos": unsafe.Slice((*byte)(unsafe.Pointer(&mousePosition[0])), int(unsafe.Sizeof(mousePosition))),
 	}
 
-	quad := hlg.CreateRenderable(shaderCode, makeFullScreenQuad(screenWidth, screenHeight), uniforms, dataMap)
+	shader := hlg.CompileShader(shaderCode)
+	quad := hlg.CreateRenderable(shader, makeFullScreenQuad(screenWidth, screenHeight), uniforms, dataMap)
 
 	if quad == nil {
 		panic("Failed to create full-screen quad renderable")

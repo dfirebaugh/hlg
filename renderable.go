@@ -28,10 +28,10 @@ func convertUniformsToGraphics(uniforms map[string]Uniform) map[string]graphics.
 	return gus
 }
 
-// CreateRenderable creates a `graphics.ShaderRenderable` with the provided shader code, uniforms, and vertices.
-func CreateRenderable(shaderCode string, vertices []Vertex, uniforms map[string]Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
+// CreateRenderable creates a `graphics.ShaderRenderable` with the provided shader handle, uniforms, and vertices.
+func CreateRenderable(shaderHandle int, vertices []Vertex, uniforms map[string]Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
 	graphicsVertices := convertVerticesToGraphics(vertices)
 	graphicsUniforms := convertUniformsToGraphics(uniforms)
 
-	return hlg.graphicsBackend.AddDynamicRenderable(graphicsVertices, shaderCode, graphicsUniforms, dataMap)
+	return hlg.graphicsBackend.AddDynamicRenderable(graphicsVertices, shaderHandle, graphicsUniforms, dataMap)
 }

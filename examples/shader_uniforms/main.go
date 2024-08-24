@@ -56,11 +56,12 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
 	}
 
 	dataMap := map[string][]byte{
-		"colorFactor":  unsafe.Slice((*byte)(unsafe.Pointer(&colorFactor[0])), int(unsafe.Sizeof(colorFactor))),
-		"mouse_pos":    unsafe.Slice((*byte)(unsafe.Pointer(&mousePosition[0])), int(unsafe.Sizeof(mousePosition))),
+		"colorFactor": unsafe.Slice((*byte)(unsafe.Pointer(&colorFactor[0])), int(unsafe.Sizeof(colorFactor))),
+		"mouse_pos":   unsafe.Slice((*byte)(unsafe.Pointer(&mousePosition[0])), int(unsafe.Sizeof(mousePosition))),
 	}
 
-	quad := hlg.CreateRenderable(shaderCode, makeFullScreenQuad(screenWidth, screenHeight), uniforms, dataMap)
+	shader := hlg.CompileShader(shaderCode)
+	quad := hlg.CreateRenderable(shader, makeFullScreenQuad(screenWidth, screenHeight), uniforms, dataMap)
 
 	if quad == nil {
 		panic("Failed to create quad renderable")
@@ -102,4 +103,3 @@ func makeFullScreenQuad(screenWidth, screenHeight float32) []hlg.Vertex {
 
 	return hlg.ConvertVerticesToNDC2D(v, screenWidth, screenHeight)
 }
-

@@ -7,6 +7,7 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
+	"github.com/google/uuid"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -146,8 +147,10 @@ func (r *Renderable) createBindGroup() {
 }
 
 func (r *Renderable) createPipeline() {
+	pipelineName := uuid.New().String()
+
 	r.Pipeline = r.Context.GetPipelineManager().GetPipeline(
-		"renderable_pipeline",
+		pipelineName,
 		&wgpu.PipelineLayoutDescriptor{
 			BindGroupLayouts: []*wgpu.BindGroupLayout{
 				r.BindGroupLayout,

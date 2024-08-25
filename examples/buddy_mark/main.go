@@ -101,6 +101,9 @@ func main() {
 
 func handleInput() {
 	if hlg.IsButtonPressed(input.MouseButtonLeft) {
+		if hlg.GetFPS() < 40 {
+			return
+		}
 		x, y := hlg.GetCursorPosition()
 		for i := 0; i < 5; i++ {
 			buddy := NewBuddy(float32(x), float32(y))

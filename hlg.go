@@ -93,6 +93,8 @@ func run(updateFn func(), renderFn func()) {
 			updateFn()
 			accumulator -= targetFrameDuration
 			frameRendered = true
+
+			hlg.inputState.ResetJustPressed()
 		}
 
 		if frameRendered {

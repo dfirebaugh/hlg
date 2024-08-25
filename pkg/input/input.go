@@ -27,16 +27,15 @@ func (is *InputState) IsKeyPressed(keyCode Key) bool {
 // IsKeyJustPressed returns true if the specified key was just pressed
 func (is *InputState) IsKeyJustPressed(keyCode Key) bool {
 	pressed, exists := is.KeyJustPressed[keyCode]
-	if exists {
-		is.KeyJustPressed[keyCode] = false // Reset the state
-	}
 	return exists && pressed
 }
 
 // PressKey simulates a key press
 func (is *InputState) PressKey(keyCode Key) {
 	is.KeyState[keyCode] = true
-	is.KeyJustPressed[keyCode] = true
+	if !is.KeyJustPressed[keyCode] {
+		is.KeyJustPressed[keyCode] = true
+	}
 }
 
 // ReleaseKey simulates a key release
@@ -52,17 +51,16 @@ func (is *InputState) IsButtonPressed(buttonCode MouseButton) bool {
 
 // IsButtonJustPressed returns true if the specified mouse button was just pressed
 func (is *InputState) IsButtonJustPressed(buttonCode MouseButton) bool {
-	pressed, exists := is.ButtonJustPressed[buttonCode]
-	if exists {
-		is.ButtonJustPressed[buttonCode] = false // Reset the state
-	}
-	return exists && pressed
+	justPressed, exists := is.ButtonJustPressed[buttonCode]
+	return exists && justPressed
 }
 
 // PressButton simulates a mouse button press
 func (is *InputState) PressButton(buttonCode MouseButton) {
 	is.ButtonState[buttonCode] = true
-	is.ButtonJustPressed[buttonCode] = true
+	if !is.ButtonJustPressed[buttonCode] {
+		is.ButtonJustPressed[buttonCode] = true
+	}
 }
 
 // ReleaseButton simulates a mouse button release
@@ -80,6 +78,7 @@ func (is *InputState) SetScrollCallback(cb func(x, y float64)) {
 	is.ScrollCallback = cb
 }
 
+// ResetJustPressed resets the just pressed state at the end of a frame
 func (is *InputState) ResetJustPressed() {
 	for key := range is.KeyJustPressed {
 		is.KeyJustPressed[key] = false

@@ -88,6 +88,7 @@ type Transformable interface {
 }
 
 type WindowManager interface {
+	DisableWindowResize()
 	SetWindowTitle(title string)
 	DestroyWindow()
 	SetWindowSize(width int, height int)

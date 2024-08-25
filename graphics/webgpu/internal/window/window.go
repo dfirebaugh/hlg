@@ -43,12 +43,20 @@ func (w *Window) SetAspectRatio(numerator, denominator int) {
 	w.aspectRatio = float64(numerator) / float64(denominator)
 	w.Window.SetAspectRatio(numerator, denominator)
 }
+
+func (w *Window) DisableWindowResize() {
+	if w.Window != nil {
+		w.Window.SetAttrib(glfw.Resizable, glfw.False)
+	}
+}
+
 func (w *Window) SetCloseCallback(fn func()) {
 	w.Window.SetCloseCallback(func(w *glfw.Window) {
 		defer w.Destroy()
 		fn()
 	})
 }
+
 func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
 	w.Window.SetMouseButtonCallback(func(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 		var eventType input.EventType
@@ -83,6 +91,7 @@ func (w *Window) SetResizedCallback(fn func(physicalWidth, physicalHeight uint32
 		fn(uint32(width), uint32(height))
 	})
 }
+
 func (w *Window) SetCloseRequestedCallback(fn func()) {
 	w.Window.SetCloseCallback(func(w *glfw.Window) {
 		fn()

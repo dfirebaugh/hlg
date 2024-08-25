@@ -188,3 +188,11 @@ func SetWindowSize(width, height int) {
 func CreateRenderQueue() graphics.RenderQueue {
 	return hlg.graphicsBackend.CreateRenderQueue()
 }
+
+func DisableWindowResize() {
+	ensureSetupCompletion()
+
+	hlg.graphicsBackend.DisableWindowResize()
+
+	SetWindowSize(windowWidth, windowHeight)
+}

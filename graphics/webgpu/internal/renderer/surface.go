@@ -1,9 +1,5 @@
 package renderer
 
-import (
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
-)
-
 type Surface struct {
 	*Renderer
 	*RenderQueue
@@ -12,9 +8,9 @@ type Surface struct {
 	Height int
 }
 
-func NewSurface(w, h int, win *window.Window) *Surface {
+func NewSurface(w, h int, renderTarget RenderTarget) *Surface {
 	surface := &Surface{}
-	s, err := NewRenderer(surface, w, h, win)
+	s, err := NewRenderer(surface, w, h, renderTarget)
 	if err != nil {
 		panic(err)
 	}

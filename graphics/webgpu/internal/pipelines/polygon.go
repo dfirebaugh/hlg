@@ -1,4 +1,4 @@
-package shapes
+package pipelines
 
 import (
 	"image/color"

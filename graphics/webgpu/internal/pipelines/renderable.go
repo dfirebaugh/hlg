@@ -1,4 +1,4 @@
-package renderable
+package pipelines
 
 import (
 	"log"

@@ -1,9 +1,11 @@
-package texture
+package pipelines
 
 import (
+	_ "embed"
 	"fmt"
 	"image"
 	"image/draw"
+	"log"
 	"unsafe"
 
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
@@ -11,6 +13,36 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
+
+//go:embed texture.wgsl
+var TextureShaderCode string
+
+type Vertex struct {
+	position  [3]float32
+	texCoords [2]float32
+}
+
+var VertexBufferLayout = wgpu.VertexBufferLayout{
+	ArrayStride: uint64(unsafe.Sizeof(Vertex{})),
+	StepMode:    wgpu.VertexStepMode_Vertex,
+	Attributes: []wgpu.VertexAttribute{
+		{
+			Offset:         0,
+			ShaderLocation: 0,
+			Format:         wgpu.VertexFormat_Float32x3,
+		},
+		{
+			Offset:         uint64(unsafe.Sizeof([3]float32{})),
+			ShaderLocation: 1,
+			Format:         wgpu.VertexFormat_Float32x2,
+		},
+	},
+}
+
+var INDICES = [...]uint16{
+	0, 1, 2, // first triangle
+	2, 1, 3, // second triangle
+}
 
 type Texture struct {
 	context.RenderContext
@@ -415,4 +447,15 @@ func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
 	pass.SetVertexBuffer(0, t.vertexBuffer, 0, wgpu.WholeSize)
 	pass.SetIndexBuffer(t.indexBuffer, wgpu.IndexFormat_Uint16, 0, wgpu.WholeSize)
 	pass.DrawIndexed(t.numIndices, 1, 0, 0, 0)
+}
+
+func (t *Texture) SetClipRect(minX, minY, maxX, maxY float32) {
+	t.Transform.SetClipRect(minX, minY, maxX, maxY)
+	if err := t.updateVertexBuffer(); err != nil {
+		log.Printf("Failed to update vertex buffer: %v", err)
+	}
+}
+
+func (t *Texture) Move(screenX float32, screenY float32) {
+	t.MoveToScreenPosition(screenX, screenY)
 }

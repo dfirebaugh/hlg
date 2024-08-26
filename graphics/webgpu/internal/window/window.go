@@ -3,6 +3,7 @@ package window
 import (
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
 type Window struct {
@@ -33,6 +34,10 @@ func NewWindow(width, height int) (*Window, error) {
 	w.Window = win
 	win.SetSize(width, height)
 	return w, nil
+}
+
+func (w *Window) GetSurfaceDescriptor() *wgpu.SurfaceDescriptor {
+  return GetSurfaceDescriptor(w.Window)
 }
 
 func (w *Window) GetWindowPosition() (x int, y int) {
@@ -100,6 +105,11 @@ func (w *Window) SetCloseRequestedCallback(fn func()) {
 
 func (w *Window) SetWindowTitle(title string) {
 	w.SetTitle(title)
+}
+
+
+func (w *Window) GetSize() (int, int) {
+  return w.GetWindowSize()
 }
 
 func (w *Window) GetWindowSize() (int, int) {

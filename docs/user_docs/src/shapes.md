@@ -31,7 +31,7 @@ func main() {
 	c.SetColor(colornames.Purple)
 	c.Move(0, 0)
 
-	hlg.Update(func() {
+	hlg.Run(nil, func() {
 		hlg.Clear(colornames.Skyblue)
 		t.Render()
 		r.Render()

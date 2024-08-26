@@ -7,5 +7,4 @@ title = "hlg"
 [output]
 
 [output.html]
-default-theme = "catppuccin-simple frappe"
 site-url = "/hlg"

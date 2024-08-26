@@ -36,7 +36,7 @@ func main() {
 
 	t, _ := hlg.CreateTextureFromImage(downloadImage(`https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nick_Offerman_2013_Headshot_%28cropped%29.jpg/308px-Nick_Offerman_2013_Headshot_%28cropped%29.jpg`))
 
-	hlg.Update(func() {
+	hlg.Run(nil, func() {
 		t.Render()
 	})
 }

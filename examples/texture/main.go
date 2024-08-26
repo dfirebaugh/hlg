@@ -45,8 +45,7 @@ func main() {
 	// t.FlipVertical()
 	// t.FlipHorizontal()
 
-	hlg.Run(func() {
-	}, func() {
+	hlg.Run(nil, func() {
 		hlg.Clear(colornames.Aliceblue)
 		mountain.Render()
 		t.Render()

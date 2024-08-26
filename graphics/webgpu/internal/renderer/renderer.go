@@ -10,40 +10,33 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/window"
 )
 
-type size struct {
-	Width  int
-	Height int
+type RenderTarget interface {
+	GetSize() (int, int)
+  GetSurfaceDescriptor() *wgpu.SurfaceDescriptor
 }
 
 type Renderer struct {
-	windowSize size
 	*wgpu.Surface
 	*wgpu.Device
 	*wgpu.SwapChain
 	*wgpu.SwapChainDescriptor
-	*window.Window
-	surface    context.Surface
-	clearColor wgpu.Color
+	renderTarget RenderTarget
+	surface      context.Surface
+	clearColor   wgpu.Color
 
 	RenderQueues []*RenderQueue
 }
 
-func NewRenderer(s context.Surface, width, height int, w *window.Window) (r *Renderer, err error) {
+func NewRenderer(s context.Surface, width, height int, renderTarget RenderTarget) (r *Renderer, err error) {
 	wgpu.SetLogLevel(wgpu.LogLevel_Error)
-
 	r = &Renderer{
 		surface: s,
-		Window:  w,
-		windowSize: size{
-			Width:  width,
-			Height: height,
-		},
+		renderTarget: renderTarget,
 	}
 
-	r.setupDevice(w)
+	r.setupDevice()
 	defer func() {
 		if rec := recover(); rec != nil {
 			log.Printf("Recovered from panic: %v\n", r)
@@ -73,11 +66,11 @@ func (r *Renderer) SortRenderQueues() {
 	})
 }
 
-func (r *Renderer) setupDevice(w *window.Window) error {
+func (r *Renderer) setupDevice() error {
 	var err error
 	instance := wgpu.CreateInstance(nil)
 	defer instance.Release()
-	r.Surface = instance.CreateSurface(window.GetSurfaceDescriptor(w.Window))
+  r.Surface = instance.CreateSurface(r.renderTarget.GetSurfaceDescriptor())
 
 	adapter, err := instance.RequestAdapter(&wgpu.RequestAdapterOptions{
 		CompatibleSurface: r.Surface,
@@ -92,11 +85,13 @@ func (r *Renderer) setupDevice(w *window.Window) error {
 		return err
 	}
 
+  ww, wh := r.renderTarget.GetSize()
+
 	r.SwapChainDescriptor = &wgpu.SwapChainDescriptor{
 		Usage:       wgpu.TextureUsage_RenderAttachment,
 		Format:      r.Surface.GetPreferredFormat(adapter),
-		Width:       uint32(r.windowSize.Width),
-		Height:      uint32(r.windowSize.Height),
+		Width:       uint32(ww),
+		Height:      uint32(wh),
 		PresentMode: wgpu.PresentMode_Immediate,
 	}
 	r.SwapChain, err = r.Device.CreateSwapChain(r.Surface, r.SwapChainDescriptor)
@@ -109,9 +104,6 @@ func (r *Renderer) Resize(width int, height int) {
 		log.Println("Invalid dimensions for Resize")
 		return
 	}
-
-	r.windowSize.Width = width
-	r.windowSize.Height = height
 
 	r.SwapChainDescriptor.Width = uint32(width)
 	r.SwapChainDescriptor.Height = uint32(height)
@@ -158,10 +150,10 @@ func (r *Renderer) Clear(c color.Color) {
 }
 
 func (r *Renderer) SurfaceIsOutdated() bool {
-	if r.Window == nil {
+	if r.renderTarget == nil {
 		return true
 	}
-	currentWidth, currentHeight := r.Window.GetWindowSize()
+	currentWidth, currentHeight := r.renderTarget.GetSize()
 	return currentWidth != int(r.SwapChainDescriptor.Width) || currentHeight != int(r.SwapChainDescriptor.Height)
 }
 
@@ -171,10 +163,8 @@ func (r *Renderer) RecreateSwapChain() {
 		r.SwapChain = nil
 	}
 
-	width, height := r.Window.GetWindowSize()
+	width, height := r.renderTarget.GetSize()
 	if width > 0 && height > 0 {
-		r.windowSize.Width = width
-		r.windowSize.Height = height
 		r.SetScreenSize(width, height)
 
 		var err error
@@ -186,7 +176,7 @@ func (r *Renderer) RecreateSwapChain() {
 }
 
 func (r *Renderer) Render() {
-	width, height := r.Window.GetWindowSize()
+	width, height := r.renderTarget.GetSize()
 	if width <= 0 || height <= 0 {
 		return
 	}

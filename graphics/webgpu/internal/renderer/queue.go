@@ -8,10 +8,9 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/pipelines"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/renderable"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shapes"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -40,10 +39,9 @@ func NewRenderQueue(surface context.Surface, d *wgpu.Device, scd *wgpu.SwapChain
 		queue:               []graphics.Renderable{},
 	}
 
-
-  shaderManager := shader.NewShaderManager(d)
+	shaderManager := shader.NewShaderManager(d)
 	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq, shaderManager)
-  rq.ShaderManager = shaderManager
+	rq.ShaderManager = shaderManager
 
 	return rq
 }
@@ -106,7 +104,7 @@ func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) gr
 	}
 
 	vertices := primitives.MakeTriangle(x1, y1, x2, y2, x3, y3, c)
-	triangle := shapes.NewPolygon(rq.RenderContext, vertices)
+	triangle := pipelines.NewPolygon(rq.RenderContext, vertices)
 
 	return triangle
 }
@@ -115,7 +113,7 @@ func (rq *RenderQueue) AddTriangle(x1, y1, x2, y2, x3, y3 int, c color.Color) gr
 // It returns a reference to the created Rectangle.
 func (rq *RenderQueue) AddRectangle(x, y, width, height int, c color.Color) graphics.Shape {
 	rectangleVertices := primitives.MakeRectangle(x, y, width, height, c)
-	rectangle := shapes.NewPolygon(rq.RenderContext, rectangleVertices)
+	rectangle := pipelines.NewPolygon(rq.RenderContext, rectangleVertices)
 	return rectangle
 }
 
@@ -129,7 +127,7 @@ func (rq *RenderQueue) AddCircle(cx, cy int, radius float32, c color.Color, segm
 
 func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vertex) graphics.Shape {
 	v := primitives.MakePolygonFromVertices(cx, cy, width, vertices)
-	polygon := shapes.NewPolygon(rq.RenderContext, v)
+	polygon := pipelines.NewPolygon(rq.RenderContext, v)
 	return polygon
 }
 
@@ -137,7 +135,7 @@ func (rq *RenderQueue) AddPolygonFromVertices(cx, cy int, width float32, vertice
 // It returns a reference to the created Polygon.
 func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, sides int) graphics.Shape {
 	vertices := primitives.MakePolygon(cx, cy, width, c, sides)
-	polygon := shapes.NewPolygon(rq.RenderContext, vertices)
+	polygon := pipelines.NewPolygon(rq.RenderContext, vertices)
 	return polygon
 }
 
@@ -145,7 +143,7 @@ func (rq *RenderQueue) AddPolygon(cx, cy int, width float32, c color.Color, side
 // It returns a reference to the created Line.
 func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {
 	lineVertices := primitives.MakeLine(x1, y1, x2, y2, width, c)
-	line := shapes.NewPolygon(rq.RenderContext, lineVertices)
+	line := pipelines.NewPolygon(rq.RenderContext, lineVertices)
 	return line
 }
 
@@ -155,8 +153,8 @@ func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderHa
 		return nil
 	}
 	primitivesVertices := convertVertices(vertices)
-	renderableUniforms := convertUniforms(rq.Device, uniforms, dataMap)
-	r := renderable.NewRenderable(rq.RenderContext, primitivesVertices, shaderHandle, renderableUniforms)
+	u := convertUniforms(rq.Device, uniforms, dataMap)
+	r := pipelines.NewRenderable(rq.RenderContext, primitivesVertices, shaderHandle, u)
 
 	return r
 }
@@ -177,7 +175,7 @@ func convertVertices(gvs []graphics.Vertex) []primitives.Vertex {
 	return pvs
 }
 
-func convertUniform(device *wgpu.Device, gu graphics.Uniform, data []byte) renderable.Uniform {
+func convertUniform(device *wgpu.Device, gu graphics.Uniform, data []byte) pipelines.Uniform {
 	buffer, err := device.CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    "Uniform Buffer",
 		Contents: data,
@@ -187,15 +185,15 @@ func convertUniform(device *wgpu.Device, gu graphics.Uniform, data []byte) rende
 		panic(err)
 	}
 
-	return renderable.Uniform{
+	return pipelines.Uniform{
 		Binding: gu.Binding,
 		Buffer:  buffer,
 		Size:    gu.Size,
 	}
 }
 
-func convertUniforms(device *wgpu.Device, gus map[string]graphics.Uniform, dataMap map[string][]byte) map[string]renderable.Uniform {
-	rus := make(map[string]renderable.Uniform)
+func convertUniforms(device *wgpu.Device, gus map[string]graphics.Uniform, dataMap map[string][]byte) map[string]pipelines.Uniform {
+	rus := make(map[string]pipelines.Uniform)
 	for name, gu := range gus {
 		data, exists := dataMap[name]
 		if !exists {

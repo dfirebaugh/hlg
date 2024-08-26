@@ -5,7 +5,7 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/texture"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/pipelines"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -14,12 +14,12 @@ type textureHandle uintptr
 type Texture struct {
 	context.RenderContext
 	handle       textureHandle
-	gpuTexture   *texture.Texture
+	gpuTexture   *pipelines.Texture
 	shouldRender bool
 }
 
 func NewTexture(ctx context.RenderContext, img image.Image, renderQueue *RenderQueue) *Texture {
-	gpuTexture, _ := texture.TextureFromImage(ctx, img, "label")
+	gpuTexture, _ := pipelines.TextureFromImage(ctx, img, "label")
 	t := &Texture{
 		RenderContext: ctx,
 		gpuTexture:    gpuTexture,
@@ -107,4 +107,9 @@ func (t *Texture) Dispose() {
 
 func (t *Texture) IsDisposed() bool {
 	return t.gpuTexture.IsDisposed()
+}
+
+func (t *Texture) GetSurfaceDescriptor() *wgpu.SurfaceDescriptor {
+	return &wgpu.SurfaceDescriptor{
+	}
 }

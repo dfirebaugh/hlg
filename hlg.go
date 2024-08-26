@@ -79,7 +79,9 @@ func run(updateFn func(), renderFn func()) {
 
 		frameRendered := false
 		for accumulator >= targetFrameDuration {
-			updateFn()
+			if updateFn != nil {
+				updateFn()
+			}
 			accumulator -= targetFrameDuration
 			frameRendered = true
 
@@ -88,7 +90,9 @@ func run(updateFn func(), renderFn func()) {
 
 		if frameRendered {
 			hlg.graphicsBackend.Render()
-			renderFn()
+			if renderFn != nil {
+				renderFn()
+			}
 
 			calculateFPS()
 		}

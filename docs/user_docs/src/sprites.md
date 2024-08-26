@@ -41,9 +41,10 @@ sheetSize := image.Pt(4, 4)  // 4 columns and 4 rows in the sprite sheet
 
 sprite := hlg.NewSprite(spriteSheetImage, frameSize, sheetSize)
 
-hlg.Update(func() {
-    hlg.Clear(colornames.Black)
+hlg.Run(func() {
     sprite.NextFrame() // Update the sprite to the next frame each update call
+}, func() {
+    hlg.Clear(colornames.Black)
 })
 ```
 
@@ -84,10 +85,11 @@ func main() {
 	lastFrameTime := time.Now()
 	frameDuration := time.Millisecond * 200
 
-	hlg.Update(func() {
+	hlg.Run(func() {
+			sprite.NextFrame()
+    }, func() {
 		if time.Since(lastFrameTime) >= frameDuration {
 			lastFrameTime = time.Now()
-			sprite.NextFrame()
 		}
 	})
 }

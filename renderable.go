@@ -4,9 +4,7 @@ import (
 	"github.com/dfirebaugh/hlg/graphics"
 )
 
-type Renderable struct {
-	graphics.ShaderRenderable
-}
+type Renderable graphics.ShaderRenderable
 
 type Uniform struct {
 	Binding uint32
@@ -29,7 +27,7 @@ func convertUniformsToGraphics(uniforms map[string]Uniform) map[string]graphics.
 }
 
 // CreateRenderable creates a `graphics.ShaderRenderable` with the provided shader handle, uniforms, and vertices.
-func CreateRenderable(shaderHandle int, vertices []Vertex, uniforms map[string]Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
+func CreateRenderable(shaderHandle int, vertices []Vertex, uniforms map[string]Uniform, dataMap map[string][]byte) Renderable {
 	graphicsVertices := convertVerticesToGraphics(vertices)
 	graphicsUniforms := convertUniformsToGraphics(uniforms)
 

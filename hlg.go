@@ -8,10 +8,7 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu"
-	"github.com/dfirebaugh/hlg/pkg/draw"
-	"github.com/dfirebaugh/hlg/pkg/fb"
 	"github.com/dfirebaugh/hlg/pkg/input"
-	"github.com/dfirebaugh/hlg/pkg/math/geom"
 )
 
 type Game interface {
@@ -28,8 +25,6 @@ type engine struct {
 	graphicsBackend   graphics.GraphicsBackend
 	inputState        *input.InputState
 	windowTitle       string
-	uifb              *fb.ImageFB
-	uiTexture         *Texture
 	fpsCounter        *fpsCounter
 	hasSetupCompleted bool
 }
@@ -39,7 +34,6 @@ var hlg = &engine{}
 func setup() {
 	runtime.LockOSThread()
 	hlg.inputState = input.NewInputState()
-	hlg.uifb = fb.New(int(windowWidth), int(windowHeight))
 	var err error
 	hlg.graphicsBackend, err = webgpu.NewGraphicsBackend(windowWidth, windowHeight)
 	if err != nil {
@@ -65,11 +59,6 @@ func run(updateFn func(), renderFn func()) {
 	ensureSetupCompletion()
 	defer close()
 	hlg.fpsCounter = newFPSCounter()
-
-	sw, sh := hlg.graphicsBackend.GetScreenSize()
-	hlg.uifb = fb.New(sw, sh)
-	hlg.uiTexture, _ = CreateTextureFromImage(hlg.uifb.ToImage())
-	defer hlg.uiTexture.Destroy()
 
 	hlg.graphicsBackend.SetInputCallback(func(eventChan chan input.Event) {
 		evt := <-eventChan
@@ -98,8 +87,6 @@ func run(updateFn func(), renderFn func()) {
 		}
 
 		if frameRendered {
-			hlg.uiTexture.UpdateImage(hlg.uifb.ToImage())
-			hlg.uiTexture.Render()
 			hlg.graphicsBackend.Render()
 			renderFn()
 
@@ -146,7 +133,6 @@ func close() {
 func Clear(c color.RGBA) {
 	ensureSetupCompletion()
 	hlg.graphicsBackend.Clear(c)
-	draw.Rect(geom.MakeRect(0, 0, float32(windowWidth), float32(windowHeight))).Fill(hlg.uifb, color.RGBA{0, 0, 0, 0})
 }
 
 // SetTitle sets the title of the window.

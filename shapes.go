@@ -4,8 +4,6 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/hlg/graphics"
-	"tinygo.org/x/tinyfont"
-	"tinygo.org/x/tinyfont/proggy"
 )
 
 type Shape interface {
@@ -85,7 +83,8 @@ func Line(x1, y1, x2, y2 int, width float32, c color.Color) graphics.Shape {
 // s is the string to be rendered.
 // x, y define the position where the text will be rendered.
 // c specifies the color of the text.
+//
+// Deprecated: the original implementation of this was inefficient...
+// TODO: fix this
 func PrintAt(s string, x int, y int, c color.Color) {
-	ensureSetupCompletion()
-	tinyfont.WriteLine(hlg.uifb, &proggy.TinySZ8pt7b, int16(x), int16(y), s, c.(color.RGBA))
 }

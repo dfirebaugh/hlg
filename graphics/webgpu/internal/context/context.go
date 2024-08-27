@@ -58,6 +58,8 @@ func NewRenderContext(surface Surface, device *wgpu.Device, scd *wgpu.SwapChainD
 		ShaderManager:       sm,
 	}
 
+	shader.CompileShaders(sm)
+
 	if ctx.RenderQueue == nil {
 		log.Fatal("RenderQueue is not initialized")
 	}

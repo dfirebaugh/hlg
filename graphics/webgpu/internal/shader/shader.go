@@ -56,3 +56,13 @@ func (sm *ShaderManager) GetShader(handle graphics.ShaderHandle) *wgpu.ShaderMod
 
 	return shader
 }
+
+func (sm *ShaderManager) ReleaseShaders() {
+	for _, s := range sm.shaderCache {
+		if s == nil {
+			continue
+		}
+		// s.Release()
+		s = nil
+	}
+}

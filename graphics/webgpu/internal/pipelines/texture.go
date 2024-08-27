@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	_ "embed"
 	"fmt"
 	"image"
 	"image/draw"
@@ -10,31 +9,29 @@ import (
 
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
-//go:embed texture.wgsl
-var TextureShaderCode string
-
-type Vertex struct {
-	position  [3]float32
-	texCoords [2]float32
-}
-
 var VertexBufferLayout = wgpu.VertexBufferLayout{
-	ArrayStride: uint64(unsafe.Sizeof(Vertex{})),
+	ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),
 	StepMode:    wgpu.VertexStepMode_Vertex,
 	Attributes: []wgpu.VertexAttribute{
 		{
 			Offset:         0,
 			ShaderLocation: 0,
-			Format:         wgpu.VertexFormat_Float32x3,
+			Format:         wgpu.VertexFormat_Float32x3, // position
 		},
 		{
-			Offset:         uint64(unsafe.Sizeof([3]float32{})),
+			Offset:         uint64(unsafe.Sizeof([3]float32{})), // offset by position size
 			ShaderLocation: 1,
-			Format:         wgpu.VertexFormat_Float32x2,
+			Format:         wgpu.VertexFormat_Float32x4, // color
+		},
+		{
+			Offset:         uint64(unsafe.Sizeof([3]float32{}) + unsafe.Sizeof([4]float32{})), // offset by position and color size
+			ShaderLocation: 2,
+			Format:         wgpu.VertexFormat_Float32x2, // tex_coords
 		},
 	},
 }
@@ -62,6 +59,7 @@ type Texture struct {
 
 	originalWidth  float32
 	originalHeight float32
+	vertices       []primitives.Vertex
 
 	isDisposed bool
 }
@@ -216,17 +214,6 @@ func (t *Texture) UpdateImage(img image.Image) error {
 }
 
 func (t *Texture) createPipeline() error {
-	shader, err := t.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
-		Label: "texture.wgsl",
-		WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{
-			Code: TextureShaderCode,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	defer shader.Release()
-
 	t.RenderPipeline = t.GetPipelineManager().GetPipeline(
 		"texture-pipeline",
 		&wgpu.PipelineLayoutDescriptor{
@@ -235,7 +222,7 @@ func (t *Texture) createPipeline() error {
 				t.BindGroupLayout,
 			},
 		},
-		shader,
+		t.RenderContext.GetShader(shader.TextureShader),
 		t.GetSwapChainDescriptor(),
 		wgpu.PrimitiveTopology_TriangleList,
 		[]wgpu.VertexBufferLayout{VertexBufferLayout},
@@ -329,7 +316,6 @@ func (t *Texture) createBindGroup() error {
 }
 
 func (t *Texture) createVertexBuffer() error {
-	var err error
 	sw, sh := t.GetSurfaceSize()
 
 	clipWidth := (t.ClipRect[2] - t.ClipRect[0]) * t.originalWidth
@@ -343,28 +329,34 @@ func (t *Texture) createVertexBuffer() error {
 	topLeft := primitives.ScreenToNDC(offsetX, offsetY, float32(sw), float32(sh))
 	topRight := primitives.ScreenToNDC(offsetX+clipWidth, offsetY, float32(sw), float32(sh))
 
+	t.vertices = []primitives.Vertex{
+		{
+			Position:  bottomLeft,
+			Color:     [4]float32{1.0, 1.0, 1.0, 1.0},
+			TexCoords: [2]float32{0.0, 1.0},
+		},
+		{
+			Position:  bottomRight,
+			Color:     [4]float32{1.0, 1.0, 1.0, 1.0},
+			TexCoords: [2]float32{1.0, 1.0},
+		},
+		{
+			Position:  topLeft,
+			Color:     [4]float32{1.0, 1.0, 1.0, 1.0},
+			TexCoords: [2]float32{0.0, 0.0},
+		},
+		{
+			Position:  topRight,
+			Color:     [4]float32{1.0, 1.0, 1.0, 1.0},
+			TexCoords: [2]float32{1.0, 0.0},
+		},
+	}
+
+	var err error
 	t.vertexBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label: "Vertex Buffer",
-		Contents: wgpu.ToBytes(
-			[]Vertex{
-				{
-					position:  bottomLeft,
-					texCoords: [2]float32{0.0, 1.0},
-				},
-				{
-					position:  bottomRight,
-					texCoords: [2]float32{1.0, 1.0},
-				},
-				{
-					position:  topLeft,
-					texCoords: [2]float32{0.0, 0.0},
-				},
-				{
-					position:  topRight,
-					texCoords: [2]float32{1.0, 0.0},
-				},
-			}),
-		Usage: wgpu.BufferUsage_Vertex,
+		Label:    "Vertex Buffer",
+		Contents: wgpu.ToBytes(t.vertices),
+		Usage:    wgpu.BufferUsage_Vertex,
 	})
 
 	return err
@@ -457,5 +449,6 @@ func (t *Texture) SetClipRect(minX, minY, maxX, maxY float32) {
 }
 
 func (t *Texture) Move(screenX float32, screenY float32) {
-	t.MoveToScreenPosition(screenX, screenY)
+	w, h := t.GetCurrentClipSize()
+	t.MoveToScreenPosition(screenX+w/2, screenY+h/2)
 }

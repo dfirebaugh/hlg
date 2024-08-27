@@ -63,13 +63,19 @@ func (p *Player) handleCoyoteTime(deltaTime float64) {
 func (p *Player) handlePlatformCollision() {
 	p.Ground = false
 
-	playerBottomCenterX := p.X + p.W/2
-	playerBottomCenterY := p.Y + p.H - (p.W / 2)
+	playerLeft := p.X
+	playerRight := p.X + p.W
+	playerBottom := p.Y + p.H
 
 	for _, pl := range p.platforms {
-		if playerBottomCenterX > pl.X && playerBottomCenterX < (pl.X+pl.W) {
-			if playerBottomCenterY >= pl.Y && playerBottomCenterY <= (pl.Y+pl.H) && p.VelY >= 0 {
-				p.Y = pl.Y - p.H + (p.H / 2)
+		platformLeft := pl.X
+		platformRight := pl.X + pl.W
+		platformTop := pl.Y
+		platformBottom := pl.Y + pl.H
+
+		if playerRight > platformLeft && playerLeft < platformRight {
+			if playerBottom >= platformTop && playerBottom <= platformBottom && p.VelY >= 0 {
+				p.Y = platformTop - p.H
 				p.VelY = 0
 				p.Ground = true
 				break
@@ -79,8 +85,8 @@ func (p *Player) handlePlatformCollision() {
 }
 
 func (p *Player) handleGroundCollision() {
-	if p.Y > float64(windowHeight)-p.H+(p.H/2) {
-		p.Y = float64(windowHeight) - p.H + (p.H / 2)
+	if p.Y > float64(windowHeight)-p.H {
+		p.Y = float64(windowHeight) - p.H
 		p.VelY = 0
 		p.Ground = true
 	}

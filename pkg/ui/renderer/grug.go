@@ -246,19 +246,12 @@ func (r *grugRenderer) Clip(x, y, width, height int) {
 
 	r.Texture.Clip(float32(x), float32(y), float32(width), float32(height))
 
-	deltaX := (originalWidth - width) / 2
-	deltaY := (originalHeight - height) / 2
-
 	if width < originalWidth || height < originalHeight {
-		r.Move(r.GetX()-deltaX, r.GetY()-deltaY)
-		r.x = r.x + deltaX
-		r.y = r.y + deltaY
+		r.Move(r.GetX(), r.GetY())
 		r.isCollapsed = true
 	} else {
 		r.isCollapsed = false
-		r.Move(r.GetX()+deltaX, r.GetY()+deltaY)
-		r.x = r.x - deltaX
-		r.y = r.y - deltaY
+		r.Move(r.GetX(), r.GetY())
 	}
 }
 
@@ -270,17 +263,15 @@ func (r *grugRenderer) Move(x int, y int) {
 	if r.isCollapsed {
 		return
 	}
-	centerX := x + r.Width()/2
-	centerY := y + r.Height()/2
-	r.x = centerX
-	r.y = centerY
-	r.Texture.Move(float32(centerX), float32(centerY))
+	r.x = x
+	r.y = y
+	r.Texture.Move(float32(x), float32(y))
 }
 
 func (r *grugRenderer) GetX() int {
-	return r.x - r.Width()/2
+	return r.x
 }
 
 func (r *grugRenderer) GetY() int {
-	return r.y - r.Height()/2
+	return r.y
 }

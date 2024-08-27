@@ -14,7 +14,7 @@ import (
 
 type RenderTarget interface {
 	GetSize() (int, int)
-  GetSurfaceDescriptor() *wgpu.SurfaceDescriptor
+	GetSurfaceDescriptor() *wgpu.SurfaceDescriptor
 }
 
 type Renderer struct {
@@ -32,7 +32,7 @@ type Renderer struct {
 func NewRenderer(s context.Surface, width, height int, renderTarget RenderTarget) (r *Renderer, err error) {
 	wgpu.SetLogLevel(wgpu.LogLevel_Error)
 	r = &Renderer{
-		surface: s,
+		surface:      s,
 		renderTarget: renderTarget,
 	}
 
@@ -70,7 +70,7 @@ func (r *Renderer) setupDevice() error {
 	var err error
 	instance := wgpu.CreateInstance(nil)
 	defer instance.Release()
-  r.Surface = instance.CreateSurface(r.renderTarget.GetSurfaceDescriptor())
+	r.Surface = instance.CreateSurface(r.renderTarget.GetSurfaceDescriptor())
 
 	adapter, err := instance.RequestAdapter(&wgpu.RequestAdapterOptions{
 		CompatibleSurface: r.Surface,
@@ -85,7 +85,7 @@ func (r *Renderer) setupDevice() error {
 		return err
 	}
 
-  ww, wh := r.renderTarget.GetSize()
+	ww, wh := r.renderTarget.GetSize()
 
 	r.SwapChainDescriptor = &wgpu.SwapChainDescriptor{
 		Usage:       wgpu.TextureUsage_RenderAttachment,
@@ -104,10 +104,6 @@ func (r *Renderer) Resize(width int, height int) {
 		log.Println("Invalid dimensions for Resize")
 		return
 	}
-
-	r.SwapChainDescriptor.Width = uint32(width)
-	r.SwapChainDescriptor.Height = uint32(height)
-
 	if r.SwapChain != nil {
 		r.SwapChain.Release()
 		r.SwapChain = nil
@@ -191,7 +187,6 @@ func (r *Renderer) Render() {
 	}
 	r.SortRenderQueues()
 
-	// r.PrepareFrame()
 	for _, rq := range r.RenderQueues {
 		rq.PrepareFrame()
 	}

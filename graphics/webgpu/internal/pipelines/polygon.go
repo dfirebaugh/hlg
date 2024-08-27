@@ -5,16 +5,12 @@ import (
 	"log"
 	"unsafe"
 
-	_ "embed"
-
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
+	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
-
-//go:embed shapes.wgsl
-var ShapesShaderCode string
 
 type Polygon struct {
 	context.RenderContext
@@ -76,13 +72,13 @@ func NewPolygon(ctx context.RenderContext, vertices []primitives.Vertex) *Polygo
 		log.Fatal("Bind group is nil")
 	}
 
-	shaderModule, err := p.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
-		WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{Code: ShapesShaderCode},
-	})
-	if err != nil {
-		log.Fatal("Failed to create shader module:", err)
-	}
-	defer shaderModule.Release()
+	// shaderModule, err := p.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
+	// 	WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{Code: ShapesShaderCode},
+	// })
+	// if err != nil {
+	// 	log.Fatal("Failed to create shader module:", err)
+	// }
+	// defer shaderModule.Release()
 
 	p.pipeline = ctx.GetPipelineManager().GetPipeline("polygon",
 		&wgpu.PipelineLayoutDescriptor{
@@ -91,7 +87,7 @@ func NewPolygon(ctx context.RenderContext, vertices []primitives.Vertex) *Polygo
 				p.bindGroupLayout,
 			},
 		},
-		shaderModule,
+    p.RenderContext.GetShader(shader.ShapeShader),
 		p.GetSwapChainDescriptor(), wgpu.PrimitiveTopology_TriangleList,
 		[]wgpu.VertexBufferLayout{{
 			ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),

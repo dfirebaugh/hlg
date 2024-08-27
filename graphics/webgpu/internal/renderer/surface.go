@@ -49,4 +49,5 @@ func (s *Surface) GetScreenSize() (int, int) {
 
 func (s *Surface) Destroy() {
 	s.Renderer.Destroy()
+	s.ReleaseShaders()
 }

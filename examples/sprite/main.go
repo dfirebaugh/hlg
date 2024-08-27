@@ -31,7 +31,6 @@ func main() {
 
 	lastFrameTime := time.Now()
 	frameDuration := time.Millisecond * 200
-	sprite.Move(400, 300)
 
 	hlg.Run(func() {
 		if time.Since(lastFrameTime) >= frameDuration {

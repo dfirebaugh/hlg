@@ -37,7 +37,7 @@ func NewWindow(width, height int) (*Window, error) {
 }
 
 func (w *Window) GetSurfaceDescriptor() *wgpu.SurfaceDescriptor {
-  return GetSurfaceDescriptor(w.Window)
+	return GetSurfaceDescriptor(w.Window)
 }
 
 func (w *Window) GetWindowPosition() (x int, y int) {
@@ -107,9 +107,8 @@ func (w *Window) SetWindowTitle(title string) {
 	w.SetTitle(title)
 }
 
-
 func (w *Window) GetSize() (int, int) {
-  return w.GetWindowSize()
+	return w.GetWindowSize()
 }
 
 func (w *Window) GetWindowSize() (int, int) {

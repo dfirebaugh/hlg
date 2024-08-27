@@ -18,10 +18,12 @@ import (
 )
 
 const (
-	gravity     = 0.1
-	damping     = 0.9
-	buddyWidth  = 32
-	buddyHeight = 32
+	gravity      = 0.1
+	damping      = 0.9
+	buddyWidth   = 32
+	buddyHeight  = 32
+	screenWidth  = 800
+	screenHeight = 600
 )
 
 // downloadImage fetches the image from the given URL and returns it as an image.Image
@@ -53,7 +55,7 @@ var (
 
 func main() {
 	var err error
-	hlg.SetWindowSize(800, 600)
+	hlg.SetWindowSize(screenWidth, screenHeight)
 	hlg.SetTitle("BuddyMark Stress Test")
 	hlg.EnableFPS()
 
@@ -74,8 +76,8 @@ func main() {
 	rq.SetPriority(50)
 	background.RenderToQueue(rq)
 
-	background.Resize(800, 600)
-	background.Move(float32(0+800/2), float32(0+600/2))
+	background.Resize(screenWidth, screenHeight)
+	background.Move(0, 0)
 
 	hlg.Run(func() {
 		if time.Since(lastFrameTime) >= frameDuration {
@@ -112,6 +114,9 @@ func handleInput() {
 	}
 
 	if hlg.IsButtonPressed(input.MouseButtonRight) {
+		for _, b := range buddies {
+			b.Sprite.Dispose()
+		}
 		buddies = []*Buddy{}
 	}
 }
@@ -121,8 +126,6 @@ func NewBuddy(x, y float32) *Buddy {
 	sheetSize := image.Point{X: 4, Y: 1}
 
 	sprite := hlg.NewSprite(img, frameSize, sheetSize)
-	// sprite.Scale(0.09, 0.09)
-	// sprite.Resize(32, 32)
 	sprite.Scale(2, 2)
 
 	return &Buddy{
@@ -143,13 +146,13 @@ func (b *Buddy) Update() {
 	if b.X < 0 {
 		b.X = 0
 		b.VelocityX *= -damping
-	} else if b.X > 800-buddyWidth {
-		b.X = 800 - buddyWidth
+	} else if b.X > screenWidth-buddyWidth {
+		b.X = screenWidth - buddyWidth
 		b.VelocityX *= -damping
 	}
 
-	if b.Y > 600-buddyHeight {
-		b.Y = 600 - buddyHeight
+	if b.Y > screenHeight-buddyHeight {
+		b.Y = screenHeight - buddyHeight
 		b.VelocityY *= -damping
 	}
 

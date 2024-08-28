@@ -49,5 +49,5 @@ func makeFullScreenQuad(screenWidth, screenHeight float32) []hlg.Vertex {
 		{Position: [3]float32{screenWidth, screenHeight, 0}}, // Top-right
 	}
 
-	return hlg.ConvertVerticesToNDC2D(v, screenWidth, screenHeight)
+	return v
 }

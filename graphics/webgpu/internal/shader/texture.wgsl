@@ -7,8 +7,8 @@ struct VertexInput {
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
-    @location(0) tex_coords: vec2<f32>,
     @location(1) color: vec4<f32>,
+    @location(2) tex_coords: vec2<f32>,
 };
 
 @group(0) @binding(2) var<uniform> u_transform: mat4x4<f32>;

@@ -104,6 +104,10 @@ func (r *Renderer) Resize(width int, height int) {
 		log.Println("Invalid dimensions for Resize")
 		return
 	}
+
+	r.surface.SetSurfaceSize(width, height)
+
+	r.SetScreenSize(width, height)
 	if r.SwapChain != nil {
 		r.SwapChain.Release()
 		r.SwapChain = nil

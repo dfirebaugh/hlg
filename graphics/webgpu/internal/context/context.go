@@ -20,6 +20,7 @@ type RenderQueue interface {
 
 type Surface interface {
 	GetSurfaceSize() (int, int)
+	SetSurfaceSize(int, int)
 }
 type ShaderManager interface {
 	GetShader(handle graphics.ShaderHandle) *wgpu.ShaderModule

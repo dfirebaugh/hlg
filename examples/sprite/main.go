@@ -12,8 +12,13 @@ import (
 	"golang.org/x/image/colornames"
 )
 
+const (
+	screenWidth  = 800
+	screenHeight = 600
+)
+
 func main() {
-	hlg.SetWindowSize(800, 600)
+	hlg.SetWindowSize(screenWidth, screenHeight)
 	hlg.SetTitle("hlg sprite example")
 
 	reader := bytes.NewReader(assets.BuddyDanceSpriteSheet)
@@ -27,6 +32,7 @@ func main() {
 
 	sprite := hlg.NewSprite(img, frameSize, sheetSize)
 	sprite.Resize(512, 512)
+	sprite.Move(screenWidth/2-256, screenHeight/2-256)
 	// sprite.Scale(4, 4)
 
 	lastFrameTime := time.Now()

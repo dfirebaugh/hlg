@@ -46,6 +46,7 @@ func ConvertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) 
 		ndcVertices[i] = Vertex{
 			Position: ndcPosition,
 			Color:    v.Color,
+      TexCoords: v.TexCoords,
 		}
 	}
 	return ndcVertices

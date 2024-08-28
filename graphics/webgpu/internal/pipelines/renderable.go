@@ -21,7 +21,7 @@ type Renderable struct {
 	BindGroupLayout *wgpu.BindGroupLayout
 	Pipeline        *wgpu.RenderPipeline
 	Uniforms        map[string]Uniform
-	Vertices        []primitives.Vertex
+	vertices        []primitives.Vertex
 	isDisposed      bool
 	shouldRender    bool
 }
@@ -39,7 +39,7 @@ func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shad
 
 	r := &Renderable{
 		Context:  ctx,
-		Vertices: vertices,
+		vertices: vertices,
 		Uniforms: uniforms,
 	}
 
@@ -82,15 +82,8 @@ func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shad
 }
 
 func (r *Renderable) createVertexBuffer() {
-	vertexBuffer, err := r.Context.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Vertex Buffer",
-		Contents: wgpu.ToBytes(r.Vertices[:]),
-		Usage:    wgpu.BufferUsage_Vertex,
-	})
-	if err != nil {
-		panic(err)
-	}
-	r.VertexBuffer = vertexBuffer
+	w, h := r.GetSurfaceSize()
+	r.VertexBuffer = primitives.CreateVertexBuffer(r.GetDevice(), r.vertices, float32(w), float32(h))
 }
 
 func (r *Renderable) createBindGroupLayout() {
@@ -190,7 +183,7 @@ func (r *Renderable) RenderPass(encoder *wgpu.RenderPassEncoder) {
 	encoder.SetBindGroup(0, r.BindGroup, nil)
 	encoder.SetVertexBuffer(0, r.VertexBuffer, 0, wgpu.WholeSize)
 
-	vertexCount := uint32(len(r.Vertices))
+	vertexCount := uint32(len(r.vertices))
 	if vertexCount == 0 {
 		log.Fatal("RenderPass: No vertices to draw")
 	}

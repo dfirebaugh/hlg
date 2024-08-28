@@ -59,7 +59,6 @@ type ShaderRenderable interface {
 	Render()
 	Dispose()
 	IsDisposed() bool
-	Hide()
 }
 
 type Renderable interface {
@@ -67,7 +66,6 @@ type Renderable interface {
 	Render()
 	Dispose()
 	IsDisposed() bool
-	Hide()
 }
 type RenderQueue interface {
 	AddToRenderQueue(r Renderable)

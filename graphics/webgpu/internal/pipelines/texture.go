@@ -46,7 +46,7 @@ type Texture struct {
 
 	*wgpu.Texture
 	*wgpu.TextureView
-	*wgpu.Sampler
+	sampler *wgpu.Sampler
 	*wgpu.BindGroup
 	*wgpu.BindGroupLayout
 	*wgpu.RenderPipeline
@@ -59,7 +59,11 @@ type Texture struct {
 
 	originalWidth  float32
 	originalHeight float32
-	vertices       []primitives.Vertex
+
+	screenWidth, screenHeight int
+	x, y                      float32
+
+	vertices []primitives.Vertex
 
 	isDisposed bool
 }
@@ -121,7 +125,7 @@ func TextureFromImage(ctx context.RenderContext, img image.Image, label string) 
 		return nil, err
 	}
 
-	t.Sampler, err = ctx.GetDevice().CreateSampler(nil)
+	t.sampler, err = ctx.GetDevice().CreateSampler(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -159,39 +163,41 @@ func (t *Texture) UpdateImage(img image.Image) error {
 		draw.Draw(rgbaImg, r, img, image.Point{}, draw.Over)
 	}
 
-	if int(t.originalWidth) != width || int(t.originalHeight) != height {
-		size := wgpu.Extent3D{
-			Width:              uint32(width),
-			Height:             uint32(height),
-			DepthOrArrayLayers: 1,
-		}
-
-		if t.Texture != nil {
-			t.Texture.Release()
-		}
-
-		var err error
-		t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
-			Label:         "UpdatedTexture",
-			Size:          size,
-			MipLevelCount: 1,
-			SampleCount:   1,
-			Dimension:     wgpu.TextureDimension_2D,
-			Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
-			Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
-		})
-		if err != nil {
-			return err
-		}
-
-		t.originalWidth = float32(width)
-		t.originalHeight = float32(height)
+	if t.TextureView != nil {
+		t.TextureView.Release()
+		t.TextureView = nil
+	}
+	if t.Texture != nil {
+		t.Texture.Release()
+		t.Texture = nil
 	}
 
 	size := wgpu.Extent3D{
 		Width:              uint32(width),
 		Height:             uint32(height),
 		DepthOrArrayLayers: 1,
+	}
+
+	var err error
+	t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
+		Label:         "UpdatedTexture",
+		Size:          size,
+		MipLevelCount: 1,
+		SampleCount:   1,
+		Dimension:     wgpu.TextureDimension_2D,
+		Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
+		Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
+	})
+	if err != nil {
+		return err
+	}
+
+	t.originalWidth = float32(width)
+	t.originalHeight = float32(height)
+
+	t.TextureView, err = t.Texture.CreateView(nil)
+	if err != nil {
+		return err
 	}
 
 	t.GetDevice().GetQueue().WriteTexture(
@@ -288,7 +294,7 @@ func (t *Texture) createBindGroup() error {
 			},
 			{
 				Binding: 1,
-				Sampler: t.Sampler,
+				Sampler: t.sampler,
 			},
 			{
 				Binding: 2,
@@ -324,10 +330,10 @@ func (t *Texture) createVertexBuffer() error {
 	offsetX := (float32(sw) - clipWidth) / 2
 	offsetY := (float32(sh) - clipHeight) / 2
 
-	bottomLeft := primitives.ScreenToNDC(offsetX, offsetY+clipHeight, float32(sw), float32(sh))
-	bottomRight := primitives.ScreenToNDC(offsetX+clipWidth, offsetY+clipHeight, float32(sw), float32(sh))
-	topLeft := primitives.ScreenToNDC(offsetX, offsetY, float32(sw), float32(sh))
-	topRight := primitives.ScreenToNDC(offsetX+clipWidth, offsetY, float32(sw), float32(sh))
+	bottomLeft := [3]float32{offsetX, offsetY + clipHeight, 0}
+	bottomRight := [3]float32{offsetX + clipWidth, offsetY + clipHeight, 0}
+	topLeft := [3]float32{offsetX, offsetY, 0}
+	topRight := [3]float32{offsetX + clipWidth, offsetY, 0}
 
 	t.vertices = []primitives.Vertex{
 		{
@@ -353,11 +359,7 @@ func (t *Texture) createVertexBuffer() error {
 	}
 
 	var err error
-	t.vertexBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
-		Label:    "Vertex Buffer",
-		Contents: wgpu.ToBytes(t.vertices),
-		Usage:    wgpu.BufferUsage_Vertex,
-	})
+	t.vertexBuffer = primitives.CreateVertexBuffer(t.GetDevice(), t.vertices, float32(sw), float32(sh))
 
 	return err
 }
@@ -389,9 +391,9 @@ func (t *Texture) createIndexBuffer() error {
 }
 
 func (t *Texture) Destroy() {
-	if t.Sampler != nil {
-		t.Sampler.Release()
-		t.Sampler = nil
+	if t.sampler != nil {
+		t.sampler.Release()
+		t.sampler = nil
 	}
 	if t.TextureView != nil {
 		t.TextureView.Release()
@@ -430,10 +432,23 @@ func (t *Texture) IsDisposed() bool {
 	return t.isDisposed
 }
 
+func (t *Texture) handleScreenResize() {
+	w, h := t.GetSurfaceSize()
+	if w == t.screenWidth && h == t.screenHeight {
+		return
+	}
+	t.screenWidth = w
+	t.screenHeight = h
+	t.updateVertexBuffer()
+	t.Move(t.x, t.y)
+}
+
 func (t *Texture) RenderPass(pass *wgpu.RenderPassEncoder) {
 	if t.isDisposed {
 		return
 	}
+	t.handleScreenResize()
+
 	pass.SetPipeline(t.RenderPipeline)
 	pass.SetBindGroup(0, t.BindGroup, nil)
 	pass.SetVertexBuffer(0, t.vertexBuffer, 0, wgpu.WholeSize)
@@ -451,4 +466,6 @@ func (t *Texture) SetClipRect(minX, minY, maxX, maxY float32) {
 func (t *Texture) Move(screenX float32, screenY float32) {
 	w, h := t.GetCurrentClipSize()
 	t.MoveToScreenPosition(screenX+w/2, screenY+h/2)
+	t.x = screenX
+	t.y = screenY
 }

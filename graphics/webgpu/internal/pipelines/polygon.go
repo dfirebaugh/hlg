@@ -23,6 +23,9 @@ type Polygon struct {
 	vertexBuffer *wgpu.Buffer
 	vertices     []primitives.Vertex
 
+	screenWidth, screenHeight int
+	x, y                      float32
+
 	shouldeRender bool
 	isDisposed    bool
 }
@@ -47,6 +50,8 @@ func NewPolygon(ctx context.RenderContext, vertices []primitives.Vertex) *Polygo
 	}
 
 	sw, sh := p.GetSurfaceSize()
+	p.screenWidth = sw
+	p.screenHeight = sh
 
 	if sw == 0 || sh == 0 {
 		log.Fatal("Surface size is invalid")
@@ -72,14 +77,6 @@ func NewPolygon(ctx context.RenderContext, vertices []primitives.Vertex) *Polygo
 		log.Fatal("Bind group is nil")
 	}
 
-	// shaderModule, err := p.GetDevice().CreateShaderModule(&wgpu.ShaderModuleDescriptor{
-	// 	WGSLDescriptor: &wgpu.ShaderModuleWGSLDescriptor{Code: ShapesShaderCode},
-	// })
-	// if err != nil {
-	// 	log.Fatal("Failed to create shader module:", err)
-	// }
-	// defer shaderModule.Release()
-
 	p.pipeline = ctx.GetPipelineManager().GetPipeline("polygon",
 		&wgpu.PipelineLayoutDescriptor{
 			Label: "Render Pipeline Layout",
@@ -87,7 +84,7 @@ func NewPolygon(ctx context.RenderContext, vertices []primitives.Vertex) *Polygo
 				p.bindGroupLayout,
 			},
 		},
-    p.RenderContext.GetShader(shader.ShapeShader),
+		p.GetShader(shader.ShapeShader),
 		p.GetSwapChainDescriptor(), wgpu.PrimitiveTopology_TriangleList,
 		[]wgpu.VertexBufferLayout{{
 			ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),
@@ -151,10 +148,22 @@ func (p *Polygon) createBindGroup(device *wgpu.Device, layout *wgpu.BindGroupLay
 	}
 }
 
+func (p *Polygon) handleScreenResize() {
+	w, h := p.GetSurfaceSize()
+	if w == p.screenWidth && h == p.screenHeight {
+		return
+	}
+	p.screenWidth = w
+	p.screenHeight = h
+	p.createVertexBuffer()
+	p.Move(p.x, p.y)
+}
+
 func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
 	if encoder == nil || !p.shouldeRender || p.isDisposed {
 		return
 	}
+	p.handleScreenResize()
 
 	// Additional safety checks
 	if p.bindGroup == nil {
@@ -179,7 +188,7 @@ func (p *Polygon) RenderPass(encoder *wgpu.RenderPassEncoder) {
 }
 
 func (p *Polygon) Render() {
-	if p.isDisposed || p.IsOffScreen() {
+	if p.isDisposed {
 		return
 	}
 	p.shouldeRender = true
@@ -222,6 +231,7 @@ func (p *Polygon) SetColor(c color.Color) {
 		}
 	}
 
+	p.vertexBuffer.Release()
 	p.createVertexBuffer()
 }
 
@@ -230,21 +240,10 @@ func (p *Polygon) createVertexBuffer() {
 	p.vertexBuffer = primitives.CreateVertexBuffer(p.GetDevice(), p.vertices, float32(w), float32(h))
 }
 
-func (p *Polygon) IsOffScreen() bool {
-	for _, vertex := range p.vertices {
-		x := vertex.Position[0]
-		y := vertex.Position[1]
-
-		sw, sh := p.GetSurfaceSize()
-		if x >= 0 && x <= float32(sw) && y >= 0 && y <= float32(sh) {
-			return false
-		}
-	}
-	return true
-}
-
 func (p *Polygon) Move(destX, destY float32) {
 	p.RecenterAndMove(p.vertices, destX, destY)
 	p.vertexBuffer.Release()
 	p.createVertexBuffer()
+	p.x = destX
+	p.y = destY
 }

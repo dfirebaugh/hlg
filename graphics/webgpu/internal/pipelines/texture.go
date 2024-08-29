@@ -163,41 +163,48 @@ func (t *Texture) UpdateImage(img image.Image) error {
 		draw.Draw(rgbaImg, r, img, image.Point{}, draw.Over)
 	}
 
-	if t.TextureView != nil {
-		t.TextureView.Release()
-		t.TextureView = nil
-	}
-	if t.Texture != nil {
-		t.Texture.Release()
-		t.Texture = nil
+	if int(t.originalWidth) != width || int(t.originalHeight) != height {
+		if t.TextureView != nil {
+			t.TextureView.Release()
+			t.TextureView = nil
+		}
+		if t.Texture != nil {
+			t.Texture.Release()
+			t.Texture = nil
+		}
+
+		size := wgpu.Extent3D{
+			Width:              uint32(width),
+			Height:             uint32(height),
+			DepthOrArrayLayers: 1,
+		}
+
+		if t.Texture != nil {
+			t.Texture.Release()
+		}
+
+		var err error
+		t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
+			Label:         "UpdatedTexture",
+			Size:          size,
+			MipLevelCount: 1,
+			SampleCount:   1,
+			Dimension:     wgpu.TextureDimension_2D,
+			Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
+			Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
+		})
+		if err != nil {
+			return err
+		}
+
+		t.originalWidth = float32(width)
+		t.originalHeight = float32(height)
 	}
 
 	size := wgpu.Extent3D{
 		Width:              uint32(width),
 		Height:             uint32(height),
 		DepthOrArrayLayers: 1,
-	}
-
-	var err error
-	t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
-		Label:         "UpdatedTexture",
-		Size:          size,
-		MipLevelCount: 1,
-		SampleCount:   1,
-		Dimension:     wgpu.TextureDimension_2D,
-		Format:        wgpu.TextureFormat_RGBA8UnormSrgb,
-		Usage:         wgpu.TextureUsage_TextureBinding | wgpu.TextureUsage_CopyDst,
-	})
-	if err != nil {
-		return err
-	}
-
-	t.originalWidth = float32(width)
-	t.originalHeight = float32(height)
-
-	t.TextureView, err = t.Texture.CreateView(nil)
-	if err != nil {
-		return err
 	}
 
 	t.GetDevice().GetQueue().WriteTexture(

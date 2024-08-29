@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/gui"
 )
 
 type Shape interface {
@@ -87,4 +88,8 @@ func Line(x1, y1, x2, y2 int, width float32, c color.Color) Shape {
 // Deprecated: the original implementation of this was inefficient...
 // TODO: fix this
 func PrintAt(s string, x int, y int, c color.Color) {
+}
+
+func SubmitDrawBuffer(vertices []gui.Vertex) {
+	hlg.graphicsBackend.DrawPrimitiveBuffer(vertices)
 }

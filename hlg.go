@@ -117,7 +117,7 @@ func calculateFPS() {
 	fps := hlg.fpsCounter.GetFPS()
 	title := hlg.windowTitle
 	if fps != 0 && fpsEnabled {
-		title = fmt.Sprintf("%s -- FPS: %d\n", title, int(fps))
+		title = fmt.Sprintf("%s -- %d\n", title, int(fps))
 	}
 	if hlg.graphicsBackend.IsDisposed() {
 		return
@@ -148,6 +148,16 @@ func SetTitle(title string) {
 // GetWindowSize retrieves the current window size.
 func GetWindowSize() (int, int) {
 	return hlg.graphicsBackend.GetWindowSize()
+}
+
+func GetWindowWidth() int {
+	w, _ := hlg.graphicsBackend.GetWindowSize()
+	return w
+}
+
+func GetWindowHeight() int {
+	_, h := hlg.graphicsBackend.GetWindowSize()
+	return h
 }
 
 func GetWindowPosition() (int, int) {

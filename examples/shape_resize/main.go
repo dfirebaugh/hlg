@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/gui"
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
@@ -17,28 +18,26 @@ func (p Position) IsWithin(x, y int) bool {
 }
 
 type RectOverlay struct {
-	hlg.Shape
 	*Position
 	Color   color.Color
 	Handles [2]*Handle
 }
 
 type Handle struct {
-	hlg.Shape
 	*Position
 	IsDragging bool
+	Color      color.Color
 }
 
-func NewHandle(p *Position) *Handle {
+func NewHandle(p *Position, color color.Color) *Handle {
 	return &Handle{
 		Position: p,
-		Shape:    hlg.Rectangle(p.X-p.Width/2, p.Y-p.Height/2, p.Width, p.Height, colornames.Orangered),
+		Color:    color,
 	}
 }
 
 func NewRectOverlay(x, y, width, height int, color color.Color) *RectOverlay {
 	r := &RectOverlay{
-		Shape: hlg.Rectangle(x, y, width, height, color),
 		Position: &Position{
 			X:      x,
 			Y:      y,
@@ -49,8 +48,8 @@ func NewRectOverlay(x, y, width, height int, color color.Color) *RectOverlay {
 	}
 
 	r.Handles = [2]*Handle{
-		NewHandle(&Position{Width: 10, Height: 10, X: x + width/2, Y: y + width/2}), // Center
-		NewHandle(&Position{X: x + width, Y: y + height, Width: 10, Height: 10}),
+		NewHandle(&Position{Width: 10, Height: 10, X: x + width/2, Y: y + height/2}, colornames.Orangered), // Center
+		NewHandle(&Position{X: x + width, Y: y + height, Width: 10, Height: 10}, colornames.Orangered),
 	}
 
 	return r
@@ -64,11 +63,6 @@ func (h *Handle) IsWithin(x, y int) bool {
 func (h *Handle) UpdatePosition(x, y int) {
 	h.Position.X = x
 	h.Position.Y = y
-	h.Shape.Move(float32(h.Position.X), float32(h.Position.Y))
-}
-
-func (h *Handle) Render() {
-	h.Shape.Render()
 }
 
 func (g *RectOverlay) Update() {
@@ -90,41 +84,48 @@ func (g *RectOverlay) Update() {
 				g.Y = y - g.Height/2
 				handle.UpdatePosition(x, y)
 				g.Handles[1].UpdatePosition(x+g.Width/2, y+g.Height/2)
-				g.newRect()
 			case 1:
 				g.Width = x - g.X
 				g.Height = y - g.Y
 				handle.UpdatePosition(x, y)
 				g.Handles[0].UpdatePosition(x-g.Width/2, y-g.Height/2)
-				g.newRect()
 			}
-
 			break // Only one handle can be dragged at a time
 		}
 	}
 }
 
-func (g *RectOverlay) newRect() {
-	g.Shape = hlg.Rectangle(g.X, g.Y, g.Width, g.Height, g.Color)
-}
+func (g *RectOverlay) Render(d *gui.Draw) {
+	d.DrawRectangle(g.X, g.Y, g.Width, g.Height, &gui.DrawOptions{
+		Style: gui.Style{
+			FillColor: g.Color,
+		},
+	})
 
-func (g *RectOverlay) Render() {
-	if g.Shape == nil {
-		return
-	}
-	g.Shape.Render()
 	for _, handle := range g.Handles {
-		handle.Render()
+		d.DrawRectangle(handle.X-handle.Width/2, handle.Y-handle.Height/2, handle.Width, handle.Height, &gui.DrawOptions{
+			Style: gui.Style{
+				FillColor: handle.Color,
+			},
+		})
 	}
 }
 
 func main() {
 	hlg.SetWindowSize(640, 480)
 	overlay := NewRectOverlay(100, 100, 100, 100, colornames.Green)
+
 	hlg.Run(func() {
 		overlay.Update()
 	}, func() {
 		hlg.Clear(colornames.Skyblue)
-		overlay.Render()
+
+		d := gui.Draw{
+			ScreenWidth:  640,
+			ScreenHeight: 480,
+		}
+
+		overlay.Render(&d)
+		hlg.SubmitDrawBuffer(d.Encode())
 	})
 }

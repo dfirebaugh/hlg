@@ -9,6 +9,11 @@ import (
 
 var triangle hlg.Shape
 
+const (
+	screenWidth  = 240
+	screenHeight = 160
+)
+
 // update operations happen less frequently than render operations
 func update() {
 }
@@ -19,21 +24,20 @@ func render() {
 }
 
 func main() {
-	hlg.SetWindowSize(720, 480)
-	hlg.SetScreenSize(240, 160)
+	hlg.SetWindowSize(screenWidth, screenHeight)
 	hlg.SetTitle("color triangle")
 
 	triangle = hlg.PolygonFromVertices(0, 0, 0, []hlg.Vertex{
 		{
-			Position: [3]float32{0, 160, 0},
+			Position: [3]float32{0, screenHeight, 0},
 			Color:    toRGBA(colornames.Red),
 		},
 		{
-			Position: [3]float32{120, 0, 0},
+			Position: [3]float32{screenWidth / 2, 0, 0},
 			Color:    toRGBA(colornames.Green),
 		},
 		{
-			Position: [3]float32{240, 160, 0},
+			Position: [3]float32{screenWidth, screenHeight, 0},
 			Color:    toRGBA(colornames.Blue),
 		},
 	})

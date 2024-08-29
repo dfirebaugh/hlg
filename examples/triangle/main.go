@@ -7,6 +7,11 @@ import (
 
 var triangle hlg.Shape
 
+const (
+	screenWidth  = 240
+	screenHeight = 160
+)
+
 // update operation need to happen less frequently than render operations
 func update() {
 }
@@ -17,9 +22,8 @@ func render() {
 }
 
 func main() {
-	hlg.SetWindowSize(720, 480)
-	hlg.SetScreenSize(240, 160)
-	triangle = hlg.Triangle(0, 160, 120, 0, 240, 160, colornames.Orangered)
+	hlg.SetWindowSize(screenWidth, screenHeight)
+	triangle = hlg.Triangle(0, screenHeight, screenWidth/2, 0, screenWidth, screenHeight, colornames.Orangered)
 
 	hlg.Run(update, render)
 }

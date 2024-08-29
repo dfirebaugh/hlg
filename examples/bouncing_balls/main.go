@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/gui"
 	ui "github.com/dfirebaugh/hlg/pkg/grugui"
 	"github.com/dfirebaugh/hlg/pkg/grugui/components"
 	"github.com/dfirebaugh/hlg/pkg/input"
@@ -47,10 +48,14 @@ func main() {
 		surface.Update()
 	}, func() {
 		hlg.Clear(colornames.Black)
+		w, h := hlg.GetWindowSize()
+		d := gui.NewDrawContext(w, h)
 		for i := range balls {
-			balls[i].Render()
+			balls[i].Render(d)
 		}
+
 		surface.Render()
+		hlg.SubmitDrawBuffer(d.Encode())
 	})
 }
 
@@ -61,7 +66,6 @@ type Ball struct {
 	Color                color.RGBA
 	TargetColor          color.RGBA
 	ColorChangeSpeed     float32
-	Shape                hlg.Shape
 }
 
 func (b *Ball) Update() {
@@ -81,20 +85,20 @@ func (b *Ball) Update() {
 	if enableFade {
 		b.updateColor()
 	}
-
-	b.Shape.Move(b.X, b.Y)
 }
 
 func (b *Ball) updateColor() {
 	b.Color.R = uint8(float32(b.Color.R) + (float32(b.TargetColor.R)-float32(b.Color.R))*b.ColorChangeSpeed)
 	b.Color.G = uint8(float32(b.Color.G) + (float32(b.TargetColor.G)-float32(b.Color.G))*b.ColorChangeSpeed)
 	b.Color.B = uint8(float32(b.Color.B) + (float32(b.TargetColor.B)-float32(b.Color.B))*b.ColorChangeSpeed)
-
-	b.Shape.SetColor(b.Color)
 }
 
-func (b *Ball) Render() {
-	b.Shape.Render()
+func (b *Ball) Render(d gui.DrawContext) {
+	d.DrawCircle(int(b.X), int(b.Y), int(b.Radius), &gui.DrawOptions{
+		Style: gui.Style{
+			FillColor: b.Color,
+		},
+	})
 }
 
 func NewBall() Ball {
@@ -112,8 +116,6 @@ func NewBall() Ball {
 		A: 255,
 	}
 
-	shape := hlg.Circle(int(x), int(y), radius, randomColor)
-
 	return Ball{
 		X:                x,
 		Y:                y,
@@ -123,7 +125,6 @@ func NewBall() Ball {
 		Color:            randomColor,
 		TargetColor:      randomColor,
 		ColorChangeSpeed: 0.1,
-		Shape:            shape,
 	}
 }
 
@@ -331,4 +332,3 @@ func setupUI() *ui.Surface {
 
 	return surface
 }
-

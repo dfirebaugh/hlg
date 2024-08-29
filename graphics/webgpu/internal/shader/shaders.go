@@ -13,11 +13,16 @@ var (
 	//go:embed texture.wgsl
 	textureShaderCode string
 
-	ShapeShader   graphics.ShaderHandle
-	TextureShader graphics.ShaderHandle
+	//go:embed primitive_buffer.wgsl
+	primitiveBufferShaderCode string
+
+	ShapeShader           graphics.ShaderHandle
+	TextureShader         graphics.ShaderHandle
+	PrimitiveBufferShader graphics.ShaderHandle
 )
 
 func CompileShaders(sm *ShaderManager) {
 	ShapeShader = sm.CompileShader(shapeShaderCode)
 	TextureShader = sm.CompileShader(textureShaderCode)
+	PrimitiveBufferShader = sm.CompileShader(primitiveBufferShaderCode)
 }

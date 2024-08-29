@@ -11,6 +11,7 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/pipelines"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
+	"github.com/dfirebaugh/hlg/gui"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
@@ -20,6 +21,8 @@ type RenderQueue struct {
 	*wgpu.SwapChainDescriptor
 	context.RenderContext
 	*shader.ShaderManager
+
+	*pipelines.PrimitiveBuffer
 
 	Textures     map[textureHandle]*Texture
 	queue        []graphics.Renderable
@@ -42,6 +45,7 @@ func NewRenderQueue(surface context.Surface, d *wgpu.Device, scd *wgpu.SwapChain
 	shaderManager := shader.NewShaderManager(d)
 	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq, shaderManager)
 	rq.ShaderManager = shaderManager
+	rq.PrimitiveBuffer = pipelines.NewPrimitiveBuffer(rq.RenderContext, nil)
 
 	return rq
 }
@@ -69,6 +73,7 @@ func (rq *RenderQueue) PrepareFrame() {
 }
 
 func (rq *RenderQueue) RenderFrame(pass *wgpu.RenderPassEncoder) {
+	rq.PrimitiveBuffer.RenderPass(pass)
 	for _, renderable := range rq.currentFrame {
 		if renderable != nil {
 			renderable.RenderPass(pass)
@@ -145,6 +150,13 @@ func (rq *RenderQueue) AddLine(x1, y1, x2, y2 int, width float32, c color.Color)
 	lineVertices := primitives.MakeLine(x1, y1, x2, y2, width, c)
 	line := pipelines.NewPolygon(rq.RenderContext, lineVertices)
 	return line
+}
+
+func (rq *RenderQueue) DrawPrimitiveBuffer(vertices []gui.Vertex) {
+	if len(vertices) == 0 {
+		return
+	}
+	rq.PrimitiveBuffer.UpdateVertexBuffer(vertices)
 }
 
 func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderHandle int, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {

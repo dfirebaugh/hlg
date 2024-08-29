@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 
+	"github.com/dfirebaugh/hlg/gui"
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"github.com/dfirebaugh/hlg/pkg/math/matrix"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
@@ -124,6 +125,7 @@ type ShapeRenderer interface {
 	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape
 	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
 	AddDynamicRenderable(vertices []Vertex, shaderHandle int, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
+	DrawPrimitiveBuffer(vertices []gui.Vertex)
 }
 
 type CubeFace int

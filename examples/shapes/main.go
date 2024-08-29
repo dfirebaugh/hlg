@@ -2,27 +2,30 @@ package main
 
 import (
 	"github.com/dfirebaugh/hlg"
+	"github.com/dfirebaugh/hlg/pkg/primitives"
 	"golang.org/x/image/colornames"
 )
 
 func main() {
-	t := hlg.Triangle(0, 160, 120, 0, 240, 160, colornames.Green)
-	r := hlg.Rectangle(0, 0, 120, 60, colornames.Blue)
-	r2 := hlg.Rectangle(50, 50, 120, 60, colornames.Red)
-	c := hlg.Circle(120, 80, 20, colornames.Red)
-	l := hlg.Line(0, 0, 240, 160, 2, colornames.White)
+	l := primitives.NewLine([]primitives.Position{
+		{X: 0, Y: 0},
+		{X: 30, Y: 40},
+		{X: 220, Y: 10},
+		{X: 140, Y: 200},
+		{X: 80, Y: 90},
+	}, 4, colornames.Tomato)
+	c := primitives.NewCircle(40, 40, 20, colornames.Steelblue, 2)
+	c.SetColor(colornames.Purple)
+	c.SetOutlineColor(colornames.Purple)
 
-	// c.SetColor(colornames.Purple)
-	c.Move(0, 0)
+	r := primitives.NewRect(140, 40, 60, 60, 5, colornames.Midnightblue)
+	r.SetOutlineWidth(3)
 
 	hlg.Run(func() {
 	}, func() {
 		hlg.Clear(colornames.Skyblue)
-		t.Render()
-		r.Render()
 		c.Render()
 		l.Render()
-		r2.Render()
-		r2.Hide()
+		r.Render()
 	})
 }

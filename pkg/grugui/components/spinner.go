@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/dfirebaugh/hlg/pkg/ui"
+	ui "github.com/dfirebaugh/hlg/pkg/grugui"
 )
 
 type Spinner struct {

@@ -1,4 +1,4 @@
-package ui
+package grugui
 
 import "image/color"
 

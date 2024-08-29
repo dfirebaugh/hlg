@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/dfirebaugh/hlg"
-	"github.com/dfirebaugh/hlg/pkg/ui"
-	"github.com/dfirebaugh/hlg/pkg/ui/components"
+	ui "github.com/dfirebaugh/hlg/pkg/grugui"
+	"github.com/dfirebaugh/hlg/pkg/grugui/components"
 )
 
 func main() {

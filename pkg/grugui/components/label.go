@@ -3,7 +3,7 @@ package components
 import (
 	"image/color"
 
-	"github.com/dfirebaugh/hlg/pkg/ui"
+	ui "github.com/dfirebaugh/hlg/pkg/grugui"
 )
 
 type Label struct {

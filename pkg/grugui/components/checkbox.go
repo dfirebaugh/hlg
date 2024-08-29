@@ -1,8 +1,8 @@
 package components
 
 import (
+	ui "github.com/dfirebaugh/hlg/pkg/grugui"
 	"github.com/dfirebaugh/hlg/pkg/input"
-	"github.com/dfirebaugh/hlg/pkg/ui"
 )
 
 type Checkbox struct {

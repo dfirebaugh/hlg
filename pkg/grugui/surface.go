@@ -1,9 +1,9 @@
-package ui
+package grugui
 
 import (
 	"image"
 
-	"github.com/dfirebaugh/hlg/pkg/ui/renderer"
+	"github.com/dfirebaugh/hlg/pkg/grugui/renderer"
 )
 
 type Surface struct {

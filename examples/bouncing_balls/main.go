@@ -7,9 +7,9 @@ import (
 	"math/rand"
 
 	"github.com/dfirebaugh/hlg"
+	ui "github.com/dfirebaugh/hlg/pkg/grugui"
+	"github.com/dfirebaugh/hlg/pkg/grugui/components"
 	"github.com/dfirebaugh/hlg/pkg/input"
-	"github.com/dfirebaugh/hlg/pkg/ui"
-	"github.com/dfirebaugh/hlg/pkg/ui/components"
 	"golang.org/x/image/colornames"
 )
 
@@ -331,3 +331,4 @@ func setupUI() *ui.Surface {
 
 	return surface
 }
+

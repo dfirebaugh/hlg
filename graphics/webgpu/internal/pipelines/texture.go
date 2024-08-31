@@ -14,7 +14,7 @@ import (
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
-var VertexBufferLayout = wgpu.VertexBufferLayout{
+var textureVertexBufferLayout = wgpu.VertexBufferLayout{
 	ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),
 	StepMode:    wgpu.VertexStepMode_Vertex,
 	Attributes: []wgpu.VertexAttribute{
@@ -238,7 +238,7 @@ func (t *Texture) createPipeline() error {
 		t.RenderContext.GetShader(shader.TextureShader),
 		t.GetSwapChainDescriptor(),
 		wgpu.PrimitiveTopology_TriangleList,
-		[]wgpu.VertexBufferLayout{VertexBufferLayout},
+		[]wgpu.VertexBufferLayout{textureVertexBufferLayout},
 	)
 
 	return nil

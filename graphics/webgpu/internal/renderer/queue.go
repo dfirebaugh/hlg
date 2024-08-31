@@ -159,14 +159,14 @@ func (rq *RenderQueue) DrawPrimitiveBuffer(vertices []gui.Vertex) {
 	rq.PrimitiveBuffer.UpdateVertexBuffer(vertices)
 }
 
-func (rq *RenderQueue) AddDynamicRenderable(vertices []graphics.Vertex, shaderHandle int, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
+func (rq *RenderQueue) AddDynamicRenderable(vertexData []byte, layout graphics.VertexBufferLayout, shaderHandle int, uniforms map[string]graphics.Uniform, dataMap map[string][]byte) graphics.ShaderRenderable {
 	if rq == nil {
 		log.Println("RenderQueue is nil, cannot add to queue")
 		return nil
 	}
-	primitivesVertices := convertVertices(vertices)
+
 	u := convertUniforms(rq.Device, uniforms, dataMap)
-	r := pipelines.NewRenderable(rq.RenderContext, primitivesVertices, shaderHandle, u)
+	r := pipelines.NewRenderable(rq.RenderContext, vertexData, layout, shaderHandle, u)
 
 	return r
 }

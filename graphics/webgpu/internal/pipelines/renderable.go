@@ -2,28 +2,25 @@ package pipelines
 
 import (
 	"log"
-	"unsafe"
 
 	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/primitives"
-	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/transforms"
-	"github.com/google/uuid"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
+// Renderable structure, now with dynamic vertex handling
 type Renderable struct {
-	Context context.RenderContext
-	Shader  *wgpu.ShaderModule
-	*transforms.Transform
-	VertexBuffer    *wgpu.Buffer
-	BindGroup       *wgpu.BindGroup
-	BindGroupLayout *wgpu.BindGroupLayout
-	Pipeline        *wgpu.RenderPipeline
-	Uniforms        map[string]Uniform
-	vertices        []primitives.Vertex
-	isDisposed      bool
-	shouldRender    bool
+	context.RenderContext
+	Shader             *wgpu.ShaderModule
+	VertexBuffer       *wgpu.Buffer
+	vertexBufferLayout *wgpu.VertexBufferLayout
+	BindGroup          *wgpu.BindGroup
+	BindGroupLayout    *wgpu.BindGroupLayout
+	Pipeline           *wgpu.RenderPipeline
+	Uniforms           map[string]Uniform
+	isDisposed         bool
+	shouldRender       bool
+	vertexData         []byte
 }
 
 type Uniform struct {
@@ -32,25 +29,15 @@ type Uniform struct {
 	Size    uint64
 }
 
-func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shaderHandle int, uniforms map[string]Uniform) *Renderable {
+func NewRenderable(ctx context.RenderContext, vertexData []byte, layout graphics.VertexBufferLayout, shaderHandle int, uniforms map[string]Uniform) *Renderable {
 	if ctx == nil {
 		log.Fatal("RenderContext is nil")
 	}
 
 	r := &Renderable{
-		Context:  ctx,
-		vertices: vertices,
-		Uniforms: uniforms,
-	}
-
-	sw, sh := ctx.GetSurfaceSize()
-	if sw == 0 || sh == 0 {
-		log.Fatal("Surface size is invalid")
-	}
-
-	r.Transform = transforms.NewTransform(ctx, "Renderable Transform Buffer", float32(sw), float32(sh))
-	if r.Transform == nil {
-		log.Fatal("Failed to create Transform")
+		RenderContext: ctx,
+		vertexData:    vertexData,
+		Uniforms:      uniforms,
 	}
 
 	r.createVertexBuffer()
@@ -73,7 +60,7 @@ func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shad
 		log.Fatal("Bind group is nil")
 	}
 
-	r.createPipeline()
+	r.createPipeline(layout)
 	if r.Pipeline == nil {
 		log.Fatal("Pipeline creation failed")
 	}
@@ -81,9 +68,101 @@ func NewRenderable(ctx context.RenderContext, vertices []primitives.Vertex, shad
 	return r
 }
 
+func (r *Renderable) translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.VertexBufferLayout {
+	var translatedAttributes []wgpu.VertexAttribute
+	for _, attr := range layout.Attributes {
+		format := translateVertexFormat(attr.Format)
+		translatedAttributes = append(translatedAttributes, wgpu.VertexAttribute{
+			ShaderLocation: attr.ShaderLocation,
+			Offset:         attr.Offset,
+			Format:         format,
+		})
+	}
+
+	return wgpu.VertexBufferLayout{
+		ArrayStride: layout.ArrayStride,
+		Attributes:  translatedAttributes,
+	}
+}
+
+func translateVertexFormat(customFormat string) wgpu.VertexFormat {
+	switch customFormat {
+	case "uint8x2":
+		return wgpu.VertexFormat_Uint8x2
+	case "uint8x4":
+		return wgpu.VertexFormat_Uint8x4
+	case "sint8x2":
+		return wgpu.VertexFormat_Sint8x2
+	case "sint8x4":
+		return wgpu.VertexFormat_Sint8x4
+	case "unorm8x2":
+		return wgpu.VertexFormat_Unorm8x2
+	case "unorm8x4":
+		return wgpu.VertexFormat_Unorm8x4
+	case "snorm8x2":
+		return wgpu.VertexFormat_Snorm8x2
+	case "snorm8x4":
+		return wgpu.VertexFormat_Snorm8x4
+	case "uint16x2":
+		return wgpu.VertexFormat_Uint16x2
+	case "uint16x4":
+		return wgpu.VertexFormat_Uint16x4
+	case "sint16x2":
+		return wgpu.VertexFormat_Sint16x2
+	case "sint16x4":
+		return wgpu.VertexFormat_Sint16x4
+	case "unorm16x2":
+		return wgpu.VertexFormat_Unorm16x2
+	case "unorm16x4":
+		return wgpu.VertexFormat_Unorm16x4
+	case "snorm16x2":
+		return wgpu.VertexFormat_Snorm16x2
+	case "snorm16x4":
+		return wgpu.VertexFormat_Snorm16x4
+	case "float16x2":
+		return wgpu.VertexFormat_Float16x2
+	case "float16x4":
+		return wgpu.VertexFormat_Float16x4
+	case "float32":
+		return wgpu.VertexFormat_Float32
+	case "float32x2":
+		return wgpu.VertexFormat_Float32x2
+	case "float32x3":
+		return wgpu.VertexFormat_Float32x3
+	case "float32x4":
+		return wgpu.VertexFormat_Float32x4
+	case "uint32":
+		return wgpu.VertexFormat_Uint32
+	case "uint32x2":
+		return wgpu.VertexFormat_Uint32x2
+	case "uint32x3":
+		return wgpu.VertexFormat_Uint32x3
+	case "uint32x4":
+		return wgpu.VertexFormat_Uint32x4
+	case "sint32":
+		return wgpu.VertexFormat_Sint32
+	case "sint32x2":
+		return wgpu.VertexFormat_Sint32x2
+	case "sint32x3":
+		return wgpu.VertexFormat_Sint32x3
+	case "sint32x4":
+		return wgpu.VertexFormat_Sint32x4
+	default:
+		log.Fatalf("Unknown vertex format: %s", customFormat)
+		return wgpu.VertexFormat_Float32x4
+	}
+}
+
 func (r *Renderable) createVertexBuffer() {
-	w, h := r.GetSurfaceSize()
-	r.VertexBuffer = primitives.CreateVertexBuffer(r.GetDevice(), r.vertices, float32(w), float32(h))
+	var err error
+	r.VertexBuffer, err = r.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
+		Label:    "Dynamic Vertex Buffer",
+		Contents: r.vertexData,
+		Usage:    wgpu.BufferUsage_Vertex,
+	})
+	if err != nil {
+		log.Fatal("Failed to create Vertex Buffer:", err)
+	}
 }
 
 func (r *Renderable) createBindGroupLayout() {
@@ -99,7 +178,7 @@ func (r *Renderable) createBindGroupLayout() {
 	}
 
 	var err error
-	r.BindGroupLayout, err = r.Context.GetDevice().CreateBindGroupLayout(&wgpu.BindGroupLayoutDescriptor{
+	r.BindGroupLayout, err = r.GetDevice().CreateBindGroupLayout(&wgpu.BindGroupLayoutDescriptor{
 		Entries: entries,
 		Label:   "Dynamic Bind Group Layout",
 	})
@@ -120,7 +199,7 @@ func (r *Renderable) createBindGroup() {
 	}
 
 	var err error
-	r.BindGroup, err = r.Context.GetDevice().CreateBindGroup(&wgpu.BindGroupDescriptor{
+	r.BindGroup, err = r.GetDevice().CreateBindGroup(&wgpu.BindGroupDescriptor{
 		Layout:  r.BindGroupLayout,
 		Entries: entries,
 		Label:   "Renderable Bind Group",
@@ -130,10 +209,13 @@ func (r *Renderable) createBindGroup() {
 	}
 }
 
-func (r *Renderable) createPipeline() {
-	pipelineName := uuid.New().String()
+func (r *Renderable) createPipeline(layout graphics.VertexBufferLayout) {
+	pipelineName := "user_defined_pipeline"
 
-	r.Pipeline = r.Context.GetPipelineManager().GetPipeline(
+	translatedLayout := r.translateVertexBufferLayout(layout)
+	r.vertexBufferLayout = &translatedLayout
+
+	r.Pipeline = r.GetPipelineManager().GetPipeline(
 		pipelineName,
 		&wgpu.PipelineLayoutDescriptor{
 			BindGroupLayouts: []*wgpu.BindGroupLayout{
@@ -141,27 +223,10 @@ func (r *Renderable) createPipeline() {
 			},
 		},
 		r.Shader,
-		r.Context.GetSwapChainDescriptor(),
+		r.GetSwapChainDescriptor(),
 		wgpu.PrimitiveTopology_TriangleList,
-		[]wgpu.VertexBufferLayout{{
-			ArrayStride: uint64(unsafe.Sizeof(primitives.Vertex{})),
-			Attributes: []wgpu.VertexAttribute{
-				{
-					ShaderLocation: 0,
-					Offset:         0,
-					Format:         wgpu.VertexFormat_Float32x3,
-				},
-				{
-					ShaderLocation: 1,
-					Offset:         uint64(unsafe.Sizeof([3]float32{})),
-					Format:         wgpu.VertexFormat_Float32x4,
-				},
-			},
-		}},
+		[]wgpu.VertexBufferLayout{translatedLayout},
 	)
-	if r.Pipeline == nil {
-		log.Fatal("Failed to create Render Pipeline")
-	}
 }
 
 func (r *Renderable) RenderPass(encoder *wgpu.RenderPassEncoder) {
@@ -183,7 +248,7 @@ func (r *Renderable) RenderPass(encoder *wgpu.RenderPassEncoder) {
 	encoder.SetBindGroup(0, r.BindGroup, nil)
 	encoder.SetVertexBuffer(0, r.VertexBuffer, 0, wgpu.WholeSize)
 
-	vertexCount := uint32(len(r.vertices))
+	vertexCount := uint32(len(r.vertexData) / int(r.vertexBufferLayout.ArrayStride))
 	if vertexCount == 0 {
 		log.Fatal("RenderPass: No vertices to draw")
 	}
@@ -194,16 +259,12 @@ func (r *Renderable) IsDisposed() bool {
 	return r.isDisposed
 }
 
-func (r *Renderable) Hide() {
-	r.shouldRender = false
-}
-
 func (r *Renderable) Render() {
 	if r.isDisposed {
 		return
 	}
 	r.shouldRender = true
-	r.Context.AddToRenderQueue(r)
+	r.AddToRenderQueue(r)
 }
 
 func (r *Renderable) Dispose() {
@@ -233,7 +294,7 @@ func (r *Renderable) Dispose() {
 func (r *Renderable) UpdateUniforms(dataMap map[string][]byte) {
 	for name, data := range dataMap {
 		if uniform, exists := r.Uniforms[name]; exists {
-			r.Context.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
+			r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
 		} else {
 			log.Printf("Uniform %s does not exist", name)
 		}
@@ -242,7 +303,7 @@ func (r *Renderable) UpdateUniforms(dataMap map[string][]byte) {
 
 func (r *Renderable) UpdateUniform(name string, data []byte) {
 	if uniform, exists := r.Uniforms[name]; exists {
-		r.Context.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
+		r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
 	} else {
 		log.Printf("Uniform %s does not exist", name)
 	}

@@ -124,7 +124,7 @@ type ShapeRenderer interface {
 	AddRectangle(x, y, width, height int, c color.Color) Shape
 	AddCircle(cx, cy int, radius float32, c color.Color, segments int) Shape
 	AddLine(x1, y1, x2, y2 int, width float32, c color.Color) Shape
-	AddDynamicRenderable(vertices []Vertex, shaderHandle int, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
+	AddDynamicRenderable(vertexData []byte, layout VertexBufferLayout, shaderHandle int, uniforms map[string]Uniform, dataMap map[string][]byte) ShaderRenderable
 	DrawPrimitiveBuffer(vertices []gui.Vertex)
 }
 
@@ -146,4 +146,15 @@ type InputManager interface {
 type Uniform struct {
 	Binding uint32
 	Size    uint64
+}
+
+type VertexAttributeLayout struct {
+	ShaderLocation uint32
+	Offset         uint64
+	Format         string
+}
+
+type VertexBufferLayout struct {
+	ArrayStride uint64
+	Attributes  []VertexAttributeLayout
 }

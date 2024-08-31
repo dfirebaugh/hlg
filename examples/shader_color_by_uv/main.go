@@ -1,6 +1,8 @@
 package main
 
 import (
+	"unsafe"
+
 	"github.com/dfirebaugh/hlg"
 )
 
@@ -8,6 +10,21 @@ const (
 	screenWidth  = 720
 	screenHeight = 480
 )
+
+type Vertex struct {
+	Position [3]float32
+}
+
+func (v Vertex) ToBytes() []byte {
+	return *(*[]byte)(unsafe.Pointer(&v))
+}
+
+func VerticesToBytes(vertices []Vertex) []byte {
+	size := len(vertices) * int(unsafe.Sizeof(Vertex{}))
+	data := make([]byte, size)
+	copy(data, unsafe.Slice((*byte)(unsafe.Pointer(&vertices[0])), size))
+	return data
+}
 
 func main() {
 	hlg.SetWindowSize(screenWidth, screenHeight)
@@ -28,7 +45,22 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
 	`
 
 	shader := hlg.CompileShader(shaderCode)
-	quad := hlg.CreateRenderable(shader, makeFullScreenQuad(screenWidth, screenHeight), nil, nil)
+
+	vertexLayout := hlg.VertexBufferLayout{
+		ArrayStride: 3 * 4,
+		Attributes: []hlg.VertexAttributeLayout{
+			{
+				ShaderLocation: 0,
+				Offset:         0,
+				Format:         "float32x3",
+			},
+		},
+	}
+
+	quadVertices := makeFullScreenQuad()
+	quadVertexData := VerticesToBytes(quadVertices)
+
+	quad := hlg.CreateRenderable(shader, quadVertexData, vertexLayout, nil, nil)
 
 	if quad == nil {
 		panic("Failed to create full-screen quad renderable")
@@ -40,21 +72,21 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
 	})
 }
 
-func makeFullScreenQuad(screenWidth, screenHeight float32) []hlg.Vertex {
-	v := []hlg.Vertex{
+func makeFullScreenQuad() []Vertex {
+	v := []Vertex{
 		// Bottom-left corner
-		{Position: [3]float32{0, 0, 0}},
+		{Position: [3]float32{-1.0, -1.0, 0.0}},
 		// Bottom-right corner
-		{Position: [3]float32{screenWidth, 0, 0}},
+		{Position: [3]float32{1.0, -1.0, 0.0}},
 		// Top-left corner
-		{Position: [3]float32{0, screenHeight, 0}},
+		{Position: [3]float32{-1.0, 1.0, 0.0}},
 
 		// Top-left corner
-		{Position: [3]float32{0, screenHeight, 0}},
+		{Position: [3]float32{-1.0, 1.0, 0.0}},
 		// Bottom-right corner
-		{Position: [3]float32{screenWidth, 0, 0}},
+		{Position: [3]float32{1.0, -1.0, 0.0}},
 		// Top-right corner
-		{Position: [3]float32{screenWidth, screenHeight, 0}},
+		{Position: [3]float32{1.0, 1.0, 0.0}},
 	}
 
 	return v

@@ -68,7 +68,7 @@ func NewRenderable(ctx context.RenderContext, vertexData []byte, layout graphics
 	return r
 }
 
-func (r *Renderable) translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.VertexBufferLayout {
+func translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.VertexBufferLayout {
 	var translatedAttributes []wgpu.VertexAttribute
 	for _, attr := range layout.Attributes {
 		format := translateVertexFormat(attr.Format)
@@ -212,7 +212,7 @@ func (r *Renderable) createBindGroup() {
 func (r *Renderable) createPipeline(layout graphics.VertexBufferLayout) {
 	pipelineName := "user_defined_pipeline"
 
-	translatedLayout := r.translateVertexBufferLayout(layout)
+	translatedLayout := translateVertexBufferLayout(layout)
 	r.vertexBufferLayout = &translatedLayout
 
 	r.Pipeline = r.GetPipelineManager().GetPipeline(

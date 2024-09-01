@@ -45,7 +45,38 @@ func NewRenderQueue(surface context.Surface, d *wgpu.Device, scd *wgpu.SwapChain
 	shaderManager := shader.NewShaderManager(d)
 	rq.RenderContext = context.NewRenderContext(surface, d, scd, rq, shaderManager)
 	rq.ShaderManager = shaderManager
-	rq.PrimitiveBuffer = pipelines.NewPrimitiveBuffer(rq.RenderContext, nil)
+  
+	vertexLayout := graphics.VertexBufferLayout{
+		ArrayStride: 4*3 + 4*2 + 4 + 4 + 4*4,
+		Attributes: []graphics.VertexAttributeLayout{
+			{
+				ShaderLocation: 0,
+				Offset:         0,
+				Format:         "float32x3", // Position (Clip space)
+			},
+			{
+				ShaderLocation: 1,
+				Offset:         3 * 4,
+				Format:         "float32x2", // Local Position
+			},
+			{
+				ShaderLocation: 2,
+				Offset:         (3 + 2) * 4,
+				Format:         "float32", // OpCode
+			},
+			{
+				ShaderLocation: 3,
+				Offset:         (3 + 2 + 1) * 4,
+				Format:         "float32", // Radius
+			},
+			{
+				ShaderLocation: 4,
+				Offset:         (3 + 2 + 1 + 1) * 4,
+				Format:         "float32x4", // Color
+			},
+		},
+	}
+	rq.PrimitiveBuffer = pipelines.NewPrimitiveBuffer(rq.RenderContext, nil, vertexLayout)
 
 	return rq
 }

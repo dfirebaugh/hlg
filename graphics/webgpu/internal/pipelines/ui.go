@@ -2,54 +2,38 @@ package pipelines
 
 import (
 	"log"
-	"unsafe"
 
+	"github.com/dfirebaugh/hlg/graphics"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/dfirebaugh/hlg/gui"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
-func translateVertexBufferLayout(layout gui.VertexBufferLayout) wgpu.VertexBufferLayout {
-	var translatedAttributes []wgpu.VertexAttribute
-	for _, attr := range layout.Attributes {
-		var format wgpu.VertexFormat
-		switch attr.Format {
-		case "float32x3":
-			format = wgpu.VertexFormat_Float32x3
-		case "float32x4":
-			format = wgpu.VertexFormat_Float32x4
-		default:
-			log.Fatalf("Unknown vertex format: %s", attr.Format)
-		}
-		translatedAttributes = append(translatedAttributes, wgpu.VertexAttribute{
-			ShaderLocation: attr.ShaderLocation,
-			Offset:         attr.Offset,
-			Format:         format,
-		})
-	}
-
-	return wgpu.VertexBufferLayout{
-		ArrayStride: layout.ArrayStride,
-		Attributes:  translatedAttributes,
-	}
-}
-
-var layout = gui.VertexBufferLayout{
-	ArrayStride: uint64(unsafe.Sizeof(gui.Vertex{})),
-	Attributes: []gui.VertexAttribute{
-		{
-			ShaderLocation: 0,
-			Offset:         0,
-			Format:         "float32x3", // Position
-		},
-		{
-			ShaderLocation: 1,
-			Offset:         uint64(unsafe.Sizeof([3]float32{})),
-			Format:         "float32x4", // Color
-		},
-	},
-}
+// func translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.VertexBufferLayout {
+// 	var translatedAttributes []wgpu.VertexAttribute
+// 	for _, attr := range layout.Attributes {
+// 		var format wgpu.VertexFormat
+// 		switch attr.Format {
+// 		case "float32x3":
+// 			format = wgpu.VertexFormat_Float32x3
+// 		case "float32x4":
+// 			format = wgpu.VertexFormat_Float32x4
+// 		default:
+// 			log.Fatalf("Unknown vertex format: %s", attr.Format)
+// 		}
+// 		translatedAttributes = append(translatedAttributes, wgpu.VertexAttribute{
+// 			ShaderLocation: attr.ShaderLocation,
+// 			Offset:         attr.Offset,
+// 			Format:         format,
+// 		})
+// 	}
+//
+// 	return wgpu.VertexBufferLayout{
+// 		ArrayStride: layout.ArrayStride,
+// 		Attributes:  translatedAttributes,
+// 	}
+// }
 
 type PrimitiveBuffer struct {
 	context.RenderContext
@@ -62,7 +46,7 @@ type PrimitiveBuffer struct {
 	isDisposed bool
 }
 
-func NewPrimitiveBuffer(ctx context.RenderContext, vertices []gui.Vertex) *PrimitiveBuffer {
+func NewPrimitiveBuffer(ctx context.RenderContext, vertices []gui.Vertex, layout graphics.VertexBufferLayout) *PrimitiveBuffer {
 	if ctx == nil {
 		log.Fatal("RenderContext is nil")
 	}

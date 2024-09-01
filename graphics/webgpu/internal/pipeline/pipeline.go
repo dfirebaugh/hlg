@@ -82,11 +82,11 @@ func createPipeline(
 						DstFactor: wgpu.BlendFactor_OneMinusSrcAlpha,
 						Operation: wgpu.BlendOperation_Add,
 					},
-					Alpha: wgpu.BlendComponent{
-						SrcFactor: wgpu.BlendFactor_One,
-						DstFactor: wgpu.BlendFactor_Zero,
-						Operation: wgpu.BlendOperation_Add,
-					},
+					// Alpha: wgpu.BlendComponent{
+					// 	SrcFactor: wgpu.BlendFactor_One,
+					// 	DstFactor: wgpu.BlendFactor_Zero,
+					// 	Operation: wgpu.BlendOperation_Add,
+					// },
 				},
 				WriteMask: wgpu.ColorWriteMask_All,
 			}},

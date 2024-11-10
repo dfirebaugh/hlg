@@ -40,6 +40,17 @@ func (w *Window) GetSurfaceDescriptor() *wgpu.SurfaceDescriptor {
 	return GetSurfaceDescriptor(w.Window)
 }
 
+func (w *Window) SetBorderlessWindowed(v bool) {
+	if v {
+		monitor := glfw.GetPrimaryMonitor()
+		mode := monitor.GetVideoMode()
+		w.Window.SetMonitor(monitor, 0, 0, mode.Width, mode.Height, mode.RefreshRate)
+	} else {
+		// Restore window to windowed mode with a default size and position
+		w.Window.SetMonitor(nil, 100, 100, 800, 600, 0)
+	}
+}
+
 func (w *Window) GetWindowPosition() (x int, y int) {
 	return w.Window.GetPos()
 }

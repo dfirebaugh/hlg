@@ -129,6 +129,10 @@ func GetFPS() float64 {
 	return hlg.fpsCounter.GetFPS()
 }
 
+func Close() {
+	close()
+}
+
 func close() {
 	hlg.graphicsBackend.Close()
 }
@@ -195,4 +199,8 @@ func DisableWindowResize() {
 	hlg.graphicsBackend.DisableWindowResize()
 
 	SetWindowSize(windowWidth, windowHeight)
+}
+
+func SetBorderlessWindowed(v bool) {
+	hlg.graphicsBackend.SetBorderlessWindowed(v)
 }

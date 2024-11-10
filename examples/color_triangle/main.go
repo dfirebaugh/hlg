@@ -1,8 +1,6 @@
 package main
 
 import (
-	"image/color"
-
 	"github.com/dfirebaugh/hlg"
 	"golang.org/x/image/colornames"
 )
@@ -30,27 +28,17 @@ func main() {
 	triangle = hlg.PolygonFromVertices(0, 0, 0, []hlg.Vertex{
 		{
 			Position: [3]float32{0, screenHeight, 0},
-			Color:    toRGBA(colornames.Red),
+			Color:    colornames.Red,
 		},
 		{
 			Position: [3]float32{screenWidth / 2, 0, 0},
-			Color:    toRGBA(colornames.Green),
+			Color:    colornames.Green,
 		},
 		{
 			Position: [3]float32{screenWidth, screenHeight, 0},
-			Color:    toRGBA(colornames.Blue),
+			Color:    colornames.Blue,
 		},
 	})
 
 	hlg.Run(update, render)
-}
-
-func toRGBA(c color.Color) [4]float32 {
-	r, g, b, a := c.RGBA()
-	return [4]float32{
-		float32(r) / 0xffff,
-		float32(g) / 0xffff,
-		float32(b) / 0xffff,
-		float32(a) / 0xffff,
-	}
 }

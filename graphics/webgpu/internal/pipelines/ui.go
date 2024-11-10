@@ -10,31 +10,6 @@ import (
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
 
-// func translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.VertexBufferLayout {
-// 	var translatedAttributes []wgpu.VertexAttribute
-// 	for _, attr := range layout.Attributes {
-// 		var format wgpu.VertexFormat
-// 		switch attr.Format {
-// 		case "float32x3":
-// 			format = wgpu.VertexFormat_Float32x3
-// 		case "float32x4":
-// 			format = wgpu.VertexFormat_Float32x4
-// 		default:
-// 			log.Fatalf("Unknown vertex format: %s", attr.Format)
-// 		}
-// 		translatedAttributes = append(translatedAttributes, wgpu.VertexAttribute{
-// 			ShaderLocation: attr.ShaderLocation,
-// 			Offset:         attr.Offset,
-// 			Format:         format,
-// 		})
-// 	}
-//
-// 	return wgpu.VertexBufferLayout{
-// 		ArrayStride: layout.ArrayStride,
-// 		Attributes:  translatedAttributes,
-// 	}
-// }
-
 type PrimitiveBuffer struct {
 	context.RenderContext
 

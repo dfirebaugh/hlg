@@ -1,10 +1,14 @@
 package hlg
 
-import "github.com/dfirebaugh/hlg/graphics"
+import (
+	"image/color"
+
+	"github.com/dfirebaugh/hlg/graphics"
+)
 
 type Vertex struct {
 	Position [3]float32
-	Color    [4]float32
+	Color    color.Color
 }
 
 // ScreenToNDC transforms screen space coordinates to NDC.
@@ -36,7 +40,7 @@ func ConvertVerticesToNDC2D(vertices []Vertex, screenWidth, screenHeight float32
 func convertToGraphicsVertex(hv Vertex) graphics.Vertex {
 	gv := graphics.Vertex{
 		Position: hv.Position,
-		Color:    hv.Color,
+		Color:    toRGBA(hv.Color),
 	}
 	return gv
 }
@@ -47,4 +51,14 @@ func convertVerticesToGraphics(vertices []Vertex) []graphics.Vertex {
 		gvs[i] = convertToGraphicsVertex(v)
 	}
 	return gvs
+}
+
+func toRGBA(c color.Color) [4]float32 {
+	r, g, b, a := c.RGBA()
+	return [4]float32{
+		float32(r) / 0xffff,
+		float32(g) / 0xffff,
+		float32(b) / 0xffff,
+		float32(a) / 0xffff,
+	}
 }

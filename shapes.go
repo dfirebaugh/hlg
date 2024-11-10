@@ -28,7 +28,10 @@ func PolygonFromVertices(x, y int, width float32, vertices []Vertex) Shape {
 
 	graphicsVertices := make([]graphics.Vertex, len(vertices))
 	for i, v := range vertices {
-		graphicsVertices[i] = graphics.Vertex(v)
+		graphicsVertices[i] = graphics.Vertex(graphics.Vertex{
+			Position: v.Position,
+			Color:    toRGBA(v.Color),
+		})
 	}
 
 	return hlg.graphicsBackend.AddPolygonFromVertices(x, y, width, graphicsVertices)

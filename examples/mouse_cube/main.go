@@ -140,13 +140,14 @@ func drawCube() {
 
 		// Check if the face is facing the camera
 		if normal.Z > 0 {
+			c := colors[i%len(colors)]
 			faceVertices := []hlg.Vertex{
-				{Position: [3]float32{float32(projected[face.Vertices[0]].X), float32(projected[face.Vertices[0]].Y), float32(projected[face.Vertices[0]].Z)}, Color: toRGBA(colors[i%len(colors)])},
-				{Position: [3]float32{float32(projected[face.Vertices[1]].X), float32(projected[face.Vertices[1]].Y), float32(projected[face.Vertices[1]].Z)}, Color: toRGBA(colors[i%len(colors)])},
-				{Position: [3]float32{float32(projected[face.Vertices[2]].X), float32(projected[face.Vertices[2]].Y), float32(projected[face.Vertices[2]].Z)}, Color: toRGBA(colors[i%len(colors)])},
-				{Position: [3]float32{float32(projected[face.Vertices[0]].X), float32(projected[face.Vertices[0]].Y), float32(projected[face.Vertices[0]].Z)}, Color: toRGBA(colors[i%len(colors)])},
-				{Position: [3]float32{float32(projected[face.Vertices[2]].X), float32(projected[face.Vertices[2]].Y), float32(projected[face.Vertices[2]].Z)}, Color: toRGBA(colors[i%len(colors)])},
-				{Position: [3]float32{float32(projected[face.Vertices[3]].X), float32(projected[face.Vertices[3]].Y), float32(projected[face.Vertices[3]].Z)}, Color: toRGBA(colors[i%len(colors)])},
+				{Position: [3]float32{float32(projected[face.Vertices[0]].X), float32(projected[face.Vertices[0]].Y), float32(projected[face.Vertices[0]].Z)}, Color: c},
+				{Position: [3]float32{float32(projected[face.Vertices[1]].X), float32(projected[face.Vertices[1]].Y), float32(projected[face.Vertices[1]].Z)}, Color: c},
+				{Position: [3]float32{float32(projected[face.Vertices[2]].X), float32(projected[face.Vertices[2]].Y), float32(projected[face.Vertices[2]].Z)}, Color: c},
+				{Position: [3]float32{float32(projected[face.Vertices[0]].X), float32(projected[face.Vertices[0]].Y), float32(projected[face.Vertices[0]].Z)}, Color: c},
+				{Position: [3]float32{float32(projected[face.Vertices[2]].X), float32(projected[face.Vertices[2]].Y), float32(projected[face.Vertices[2]].Z)}, Color: c},
+				{Position: [3]float32{float32(projected[face.Vertices[3]].X), float32(projected[face.Vertices[3]].Y), float32(projected[face.Vertices[3]].Z)}, Color: c},
 			}
 			polygon := hlg.PolygonFromVertices(0, 0, 0, faceVertices)
 			polygon.Render()
@@ -163,16 +164,5 @@ func calculateNormal(v0, v1, v2 Point3D) Point3D {
 		X: u.Y*v.Z - u.Z*v.Y,
 		Y: u.Z*v.X - u.X*v.Z,
 		Z: u.X*v.Y - u.Y*v.X,
-	}
-}
-
-// toRGBA converts a color.Color to an array of float32 RGBA values.
-func toRGBA(c color.Color) [4]float32 {
-	r, g, b, a := c.RGBA()
-	return [4]float32{
-		float32(r) / 0xffff,
-		float32(g) / 0xffff,
-		float32(b) / 0xffff,
-		float32(a) / 0xffff,
 	}
 }

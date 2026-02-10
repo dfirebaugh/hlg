@@ -1,3 +1,5 @@
+//go:build !js
+
 package renderer
 
 type Surface struct {
@@ -47,7 +49,16 @@ func (s *Surface) GetScreenSize() (int, int) {
 	return s.Width, s.Height
 }
 
+func (s *Surface) SetVSync(enabled bool) {
+	s.Renderer.SetVSync(enabled)
+}
+
 func (s *Surface) Destroy() {
 	s.Renderer.Destroy()
 	s.ReleaseShaders()
+}
+
+// GetCurrentClipRect disambiguates between embedded Renderer and RenderQueue.
+func (s *Surface) GetCurrentClipRect() *[4]int {
+	return s.Renderer.GetCurrentClipRect()
 }

@@ -1,3 +1,5 @@
+//go:build !js
+
 package pipelines
 
 import (
@@ -7,6 +9,40 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/context"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
+
+// vertexFormatMap pre-computed map for O(1) vertex format lookup
+var vertexFormatMap = map[string]wgpu.VertexFormat{
+	"uint8x2":   wgpu.VertexFormat_Uint8x2,
+	"uint8x4":   wgpu.VertexFormat_Uint8x4,
+	"sint8x2":   wgpu.VertexFormat_Sint8x2,
+	"sint8x4":   wgpu.VertexFormat_Sint8x4,
+	"unorm8x2":  wgpu.VertexFormat_Unorm8x2,
+	"unorm8x4":  wgpu.VertexFormat_Unorm8x4,
+	"snorm8x2":  wgpu.VertexFormat_Snorm8x2,
+	"snorm8x4":  wgpu.VertexFormat_Snorm8x4,
+	"uint16x2":  wgpu.VertexFormat_Uint16x2,
+	"uint16x4":  wgpu.VertexFormat_Uint16x4,
+	"sint16x2":  wgpu.VertexFormat_Sint16x2,
+	"sint16x4":  wgpu.VertexFormat_Sint16x4,
+	"unorm16x2": wgpu.VertexFormat_Unorm16x2,
+	"unorm16x4": wgpu.VertexFormat_Unorm16x4,
+	"snorm16x2": wgpu.VertexFormat_Snorm16x2,
+	"snorm16x4": wgpu.VertexFormat_Snorm16x4,
+	"float16x2": wgpu.VertexFormat_Float16x2,
+	"float16x4": wgpu.VertexFormat_Float16x4,
+	"float32":   wgpu.VertexFormat_Float32,
+	"float32x2": wgpu.VertexFormat_Float32x2,
+	"float32x3": wgpu.VertexFormat_Float32x3,
+	"float32x4": wgpu.VertexFormat_Float32x4,
+	"uint32":    wgpu.VertexFormat_Uint32,
+	"uint32x2":  wgpu.VertexFormat_Uint32x2,
+	"uint32x3":  wgpu.VertexFormat_Uint32x3,
+	"uint32x4":  wgpu.VertexFormat_Uint32x4,
+	"sint32":    wgpu.VertexFormat_Sint32,
+	"sint32x2":  wgpu.VertexFormat_Sint32x2,
+	"sint32x3":  wgpu.VertexFormat_Sint32x3,
+	"sint32x4":  wgpu.VertexFormat_Sint32x4,
+}
 
 // Renderable structure, now with dynamic vertex handling
 type Renderable struct {
@@ -86,71 +122,11 @@ func translateVertexBufferLayout(layout graphics.VertexBufferLayout) wgpu.Vertex
 }
 
 func translateVertexFormat(customFormat string) wgpu.VertexFormat {
-	switch customFormat {
-	case "uint8x2":
-		return wgpu.VertexFormat_Uint8x2
-	case "uint8x4":
-		return wgpu.VertexFormat_Uint8x4
-	case "sint8x2":
-		return wgpu.VertexFormat_Sint8x2
-	case "sint8x4":
-		return wgpu.VertexFormat_Sint8x4
-	case "unorm8x2":
-		return wgpu.VertexFormat_Unorm8x2
-	case "unorm8x4":
-		return wgpu.VertexFormat_Unorm8x4
-	case "snorm8x2":
-		return wgpu.VertexFormat_Snorm8x2
-	case "snorm8x4":
-		return wgpu.VertexFormat_Snorm8x4
-	case "uint16x2":
-		return wgpu.VertexFormat_Uint16x2
-	case "uint16x4":
-		return wgpu.VertexFormat_Uint16x4
-	case "sint16x2":
-		return wgpu.VertexFormat_Sint16x2
-	case "sint16x4":
-		return wgpu.VertexFormat_Sint16x4
-	case "unorm16x2":
-		return wgpu.VertexFormat_Unorm16x2
-	case "unorm16x4":
-		return wgpu.VertexFormat_Unorm16x4
-	case "snorm16x2":
-		return wgpu.VertexFormat_Snorm16x2
-	case "snorm16x4":
-		return wgpu.VertexFormat_Snorm16x4
-	case "float16x2":
-		return wgpu.VertexFormat_Float16x2
-	case "float16x4":
-		return wgpu.VertexFormat_Float16x4
-	case "float32":
-		return wgpu.VertexFormat_Float32
-	case "float32x2":
-		return wgpu.VertexFormat_Float32x2
-	case "float32x3":
-		return wgpu.VertexFormat_Float32x3
-	case "float32x4":
-		return wgpu.VertexFormat_Float32x4
-	case "uint32":
-		return wgpu.VertexFormat_Uint32
-	case "uint32x2":
-		return wgpu.VertexFormat_Uint32x2
-	case "uint32x3":
-		return wgpu.VertexFormat_Uint32x3
-	case "uint32x4":
-		return wgpu.VertexFormat_Uint32x4
-	case "sint32":
-		return wgpu.VertexFormat_Sint32
-	case "sint32x2":
-		return wgpu.VertexFormat_Sint32x2
-	case "sint32x3":
-		return wgpu.VertexFormat_Sint32x3
-	case "sint32x4":
-		return wgpu.VertexFormat_Sint32x4
-	default:
-		log.Fatalf("Unknown vertex format: %s", customFormat)
-		return wgpu.VertexFormat_Float32x4
+	if format, ok := vertexFormatMap[customFormat]; ok {
+		return format
 	}
+	log.Fatalf("Unknown vertex format: %s", customFormat)
+	return wgpu.VertexFormat_Float32x4
 }
 
 func (r *Renderable) createVertexBuffer() {
@@ -294,7 +270,7 @@ func (r *Renderable) Dispose() {
 func (r *Renderable) UpdateUniforms(dataMap map[string][]byte) {
 	for name, data := range dataMap {
 		if uniform, exists := r.Uniforms[name]; exists {
-			r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
+			_ = r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
 		} else {
 			log.Printf("Uniform %s does not exist", name)
 		}
@@ -303,7 +279,7 @@ func (r *Renderable) UpdateUniforms(dataMap map[string][]byte) {
 
 func (r *Renderable) UpdateUniform(name string, data []byte) {
 	if uniform, exists := r.Uniforms[name]; exists {
-		r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
+		_ = r.GetDevice().GetQueue().WriteBuffer(uniform.Buffer, 0, data)
 	} else {
 		log.Printf("Uniform %s does not exist", name)
 	}

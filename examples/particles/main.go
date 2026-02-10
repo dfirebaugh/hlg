@@ -7,7 +7,6 @@ import (
 	"math/rand"
 
 	"github.com/dfirebaugh/hlg"
-	"github.com/dfirebaugh/hlg/gui"
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
@@ -24,7 +23,7 @@ type Triangle struct {
 	Size                 int
 	Age                  float64
 	Lifetime             float64
-	Options              gui.DrawOptions
+	Color                color.Color
 }
 
 var (
@@ -46,11 +45,7 @@ func newTriangleAtPosition(x, y int) Triangle {
 		VelocityY: velocityY,
 		Size:      2,
 		Lifetime:  2,
-		Options: gui.DrawOptions{
-			Style: gui.Style{
-				FillColor: randomColor(),
-			},
-		},
+		Color:     randomColor(),
 	}
 }
 
@@ -91,25 +86,21 @@ func update() {
 
 func render() {
 	hlg.Clear(colornames.Black)
-	w, h := hlg.GetWindowSize()
-	d := gui.Draw{
-		ScreenWidth:  w,
-		ScreenHeight: h,
-	}
+	hlg.BeginDraw()
 
 	for _, triangle := range triangles {
-		d.DrawTriangle(
+		hlg.FilledTriangle(
 			triangle.PositionX,
 			triangle.PositionY,
 			triangle.PositionX+triangle.Size/2,
 			triangle.PositionY-triangle.Size,
 			triangle.PositionX+triangle.Size,
 			triangle.PositionY,
-			&triangle.Options,
+			triangle.Color,
 		)
 	}
 
-	hlg.SubmitDrawBuffer(d.Encode())
+	hlg.EndDraw()
 }
 
 func main() {

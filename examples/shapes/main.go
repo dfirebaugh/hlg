@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/dfirebaugh/hlg"
-	"github.com/dfirebaugh/hlg/gui"
 	"golang.org/x/image/colornames"
 )
 
@@ -13,81 +12,31 @@ const (
 
 func main() {
 	hlg.SetWindowSize(screenWidth, screenHeight)
+	hlg.SetScreenSize(screenWidth, screenHeight)
 	hlg.SetTitle("Shapes Example")
 
 	hlg.Run(func() {
 		// No update logic needed for this example
 	}, func() {
 		hlg.Clear(colornames.Skyblue)
-		d := gui.Draw{
-			ScreenWidth:  screenWidth,
-			ScreenHeight: screenHeight,
-		}
-		d.DrawRectangle(20, 20, 20, 20, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Green,
-				OutlineColor: colornames.Purple,
-			},
-		})
-		d.DrawRectangle(50, 50, 70, 70, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Green,
-				OutlineColor: colornames.Purple,
-				CornerRadius: 2,
-			},
-		})
-		d.DrawRectangle(140, 50, 40, 40, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Green,
-				OutlineColor: colornames.Purple,
-				CornerRadius: 2,
-				OutlineSize:  4,
-			},
-		})
+		hlg.BeginDraw()
 
-		d.DrawCircle(60, 100, 15, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Red,
-				OutlineColor: colornames.Black,
-				OutlineSize:  2,
-			},
-		})
-		d.DrawCircle(100, 100, 20, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Blue,
-				OutlineColor: colornames.White,
-				OutlineSize:  4,
-			},
-		})
+		hlg.FilledRect(20, 20, 20, 20, colornames.Green)
+		hlg.RoundedRect(50, 50, 70, 70, 2, colornames.Green)
+		hlg.RoundedRectOutline(140, 50, 40, 40, 2, 4, colornames.Green, colornames.Purple)
 
-		d.DrawTriangle(160, 120, 180, 140, 140, 140, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Orange,
-				OutlineColor: colornames.Black,
-				OutlineSize:  1,
-			},
-		})
-		d.DrawTriangle(180, 60, 200, 80, 160, 80, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Yellow,
-				OutlineColor: colornames.Black,
-				OutlineSize:  1,
-			},
-		})
+		hlg.FilledCircle(60, 100, 17, colornames.Black)
+		hlg.FilledCircle(60, 100, 15, colornames.Red)
+		hlg.FilledCircle(100, 100, 24, colornames.White)
+		hlg.FilledCircle(100, 100, 20, colornames.Blue)
 
-		d.DrawLine([]gui.Position{
-			{X: 20, Y: 150},
-			{X: 60, Y: 130},
-			{X: 100, Y: 150},
-			{X: 140, Y: 130},
-			{X: 180, Y: 150},
-		}, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor:    colornames.Red,
-				OutlineColor: colornames.Black,
-				OutlineSize:  1,
-			},
-		})
-		hlg.SubmitDrawBuffer(d.Encode())
+		hlg.FilledTriangle(160, 140, 200, 140, 180, 110, colornames.Orange)
+
+		hlg.Segment(20, 150, 60, 130, 1, colornames.Red)
+		hlg.Segment(60, 130, 100, 150, 1, colornames.Red)
+		hlg.Segment(100, 150, 140, 130, 1, colornames.Red)
+		hlg.Segment(140, 130, 180, 150, 1, colornames.Red)
+
+		hlg.EndDraw()
 	})
 }

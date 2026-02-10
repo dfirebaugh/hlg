@@ -8,6 +8,7 @@ const (
 	MousePress
 	MouseRelease
 	MouseMove
+	CharInput
 )
 
 type Event struct {
@@ -15,4 +16,5 @@ type Event struct {
 	Key         Key
 	MouseButton MouseButton
 	X, Y        int
+	Rune        rune
 }

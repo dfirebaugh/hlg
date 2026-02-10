@@ -4,7 +4,6 @@ import (
 	"image/color"
 
 	"github.com/dfirebaugh/hlg"
-	"github.com/dfirebaugh/hlg/gui"
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
@@ -95,19 +94,11 @@ func (g *RectOverlay) Update() {
 	}
 }
 
-func (g *RectOverlay) Render(d *gui.Draw) {
-	d.DrawRectangle(g.X, g.Y, g.Width, g.Height, &gui.DrawOptions{
-		Style: gui.Style{
-			FillColor: g.Color,
-		},
-	})
+func (g *RectOverlay) Render() {
+	hlg.FilledRect(g.X, g.Y, g.Width, g.Height, g.Color)
 
 	for _, handle := range g.Handles {
-		d.DrawRectangle(handle.X-handle.Width/2, handle.Y-handle.Height/2, handle.Width, handle.Height, &gui.DrawOptions{
-			Style: gui.Style{
-				FillColor: handle.Color,
-			},
-		})
+		hlg.FilledRect(handle.X-handle.Width/2, handle.Y-handle.Height/2, handle.Width, handle.Height, handle.Color)
 	}
 }
 
@@ -119,13 +110,8 @@ func main() {
 		overlay.Update()
 	}, func() {
 		hlg.Clear(colornames.Skyblue)
-
-		d := gui.Draw{
-			ScreenWidth:  640,
-			ScreenHeight: 480,
-		}
-
-		overlay.Render(&d)
-		hlg.SubmitDrawBuffer(d.Encode())
+		hlg.BeginDraw()
+		overlay.Render()
+		hlg.EndDraw()
 	})
 }

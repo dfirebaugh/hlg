@@ -1,10 +1,11 @@
+//go:build !js
+
 package renderer
 
 import (
 	"fmt"
 	"image/color"
 	"log"
-	"sort"
 
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 
@@ -27,6 +28,8 @@ type Renderer struct {
 	clearColor   wgpu.Color
 
 	RenderQueues []*RenderQueue
+
+	clipRectStack [][4]int
 }
 
 func NewRenderer(s context.Surface, width, height int, renderTarget RenderTarget) (r *Renderer, err error) {
@@ -36,16 +39,15 @@ func NewRenderer(s context.Surface, width, height int, renderTarget RenderTarget
 		renderTarget: renderTarget,
 	}
 
-	r.setupDevice()
 	defer func() {
 		if rec := recover(); rec != nil {
-			log.Printf("Recovered from panic: %v\n", r)
-			if err != nil {
-				r.Destroy()
-			}
+			log.Printf("Recovered from panic: %v\n", rec)
+			r.Destroy()
+			err = fmt.Errorf("panic during renderer setup: %v", rec)
 		}
 	}()
-	wgpu.SetLogLevel(wgpu.LogLevel_Error)
+
+	_ = r.setupDevice()
 
 	return r, err
 }
@@ -58,12 +60,6 @@ func (r *Renderer) CreateRenderQueue() graphics.RenderQueue {
 	rq := NewRenderQueue(r.surface, r.Device, r.SwapChainDescriptor)
 	r.RenderQueues = append(r.RenderQueues, rq)
 	return rq
-}
-
-func (r *Renderer) SortRenderQueues() {
-	sort.SliceStable(r.RenderQueues, func(i, j int) bool {
-		return r.RenderQueues[i].Priority < r.RenderQueues[j].Priority
-	})
 }
 
 func (r *Renderer) setupDevice() error {
@@ -133,6 +129,22 @@ func (r *Renderer) SetScreenSize(width int, height int) {
 	r.SwapChainDescriptor.Height = uint32(height)
 }
 
+func (r *Renderer) SetVSync(enabled bool) {
+	var mode wgpu.PresentMode
+	if enabled {
+		mode = wgpu.PresentMode_Fifo
+	} else {
+		mode = wgpu.PresentMode_Immediate
+	}
+
+	if r.SwapChainDescriptor.PresentMode == mode {
+		return
+	}
+
+	r.SwapChainDescriptor.PresentMode = mode
+	r.RecreateSwapChain()
+}
+
 func (r *Renderer) Clear(c color.Color) {
 	for _, rq := range r.RenderQueues {
 		if !rq.shouldClear {
@@ -189,7 +201,6 @@ func (r *Renderer) Render() {
 	if r.SurfaceIsOutdated() {
 		r.RecreateSwapChain()
 	}
-	r.SortRenderQueues()
 
 	for _, rq := range r.RenderQueues {
 		rq.PrepareFrame()
@@ -228,7 +239,7 @@ func (r *Renderer) Render() {
 	for _, rq := range r.RenderQueues {
 		rq.RenderFrame(renderPass)
 	}
-	renderPass.End()
+	_ = renderPass.End()
 
 	cmdBuffer, err := encoder.Finish(nil)
 	if err != nil {
@@ -259,4 +270,23 @@ func (r *Renderer) Destroy() {
 		r.Surface.Release()
 		r.Surface = nil
 	}
+}
+
+func (r *Renderer) PushClipRect(x, y, width, height int) {
+	r.clipRectStack = append(r.clipRectStack, [4]int{x, y, width, height})
+}
+
+func (r *Renderer) PopClipRect() {
+	if len(r.clipRectStack) == 0 {
+		return
+	}
+	r.clipRectStack = r.clipRectStack[:len(r.clipRectStack)-1]
+}
+
+func (r *Renderer) GetCurrentClipRect() *[4]int {
+	if len(r.clipRectStack) == 0 {
+		return nil
+	}
+	rect := r.clipRectStack[len(r.clipRectStack)-1]
+	return &rect
 }

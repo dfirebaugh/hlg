@@ -1,3 +1,5 @@
+//go:build !js
+
 package context
 
 import (
@@ -8,10 +10,6 @@ import (
 	"github.com/dfirebaugh/hlg/graphics/webgpu/internal/shader"
 	"github.com/rajveermalviya/go-webgpu/wgpu"
 )
-
-type pipelineManager interface {
-	GetPipeline(key string, layout *wgpu.PipelineLayoutDescriptor, shaderModule *wgpu.ShaderModule, scd *wgpu.SwapChainDescriptor, topology wgpu.PrimitiveTopology) *wgpu.RenderPipeline
-}
 
 type RenderQueue interface {
 	AddToRenderQueue(r graphics.Renderable)

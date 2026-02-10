@@ -1,3 +1,5 @@
+//go:build !js
+
 package pipelines
 
 import (
@@ -104,7 +106,7 @@ func TextureFromImage(ctx context.RenderContext, img image.Image, label string) 
 		return nil, err
 	}
 
-	ctx.GetDevice().GetQueue().WriteTexture(
+	if err = ctx.GetDevice().GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
 			Aspect:   wgpu.TextureAspect_All,
 			Texture:  t.Texture,
@@ -118,7 +120,9 @@ func TextureFromImage(ctx context.RenderContext, img image.Image, label string) 
 			RowsPerImage: uint32(height),
 		},
 		&size,
-	)
+	); err != nil {
+		return nil, err
+	}
 
 	t.TextureView, err = t.Texture.CreateView(nil)
 	if err != nil {
@@ -179,10 +183,6 @@ func (t *Texture) UpdateImage(img image.Image) error {
 			DepthOrArrayLayers: 1,
 		}
 
-		if t.Texture != nil {
-			t.Texture.Release()
-		}
-
 		var err error
 		t.Texture, err = t.GetDevice().CreateTexture(&wgpu.TextureDescriptor{
 			Label:         "UpdatedTexture",
@@ -207,7 +207,7 @@ func (t *Texture) UpdateImage(img image.Image) error {
 		DepthOrArrayLayers: 1,
 	}
 
-	t.GetDevice().GetQueue().WriteTexture(
+	if err := t.GetDevice().GetQueue().WriteTexture(
 		&wgpu.ImageCopyTexture{
 			Aspect:   wgpu.TextureAspect_All,
 			Texture:  t.Texture,
@@ -221,7 +221,9 @@ func (t *Texture) UpdateImage(img image.Image) error {
 			RowsPerImage: uint32(height),
 		},
 		&size,
-	)
+	); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -446,7 +448,7 @@ func (t *Texture) handleScreenResize() {
 	}
 	t.screenWidth = w
 	t.screenHeight = h
-	t.updateVertexBuffer()
+	_ = t.updateVertexBuffer()
 	t.Move(t.x, t.y)
 }
 

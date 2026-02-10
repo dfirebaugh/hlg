@@ -2,8 +2,6 @@ package hlg
 
 import (
 	"image/color"
-
-	"github.com/dfirebaugh/hlg/graphics"
 )
 
 type Vertex struct {
@@ -35,22 +33,6 @@ func ConvertVerticesToNDC2D(vertices []Vertex, screenWidth, screenHeight float32
 		}
 	}
 	return ndcVertices
-}
-
-func convertToGraphicsVertex(hv Vertex) graphics.Vertex {
-	gv := graphics.Vertex{
-		Position: hv.Position,
-		Color:    toRGBA(hv.Color),
-	}
-	return gv
-}
-
-func convertVerticesToGraphics(vertices []Vertex) []graphics.Vertex {
-	gvs := make([]graphics.Vertex, len(vertices))
-	for i, v := range vertices {
-		gvs[i] = convertToGraphicsVertex(v)
-	}
-	return gvs
 }
 
 func toRGBA(c color.Color) [4]float32 {

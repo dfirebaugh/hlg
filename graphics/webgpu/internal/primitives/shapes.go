@@ -1,3 +1,5 @@
+//go:build !js
+
 package primitives
 
 import (
@@ -82,36 +84,46 @@ func MakePolygonFromVertices(cx, cy int, width float32, vertices []graphics.Vert
 func MakePolygon(cx, cy int, width float32, c color.Color, sides int) []Vertex {
 	r, g, b, a := c.RGBA()
 	colorArray := [4]float32{float32(r) / 0xffff, float32(g) / 0xffff, float32(b) / 0xffff, float32(a) / 0xffff}
-	var vertices []Vertex
+
+	// Pre-allocate vertices: each side needs 3 vertices (center + 2 edge points)
+	vertices := make([]Vertex, 0, sides*3)
+
 	center := Vertex{
 		Position: [3]float32{float32(cx), float32(cy), 0},
 		Color:    colorArray,
 	}
 
-	for i := 0; i <= sides; i++ {
-		angle := float32(i) * 2 * float32(math.Pi) / float32(sides)
-		x := float32(cx) + (width/2)*float32(math.Cos(float64(angle)))
-		y := float32(cy) + (width/2)*float32(math.Sin(float64(angle)))
+	// Pre-calculate angle step and radius
+	angleStep := 2 * float32(math.Pi) / float32(sides)
+	radius := width / 2
+	fcx, fcy := float32(cx), float32(cy)
 
-		vertex := Vertex{
+	// Calculate first vertex position
+	x := fcx + radius*float32(math.Cos(0))
+	y := fcy + radius*float32(math.Sin(0))
+
+	for i := 0; i < sides; i++ {
+		// Current vertex (reuse from previous iteration or initial calculation)
+		currentVertex := Vertex{
 			Position: [3]float32{x, y, 0},
 			Color:    colorArray,
 		}
 
-		vertices = append(vertices, center, vertex)
+		// Calculate next vertex position
+		nextAngle := float32(i+1) * angleStep
+		nextX := fcx + radius*float32(math.Cos(float64(nextAngle)))
+		nextY := fcy + radius*float32(math.Sin(float64(nextAngle)))
 
-		if i < sides {
-			nextAngle := float32(i+1) * 2 * float32(math.Pi) / float32(sides)
-			nextX := float32(cx) + (width/2)*float32(math.Cos(float64(nextAngle)))
-			nextY := float32(cy) + (width/2)*float32(math.Sin(float64(nextAngle)))
-
-			nextVertex := Vertex{
-				Position: [3]float32{nextX, nextY, 0},
-				Color:    colorArray,
-			}
-
-			vertices = append(vertices, nextVertex)
+		nextVertex := Vertex{
+			Position: [3]float32{nextX, nextY, 0},
+			Color:    colorArray,
 		}
+
+		// Add triangle: center, current, next
+		vertices = append(vertices, center, currentVertex, nextVertex)
+
+		// Next vertex becomes current for the next iteration
+		x, y = nextX, nextY
 	}
 
 	return vertices

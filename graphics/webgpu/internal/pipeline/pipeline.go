@@ -1,3 +1,5 @@
+//go:build !js
+
 package pipeline
 
 import (
@@ -8,7 +10,7 @@ import (
 
 type PipelineManager struct {
 	pipelines map[string]*wgpu.RenderPipeline
-	mu        sync.Mutex
+	mu        sync.RWMutex
 	device    *wgpu.Device
 }
 
@@ -27,9 +29,19 @@ func (pm *PipelineManager) GetPipeline(
 	topology wgpu.PrimitiveTopology,
 	vertexBufferLayout []wgpu.VertexBufferLayout,
 ) *wgpu.RenderPipeline {
+	// Fast path: read lock for cache hit
+	pm.mu.RLock()
+	if pipeline, exists := pm.pipelines[key]; exists {
+		pm.mu.RUnlock()
+		return pipeline
+	}
+	pm.mu.RUnlock()
+
+	// Slow path: write lock for cache miss
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 
+	// Double-check after acquiring write lock
 	if pipeline, exists := pm.pipelines[key]; exists {
 		return pipeline
 	}
@@ -82,11 +94,11 @@ func createPipeline(
 						DstFactor: wgpu.BlendFactor_OneMinusSrcAlpha,
 						Operation: wgpu.BlendOperation_Add,
 					},
-					// Alpha: wgpu.BlendComponent{
-					// 	SrcFactor: wgpu.BlendFactor_One,
-					// 	DstFactor: wgpu.BlendFactor_Zero,
-					// 	Operation: wgpu.BlendOperation_Add,
-					// },
+					Alpha: wgpu.BlendComponent{
+						SrcFactor: wgpu.BlendFactor_One,
+						DstFactor: wgpu.BlendFactor_OneMinusSrcAlpha,
+						Operation: wgpu.BlendOperation_Add,
+					},
 				},
 				WriteMask: wgpu.ColorWriteMask_All,
 			}},

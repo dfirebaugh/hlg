@@ -21,6 +21,13 @@ struct VertexOutput {
 
 @group(0) @binding(1) var s_diffuse: sampler;
 
+// Colors come in as normalized 0..1 (sRGB-ish). We output directly to the swapchain format.
+// If the swapchain is sRGB (common), the GPU will handle encoding; doing a manual pow() here
+// makes colors/blending look washed/soft.
+fn srgbToLinear(c: vec3<f32>) -> vec3<f32> {
+    return c;
+}
+
 @vertex
 fn vs_main(model: VertexInput) -> VertexOutput {
     var out: VertexOutput;
@@ -35,12 +42,14 @@ fn vs_main(model: VertexInput) -> VertexOutput {
     }
 
     out.clip_position = u_transform * vec4<f32>(model.position, 1.0);
-    out.color = model.color;
+    // Convert vertex color from sRGB to linear space
+    out.color = vec4<f32>(srgbToLinear(model.color.rgb), model.color.a);
     return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    // Texture is already in linear space (sampled from sRGB texture)
     let tex_color = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     return tex_color * in.color;
 }

@@ -13,7 +13,10 @@ import (
 var mousePosition [2]float32
 
 //go:embed shader.wgsl
-var shaderCode string
+var wgslShaderCode string
+
+//go:embed shader.glsl
+var glslShaderCode string
 
 var (
 	screenWidth  float32 = 800
@@ -44,11 +47,21 @@ func VerticesToBytes(vertices []Vertex) []byte {
 	return data
 }
 
+// getShaderCode returns the appropriate shader code based on the backend.
+func getShaderCode() string {
+	// OpenGL and WebGL both use GLSL; only WebGPU uses WGSL
+	if hlg.GetBackend() != hlg.BackendWebGPU {
+		return glslShaderCode
+	}
+	return wgslShaderCode
+}
+
 func main() {
 	hlg.SetWindowSize(int(screenWidth), int(screenHeight))
 	hlg.SetTitle("SDF primitive buffer")
+	hlg.SetVSync(true)
 
-	shader := hlg.CompileShader(shaderCode)
+	shader := hlg.CompileShader(getShaderCode())
 
 	vertexLayout := hlg.VertexBufferLayout{
 		ArrayStride: 4*3 + 4*2 + 4 + 4 + 4*4,

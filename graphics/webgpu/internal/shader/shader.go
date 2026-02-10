@@ -1,3 +1,5 @@
+//go:build !js
+
 package shader
 
 import (
@@ -63,6 +65,6 @@ func (sm *ShaderManager) ReleaseShaders() {
 			continue
 		}
 		// s.Release()
-		s = nil
+		_ = s
 	}
 }

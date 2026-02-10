@@ -10,3 +10,6 @@ var DefaultTextureImage []byte
 
 //go:embed  images/buddy_dance.png
 var BuddyDanceSpriteSheet []byte
+
+//go:embed  images/RTS_Crate.png
+var RTS_Crate []byte

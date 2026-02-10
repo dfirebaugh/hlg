@@ -26,11 +26,33 @@ func VerticesToBytes(vertices []Vertex) []byte {
 	return data
 }
 
-func main() {
-	hlg.SetWindowSize(screenWidth, screenHeight)
-	hlg.SetTitle("Color by Pixel Position Shader")
+// getShaderCode returns the appropriate shader code based on the backend.
+func getShaderCode() string {
+	// OpenGL and WebGL both use GLSL; only WebGPU uses WGSL
+	if hlg.GetBackend() != hlg.BackendWebGPU {
+		return `
+#vertex
+#version 410 core
 
-	shaderCode := `
+layout(location = 0) in vec3 in_pos;
+
+void main() {
+    gl_Position = vec4(in_pos, 1.0);
+}
+#fragment
+#version 410 core
+
+out vec4 fragColor;
+
+void main() {
+    float x_factor = gl_FragCoord.x / 720.0;
+    float y_factor = gl_FragCoord.y / 480.0;
+    fragColor = vec4(x_factor, y_factor, 0.0, 1.0);
+}
+`
+	}
+
+	return `
 @vertex
 fn vs_main(@location(0) in_pos: vec3<f32>) -> @builtin(position) vec4<f32> {
     return vec4<f32>(in_pos, 1.0);
@@ -40,9 +62,17 @@ fn vs_main(@location(0) in_pos: vec3<f32>) -> @builtin(position) vec4<f32> {
 fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x_factor = frag_coord.x / 720.0;
     let y_factor = frag_coord.y / 480.0;
-    return vec4<f32>(x_factor, y_factor, 0.0, 1.0); // Color based on pixel position
+    return vec4<f32>(x_factor, y_factor, 0.0, 1.0);
 }
-	`
+`
+}
+
+func main() {
+	hlg.SetWindowSize(screenWidth, screenHeight)
+	hlg.SetTitle("Color by Pixel Position Shader")
+	hlg.SetVSync(true)
+
+	shaderCode := getShaderCode()
 
 	shader := hlg.CompileShader(shaderCode)
 

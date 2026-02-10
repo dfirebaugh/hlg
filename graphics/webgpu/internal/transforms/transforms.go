@@ -1,3 +1,5 @@
+//go:build !js
+
 package transforms
 
 import (
@@ -37,8 +39,8 @@ func NewTransform(ctx context.RenderContext, bufferLabel string, originalWidth, 
 	}
 
 	t.CreateBuffer()
-	t.createFlipBuffer()
-	t.createClipBuffer()
+	_ = t.createFlipBuffer()
+	_ = t.createClipBuffer()
 	t.SetDefaultClip()
 	t.Update()
 
@@ -58,7 +60,7 @@ func (t *Transform) CreateBuffer() {
 }
 
 func (t *Transform) createClipBuffer() error {
-	clipInfo := [4]float32{0.0, 0.0, t.originalWidth, t.originalWidth}
+	clipInfo := [4]float32{0.0, 0.0, t.originalWidth, t.originalHeight}
 
 	var err error
 	t.ClipBuffer, err = t.GetDevice().CreateBufferInit(&wgpu.BufferInitDescriptor{
@@ -141,7 +143,7 @@ func (t *Transform) updateFlipBuffer() {
 		t.FlipMatrix[1] = 1.0
 	}
 
-	t.GetDevice().GetQueue().WriteBuffer(t.FlipBuffer, 0, wgpu.ToBytes(t.FlipMatrix[:]))
+	_ = t.GetDevice().GetQueue().WriteBuffer(t.FlipBuffer, 0, wgpu.ToBytes(t.FlipMatrix[:]))
 }
 
 func (t *Transform) SetDefaultClip() {
@@ -156,7 +158,7 @@ func (t *Transform) SetClipRect(minX, minY, maxX, maxY float32) {
 		maxY / t.originalHeight,
 	}
 
-	t.GetDevice().GetQueue().WriteBuffer(t.ClipBuffer, 0, wgpu.ToBytes(t.ClipRect[:]))
+	_ = t.GetDevice().GetQueue().WriteBuffer(t.ClipBuffer, 0, wgpu.ToBytes(t.ClipRect[:]))
 }
 
 func (t *Transform) GetCurrentSize() (float32, float32) {
@@ -193,7 +195,7 @@ func (t *Transform) Resize(targetWidth, targetHeight float32) {
 }
 
 func (t *Transform) Update() {
-	t.GetDevice().GetQueue().WriteBuffer(t.Buffer, 0, wgpu.ToBytes(t.Matrix[:]))
+	_ = t.GetDevice().GetQueue().WriteBuffer(t.Buffer, 0, wgpu.ToBytes(t.Matrix[:]))
 }
 
 func (t *Transform) Destroy() {

@@ -15,5 +15,7 @@ func handleEvent(evt input.Event, state *input.InputState) {
 	case input.MouseMove:
 		state.CursorPosition.X = evt.X
 		state.CursorPosition.Y = evt.Y
+	case input.CharInput:
+		state.AddTypedRune(evt.Rune)
 	}
 }

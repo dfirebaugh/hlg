@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	_ "golang.org/x/image/webp" // This is necessary to decode WEBP images
 	_ "image/png"
+
+	_ "golang.org/x/image/webp" // This is necessary to decode WEBP images
 
 	"github.com/dfirebaugh/hlg"
 	"github.com/dfirebaugh/hlg/assets"
@@ -73,7 +74,6 @@ func main() {
 		backgroundImg,
 	)
 	rq := hlg.CreateRenderQueue()
-	rq.SetPriority(50)
 	background.RenderToQueue(rq)
 
 	background.Resize(screenWidth, screenHeight)
@@ -94,6 +94,7 @@ func main() {
 		}
 	}, func() {
 		hlg.Clear(colornames.Skyblue)
+		rq.Present() // Present background layer first (behind everything)
 		for _, buddy := range buddies {
 			buddy.Render()
 		}
@@ -107,7 +108,7 @@ func handleInput() {
 			return
 		}
 		x, y := hlg.GetCursorPosition()
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			buddy := NewBuddy(float32(x), float32(y))
 			buddies = append(buddies, buddy)
 		}

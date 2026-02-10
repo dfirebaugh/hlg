@@ -26,11 +26,31 @@ func VerticesToBytes(vertices []Vertex) []byte {
 	return data
 }
 
-func main() {
-	hlg.SetWindowSize(screenWidth, screenHeight)
-	hlg.SetTitle("Full Screen Red Shader")
+// getShaderCode returns the appropriate shader code based on the backend.
+func getShaderCode() string {
+	// OpenGL and WebGL both use GLSL; only WebGPU uses WGSL
+	if hlg.GetBackend() != hlg.BackendWebGPU {
+		return `
+#vertex
+#version 410 core
 
-	shaderCode := `
+layout(location = 0) in vec3 in_pos;
+
+void main() {
+    gl_Position = vec4(in_pos, 1.0);
+}
+#fragment
+#version 410 core
+
+out vec4 fragColor;
+
+void main() {
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+`
+	}
+
+	return `
 @vertex
 fn vs_main(@location(0) in_pos: vec3<f32>) -> @builtin(position) vec4<f32> {
     return vec4<f32>(in_pos, 1.0);
@@ -38,9 +58,17 @@ fn vs_main(@location(0) in_pos: vec3<f32>) -> @builtin(position) vec4<f32> {
 
 @fragment
 fn fs_main() -> @location(0) vec4<f32> {
-    return vec4<f32>(1.0, 0.0, 0.0, 1.0); // Red color
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
 }
-	`
+`
+}
+
+func main() {
+	hlg.SetWindowSize(screenWidth, screenHeight)
+	hlg.SetTitle("Full Screen Red Shader")
+	hlg.SetVSync(true)
+
+	shaderCode := getShaderCode()
 
 	shader := hlg.CompileShader(shaderCode)
 

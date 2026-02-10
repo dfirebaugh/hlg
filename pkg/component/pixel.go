@@ -1,4 +1,6 @@
 package component
 
-type PixelSize float64
-type Width float64
+type (
+	PixelSize float64
+	Width     float64
+)

@@ -1,3 +1,5 @@
+//go:build !js
+
 package primitives
 
 import (
@@ -15,12 +17,11 @@ type Vertex struct {
 
 func (v *Vertex) SetColor(c color.Color) {
 	r, g, b, a := c.RGBA()
-	alpha := float32(a) / 0xffff
 	v.Color = [4]float32{
-		float32(r) / 0xffff / alpha,
-		float32(g) / 0xffff / alpha,
-		float32(b) / 0xffff / alpha,
-		alpha,
+		float32(r) / 0xffff,
+		float32(g) / 0xffff,
+		float32(b) / 0xffff,
+		float32(a) / 0xffff,
 	}
 }
 
@@ -44,9 +45,9 @@ func ConvertVerticesToNDC(vertices []Vertex, screenWidth, screenHeight float32) 
 	for i, v := range vertices {
 		ndcPosition := ScreenToNDC(v.Position[0], v.Position[1], screenWidth, screenHeight)
 		ndcVertices[i] = Vertex{
-			Position: ndcPosition,
-			Color:    v.Color,
-      TexCoords: v.TexCoords,
+			Position:  ndcPosition,
+			Color:     v.Color,
+			TexCoords: v.TexCoords,
 		}
 	}
 	return ndcVertices
@@ -57,13 +58,19 @@ func CreateVertexBuffer(device *wgpu.Device, vertices []Vertex, width float32, h
 	vertexBuffer, err := device.CreateBufferInit(&wgpu.BufferInitDescriptor{
 		Label:    "Vertex Buffer",
 		Contents: wgpu.ToBytes(ndcVertices[:]),
-		Usage:    wgpu.BufferUsage_Vertex,
+		Usage:    wgpu.BufferUsage_Vertex | wgpu.BufferUsage_CopyDst,
 	})
 	if err != nil {
 		panic(err)
 	}
 
 	return vertexBuffer
+}
+
+// UpdateVertexBuffer writes new vertex data to an existing buffer without recreating it
+func UpdateVertexBuffer(device *wgpu.Device, buffer *wgpu.Buffer, vertices []Vertex, width float32, height float32) {
+	ndcVertices := ConvertVerticesToNDC(vertices, width, height)
+	_ = device.GetQueue().WriteBuffer(buffer, 0, wgpu.ToBytes(ndcVertices[:]))
 }
 
 func CalculateCenter(v []Vertex) [2]float32 {

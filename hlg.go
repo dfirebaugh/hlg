@@ -1,3 +1,5 @@
+//go:build !js
+
 package hlg
 
 import (
@@ -7,9 +9,20 @@ import (
 	"time"
 
 	"github.com/dfirebaugh/hlg/graphics"
+	"github.com/dfirebaugh/hlg/graphics/gl"
 	"github.com/dfirebaugh/hlg/graphics/webgpu"
 	"github.com/dfirebaugh/hlg/pkg/input"
 )
+
+// Backend represents the graphics backend type
+type Backend int
+
+const (
+	BackendOpenGL Backend = iota
+	BackendWebGPU
+)
+
+var selectedBackend = BackendOpenGL
 
 type Game interface {
 	Update()
@@ -27,18 +40,47 @@ type engine struct {
 	windowTitle       string
 	fpsCounter        *fpsCounter
 	hasSetupCompleted bool
+	lastDisplayedFPS  int // cached FPS to avoid string allocation every frame
 }
 
 var hlg = &engine{}
+
+// SetBackend sets the graphics backend to use. Must be called before Run() or any
+// graphics operations. If not called, defaults to BackendWebGPU.
+func SetBackend(backend Backend) {
+	if hlg.hasSetupCompleted {
+		panic("SetBackend must be called before Run() or any graphics operations")
+	}
+	selectedBackend = backend
+}
+
+// GetBackend returns the currently selected graphics backend.
+func GetBackend() Backend {
+	return selectedBackend
+}
 
 func setup() {
 	runtime.LockOSThread()
 	hlg.inputState = input.NewInputState()
 	var err error
-	hlg.graphicsBackend, err = webgpu.NewGraphicsBackend(windowWidth, windowHeight)
+
+	switch selectedBackend {
+	case BackendOpenGL:
+		hlg.graphicsBackend, err = gl.NewGraphicsBackend(windowWidth, windowHeight)
+	case BackendWebGPU:
+		fallthrough
+	default:
+		hlg.graphicsBackend, err = webgpu.NewGraphicsBackend(windowWidth, windowHeight)
+	}
+
 	if err != nil {
 		panic(err.Error())
 	}
+
+	// Register callback to flush batched primitives when a Shape is rendered
+	// This preserves draw order between batched primitives and Shapes
+	hlg.graphicsBackend.SetOnBeforeAddToQueue(flushBatch)
+
 	hlg.hasSetupCompleted = true
 }
 
@@ -84,17 +126,18 @@ func run(updateFn func(), renderFn func()) {
 			}
 			accumulator -= targetFrameDuration
 			frameRendered = true
-
-			hlg.inputState.ResetJustPressed()
 		}
 
 		if frameRendered {
-			hlg.graphicsBackend.Render()
 			if renderFn != nil {
 				renderFn()
 			}
+			hlg.graphicsBackend.Render()
 
 			calculateFPS()
+
+			// Reset input state after render so gui widgets can see JustPressed events
+			hlg.inputState.ResetJustPressed()
 		}
 	}
 }
@@ -103,8 +146,10 @@ func RunGame(game Game) {
 	run(game.Update, game.Render)
 }
 
+// RunApp is an alias for RunGame for backwards compatibility.
+// Deprecated: Use RunGame instead.
 func RunApp(game Game) {
-	run(game.Update, game.Render)
+	RunGame(game)
 }
 
 // Run is the main update function called to refresh the engine state.
@@ -114,14 +159,22 @@ func Run(updateFn func(), renderFn func()) {
 
 func calculateFPS() {
 	hlg.fpsCounter.Frame()
-	fps := hlg.fpsCounter.GetFPS()
-	title := hlg.windowTitle
-	if fps != 0 && fpsEnabled {
-		title = fmt.Sprintf("%s -- %d\n", title, int(fps))
-	}
 	if hlg.graphicsBackend.IsDisposed() {
 		return
 	}
+
+	if !fpsEnabled {
+		return
+	}
+
+	// Only update title when FPS value changes to avoid string allocation every frame
+	currentFPS := int(hlg.fpsCounter.GetFPS())
+	if currentFPS == hlg.lastDisplayedFPS {
+		return
+	}
+	hlg.lastDisplayedFPS = currentFPS
+
+	title := fmt.Sprintf("%s -- %d", hlg.windowTitle, currentFPS)
 	hlg.graphicsBackend.SetWindowTitle(title)
 }
 
@@ -147,6 +200,7 @@ func Clear(c color.RGBA) {
 func SetTitle(title string) {
 	ensureSetupCompletion()
 	hlg.windowTitle = title
+	hlg.graphicsBackend.SetWindowTitle(title)
 }
 
 // GetWindowSize retrieves the current window size.
@@ -164,6 +218,24 @@ func GetWindowHeight() int {
 	return h
 }
 
+// GetFramebufferSize returns the framebuffer size in pixels.
+// On HiDPI/Retina displays, this may be larger than the window size.
+func GetFramebufferSize() (int, int) {
+	return hlg.graphicsBackend.GetFramebufferSize()
+}
+
+// GetPixelScale returns the ratio of framebuffer size to window size.
+// This is useful for scaling mouse coordinates to match gl_FragCoord in shaders.
+// Returns 1.0 on standard displays, 2.0 on Retina displays, etc.
+func GetPixelScale() float32 {
+	winW, _ := hlg.graphicsBackend.GetWindowSize()
+	fbW, _ := hlg.graphicsBackend.GetFramebufferSize()
+	if winW == 0 {
+		return 1.0
+	}
+	return float32(fbW) / float32(winW)
+}
+
 func GetWindowPosition() (int, int) {
 	return hlg.graphicsBackend.GetWindowPosition()
 }
@@ -175,18 +247,20 @@ func GetScreenSize() (int, int) {
 
 // SetScreenSize sets the size of the screen.
 func SetScreenSize(width, height int) {
+	// Store dimensions before setup so the backend is created with correct size
+	windowWidth = width
+	windowHeight = height
 	ensureSetupCompletion()
 	hlg.graphicsBackend.SetScreenSize(width, height)
 }
 
 // SetWindowSize sets the size of the window.
 func SetWindowSize(width, height int) {
-	ensureSetupCompletion()
-
-	hlg.graphicsBackend.SetScreenSize(width, height)
-	hlg.graphicsBackend.SetWindowSize(width, height)
+	// Store dimensions before setup so the backend is created with correct size
 	windowWidth = width
 	windowHeight = height
+	ensureSetupCompletion()
+	hlg.graphicsBackend.SetWindowSize(width, height)
 }
 
 func CreateRenderQueue() graphics.RenderQueue {
@@ -203,4 +277,28 @@ func DisableWindowResize() {
 
 func SetBorderlessWindowed(v bool) {
 	hlg.graphicsBackend.SetBorderlessWindowed(v)
+}
+
+// SetVSync enables or disables vertical sync.
+// When enabled, the frame rate is limited to the display's refresh rate.
+func SetVSync(enabled bool) {
+	ensureSetupCompletion()
+	hlg.graphicsBackend.SetVSync(enabled)
+}
+
+// PushClipRect pushes a clip rectangle onto the stack.
+// All subsequent rendering will be clipped to this rectangle.
+// Clip rectangles can be nested - each push further restricts the clip region.
+func PushClipRect(x, y, width, height int) {
+	ensureSetupCompletion()
+	pushClipRectToStack(x, y, width, height)
+	hlg.graphicsBackend.PushClipRect(x, y, width, height)
+}
+
+// PopClipRect pops the top clip rectangle from the stack.
+// Rendering will be clipped to the previous rectangle, or unclipped if the stack is empty.
+func PopClipRect() {
+	ensureSetupCompletion()
+	popClipRectFromStack()
+	hlg.graphicsBackend.PopClipRect()
 }

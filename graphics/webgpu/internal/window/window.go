@@ -1,3 +1,5 @@
+//go:build !js
+
 package window
 
 import (
@@ -8,9 +10,11 @@ import (
 
 type Window struct {
 	*glfw.Window
-	aspectRatio float64
-	eventChan   chan input.Event
-	isDisposed  bool
+	aspectRatio                 float64
+	eventChan                   chan input.Event
+	isDisposed                  bool
+	targetWidth, targetHeight   int // logical size set by SetWindowSize
+	currentWidth, currentHeight int // actual window size
 }
 
 func NewWindow(width, height int) (*Window, error) {
@@ -21,18 +25,21 @@ func NewWindow(width, height int) (*Window, error) {
 	glfw.WindowHint(glfw.ClientAPI, glfw.NoAPI)
 
 	w := &Window{
-		eventChan:  make(chan input.Event, 100),
-		isDisposed: false,
+		eventChan:     make(chan input.Event, 100),
+		isDisposed:    false,
+		targetWidth:   width,
+		targetHeight:  height,
+		currentWidth:  width,
+		currentHeight: height,
 	}
 
-	win, err := glfw.CreateWindow(640, 480, "go-webgpu with glfw", nil, nil)
+	win, err := glfw.CreateWindow(width, height, "go-webgpu with glfw", nil, nil)
 	if err != nil {
 		glfw.Terminate()
 		w.DestroyWindow()
 		return nil, err
 	}
 	w.Window = win
-	win.SetSize(width, height)
 	return w, nil
 }
 
@@ -86,7 +93,9 @@ func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
 	})
 
 	w.Window.SetCursorPosCallback(func(window *glfw.Window, xpos, ypos float64) {
-		w.eventChan <- input.Event{Type: input.MouseMove, X: int(xpos), Y: int(ypos)}
+		// Translate from current window coordinates to logical coordinates
+		x, y := w.windowToLogical(xpos, ypos)
+		w.eventChan <- input.Event{Type: input.MouseMove, X: x, Y: y}
 		fn(w.eventChan)
 	})
 
@@ -100,10 +109,17 @@ func (w *Window) SetInputCallback(fn func(eventChan chan input.Event)) {
 		w.eventChan <- input.Event{Type: eventType, Key: input.Key(key)}
 		fn(w.eventChan)
 	})
+
+	w.Window.SetCharCallback(func(window *glfw.Window, char rune) {
+		w.eventChan <- input.Event{Type: input.CharInput, Rune: char}
+		fn(w.eventChan)
+	})
 }
 
 func (w *Window) SetResizedCallback(fn func(physicalWidth, physicalHeight uint32)) {
 	w.Window.SetSizeCallback(func(window *glfw.Window, width, height int) {
+		w.currentWidth = width
+		w.currentHeight = height
 		fn(uint32(width), uint32(height))
 	})
 }
@@ -129,9 +145,36 @@ func (w *Window) GetWindowSize() (int, int) {
 	return w.Window.GetSize()
 }
 
+func (w *Window) GetFramebufferSize() (int, int) {
+	if w == nil || w.isDisposed {
+		return 0, 0
+	}
+	return w.Window.GetFramebufferSize()
+}
+
 func (w *Window) SetWindowSize(width int, height int) {
+	w.targetWidth = width
+	w.targetHeight = height
+	w.currentWidth = width
+	w.currentHeight = height
 	w.SetAspectRatio(width, height)
 	w.SetSize(width, height)
+}
+
+// windowToLogical translates window coordinates to logical coordinates
+// This ensures mouse coordinates are consistent regardless of window resize
+func (w *Window) windowToLogical(xpos, ypos float64) (int, int) {
+	if w.currentWidth <= 0 || w.currentHeight <= 0 {
+		return int(xpos), int(ypos)
+	}
+	if w.targetWidth <= 0 || w.targetHeight <= 0 {
+		return int(xpos), int(ypos)
+	}
+
+	scaleX := float64(w.targetWidth) / float64(w.currentWidth)
+	scaleY := float64(w.targetHeight) / float64(w.currentHeight)
+
+	return int(xpos * scaleX), int(ypos * scaleY)
 }
 
 func (w *Window) DestroyWindow() {
@@ -144,6 +187,11 @@ func (w *Window) Poll() bool {
 	}
 
 	glfw.PollEvents()
+
+	if w.Window != nil && w.Window.ShouldClose() {
+		return false
+	}
+
 	return true
 }
 
@@ -152,10 +200,10 @@ func (w *Window) IsDisposed() bool {
 }
 
 func (w *Window) Destroy() {
-	w.isDisposed = true
 	if w.isDisposed {
 		return
 	}
+	w.isDisposed = true
 	if w.Window != nil {
 		w.Window.Destroy()
 		w.Window = nil

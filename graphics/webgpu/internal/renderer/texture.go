@@ -1,3 +1,5 @@
+//go:build !js
+
 package renderer
 
 import (
@@ -110,6 +112,5 @@ func (t *Texture) IsDisposed() bool {
 }
 
 func (t *Texture) GetSurfaceDescriptor() *wgpu.SurfaceDescriptor {
-	return &wgpu.SurfaceDescriptor{
-	}
+	return &wgpu.SurfaceDescriptor{}
 }

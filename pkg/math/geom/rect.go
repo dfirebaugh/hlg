@@ -50,16 +50,18 @@ func (r Rect) ContainsPoint(p Point) bool {
 	return p.X >= r[0] && p.Y >= r[1] && p.X < r[0]+r[2] && p.Y < r[1]+r[3]
 }
 
-type Normal struct{}
-type Collision struct {
-	Point    Vector
-	FarPoint Vector
-	Normal   Vector
-	TimeNear Vector
-	TimeFar  Vector
-	HitNear  float64
-	HitFar   float64
-}
+type (
+	Normal    struct{}
+	Collision struct {
+		Point    Vector
+		FarPoint Vector
+		Normal   Vector
+		TimeNear Vector
+		TimeFar  Vector
+		HitNear  float64
+		HitFar   float64
+	}
+)
 
 // HasRayIntersection returns true if an intersection exists
 // the collision argument will contain information about the collision

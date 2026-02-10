@@ -8,55 +8,120 @@ import (
 
 	"github.com/dfirebaugh/hlg"
 	"github.com/dfirebaugh/hlg/gui"
-	ui "github.com/dfirebaugh/hlg/pkg/grugui"
-	"github.com/dfirebaugh/hlg/pkg/grugui/components"
 	"github.com/dfirebaugh/hlg/pkg/input"
 	"golang.org/x/image/colornames"
 )
 
 var (
-	balls          []Ball
-	numBalls       int
-	damping        = float32(0.9) // Damping factor to simulate energy loss during collisions
-	enableFade     = true
-	enableCollide  = true
-	slider         *components.Slider
-	fadeToggle     *components.Toggle
-	collideToggle  *components.Toggle
-	resetButton    *components.Button
-	ballCountLabel *components.Label
+	balls         []Ball
+	numBalls      int
+	damping       = float32(0.9)
+	enableFade    = true
+	enableCollide = true
+	sliderValue   float32
 )
 
 func main() {
 	hlg.SetTitle("Bouncing Balls")
 	hlg.SetWindowSize(960, 640)
+	hlg.SetScreenSize(960, 640)
 	hlg.EnableFPS()
+	hlg.SetVSync(true)
 
-	surface := setupUI()
+	font, err := hlg.LoadDefaultFont()
+	if err != nil {
+		fmt.Printf("Failed to load font: %v\n", err)
+		return
+	}
+	font.SetAsActiveAtlas()
+	hlg.SetDefaultFont(font)
+
+	// Create gui context
+	inputCtx := gui.NewDefaultInputContext()
+	ctx := gui.NewContext(inputCtx)
 
 	numBalls = 3
+	sliderValue = float32(numBalls) / 275 * 100
 	balls = make([]Ball, numBalls)
 	for i := 0; i < numBalls; i++ {
 		balls[i] = NewBall()
 	}
 
+	// Panel state (draggable)
+	panelState := gui.PanelState{X: 10, Y: 10}
+	panelW, panelH := 260, 210
+
 	hlg.Run(func() {
-		handleInput()
+		inputCtx.Update()
+
+		// Handle ball count changes
+		maxBalls := 275
+		newNumBalls := int(sliderValue / 100 * float32(maxBalls))
+		if newNumBalls != numBalls {
+			adjustBallCount(newNumBalls)
+			numBalls = newNumBalls
+		}
+
+		// Update balls
 		for i := range balls {
 			balls[i].Update()
 		}
-		surface.Update()
+
+		// Handle mouse clicks on balls (outside panel)
+		if hlg.IsButtonPressed(input.MouseButtonLeft) {
+			x, y := hlg.GetCursorPosition()
+			// Only affect balls if clicking outside the panel
+			if x < panelState.X || x > panelState.X+panelW || y < panelState.Y || y > panelState.Y+panelH {
+				for i := range balls {
+					if balls[i].containsPoint(float32(x), float32(y)) {
+						balls[i].VelocityX += float32(rand.Float64()*2-1) * 5
+						balls[i].VelocityY += float32(rand.Float64()*2-1) * 5
+					}
+				}
+			}
+		}
 	}, func() {
 		hlg.Clear(colornames.Black)
-		w, h := hlg.GetWindowSize()
-		d := gui.NewDrawContext(w, h)
+
+		// Render UI (includes drawing calls)
+		ctx.Begin()
+
+		// Render balls
 		for i := range balls {
-			balls[i].Render(d)
+			balls[i].Render()
 		}
 
-		surface.Render()
-		hlg.SubmitDrawBuffer(d.Encode())
+		// Draggable panel
+		if ctx.Panel("Ball Control", &panelState, panelW, panelH) {
+			// Panel content (only rendered if not collapsed)
+			px, py := panelState.X, panelState.Y
+
+			// Slider
+			ctx.Slider("ball_count", &sliderValue, 0, 100, px+10, py+40, 240, 12)
+
+			// Fade toggle
+			hlg.Text("Enable Color Fade", px+10, py+75, 14, colornames.White)
+			ctx.Toggle("fade", &enableFade, px+200, py+70, 40, 22)
+
+			// Collision toggle
+			hlg.Text("Enable Collision", px+10, py+105, 14, colornames.White)
+			ctx.Toggle("collision", &enableCollide, px+200, py+100, 40, 22)
+
+			// Reset button
+			if ctx.Button("Reset Balls", px+10, py+135, 240, 28) {
+				for i := range balls {
+					balls[i] = NewBall()
+				}
+			}
+
+			// Ball count label
+			hlg.Text(fmt.Sprintf("Number of Balls: %d", numBalls), px+10, py+175, 14, colornames.White)
+		}
+
+		ctx.End()
 	})
+
+	font.Dispose()
 }
 
 type Ball struct {
@@ -93,12 +158,8 @@ func (b *Ball) updateColor() {
 	b.Color.B = uint8(float32(b.Color.B) + (float32(b.TargetColor.B)-float32(b.Color.B))*b.ColorChangeSpeed)
 }
 
-func (b *Ball) Render(d gui.DrawContext) {
-	d.DrawCircle(int(b.X), int(b.Y), int(b.Radius), &gui.DrawOptions{
-		Style: gui.Style{
-			FillColor: b.Color,
-		},
-	})
+func (b *Ball) Render() {
+	hlg.FilledCircle(int(b.X), int(b.Y), int(b.Radius), b.Color)
 }
 
 func NewBall() Ball {
@@ -125,43 +186,6 @@ func NewBall() Ball {
 		Color:            randomColor,
 		TargetColor:      randomColor,
 		ColorChangeSpeed: 0.1,
-	}
-}
-
-func handleInput() {
-	maxBalls := 275
-	newNumBalls := int(slider.Value * float64(maxBalls))
-
-	if newNumBalls != numBalls {
-		adjustBallCount(newNumBalls)
-		numBalls = newNumBalls
-		if ballCountLabel != nil {
-			ballCountLabel.Text = fmt.Sprintf("Number of Balls: %d", numBalls)
-		}
-	}
-
-	if fadeToggle != nil {
-		enableFade = fadeToggle.IsOn
-	}
-
-	if collideToggle != nil {
-		enableCollide = collideToggle.IsOn
-	}
-
-	if hlg.IsButtonPressed(input.MouseButtonLeft) {
-		x, y := hlg.GetCursorPosition()
-		for i := range balls {
-			if balls[i].containsPoint(float32(x), float32(y)) {
-				balls[i].VelocityX += float32(rand.Float64()*2-1) * 5
-				balls[i].VelocityY += float32(rand.Float64()*2-1) * 5
-			}
-		}
-	}
-
-	if resetButton != nil && resetButton.IsPressed {
-		for i := range balls {
-			balls[i] = NewBall()
-		}
 	}
 }
 
@@ -207,23 +231,18 @@ func (b *Ball) resolveCollision(other *Ball) {
 	dy := b.Y - other.Y
 	distance := math.Sqrt(float64(dx*dx + dy*dy))
 
-	// Normalize the distance
 	nx := dx / float32(distance)
 	ny := dy / float32(distance)
 
-	// Tangent vector
 	tx := -ny
 	ty := nx
 
-	// Dot product tangent
 	dpTan1 := b.VelocityX*tx + b.VelocityY*ty
 	dpTan2 := other.VelocityX*tx + other.VelocityY*ty
 
-	// Dot product normal
 	dpNorm1 := b.VelocityX*nx + b.VelocityY*ny
 	dpNorm2 := other.VelocityX*nx + other.VelocityY*ny
 
-	// Conservation of momentum in 1D
 	m1 := (dpNorm1*(b.Radius-other.Radius) + 2.0*other.Radius*dpNorm2) / (b.Radius + other.Radius)
 	m2 := (dpNorm2*(other.Radius-b.Radius) + 2.0*b.Radius*dpNorm1) / (b.Radius + other.Radius)
 
@@ -263,72 +282,4 @@ func adjustBallCount(targetCount int) {
 	} else if currentCount > targetCount {
 		balls = balls[:targetCount]
 	}
-}
-
-func setupUI() *ui.Surface {
-	surface := ui.NewSurface(260, 200)
-	surface.Move(10, 10)
-
-	surface.Add(&components.SurfaceHandle{
-		Width:  260,
-		Height: 30,
-		Label:  "Ball Control",
-	})
-
-	slider = &components.Slider{
-		X:      10,
-		Y:      40,
-		Width:  240,
-		Height: 20,
-		Value:  float64(numBalls) / 275,
-	}
-	surface.Add(slider)
-
-	fadeToggle = &components.Toggle{
-		X:      200,
-		Y:      70,
-		Width:  30,
-		Height: 20,
-		IsOn:   true,
-	}
-	surface.Add(fadeToggle)
-
-	surface.Add(&components.Label{
-		X:    10,
-		Y:    70,
-		Text: "Enable Color Fade",
-	})
-
-	collideToggle = &components.Toggle{
-		X:      200,
-		Y:      100,
-		Width:  30,
-		Height: 20,
-		IsOn:   true,
-	}
-	surface.Add(collideToggle)
-
-	surface.Add(&components.Label{
-		X:    10,
-		Y:    100,
-		Text: "Enable Collision",
-	})
-
-	resetButton = &components.Button{
-		X:      10,
-		Y:      130,
-		Width:  240,
-		Height: 20,
-		Text:   "Reset Balls",
-	}
-	surface.Add(resetButton)
-
-	ballCountLabel = &components.Label{
-		X:    10,
-		Y:    160,
-		Text: fmt.Sprintf("Number of Balls: %d", numBalls),
-	}
-	surface.Add(ballCountLabel)
-
-	return surface
 }

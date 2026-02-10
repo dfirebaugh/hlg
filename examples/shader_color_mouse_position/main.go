@@ -28,11 +28,38 @@ func VerticesToBytes(vertices []Vertex) []byte {
 	return data
 }
 
-func main() {
-	hlg.SetWindowSize(screenWidth, screenHeight)
-	hlg.SetTitle("Color by Mouse Position Shader")
+// getShaderCode returns the appropriate shader code based on the backend.
+// For OpenGL/WebGL: GLSL with #vertex and #fragment markers
+// For WebGPU: WGSL
+func getShaderCode() string {
+	// OpenGL and WebGL both use GLSL; only WebGPU uses WGSL
+	if hlg.GetBackend() != hlg.BackendWebGPU {
+		// GLSL shader for OpenGL backend
+		return `
+#vertex
+#version 410 core
 
-	shaderCode := `
+layout(location = 0) in vec3 in_pos;
+
+void main() {
+    gl_Position = vec4(in_pos, 1.0);
+}
+#fragment
+#version 410 core
+
+uniform vec2 mouse_pos;
+out vec4 fragColor;
+
+void main() {
+    float x_factor = mouse_pos.x / 720.0;
+    float y_factor = mouse_pos.y / 480.0;
+    fragColor = vec4(x_factor, y_factor, 0.0, 1.0);
+}
+`
+	}
+
+	// WGSL shader for WebGPU backend
+	return `
 @group(0) @binding(0) var<uniform> mouse_pos: vec2<f32>;
 
 @vertex
@@ -44,9 +71,20 @@ fn vs_main(@location(0) in_pos: vec3<f32>) -> @builtin(position) vec4<f32> {
 fn fs_main() -> @location(0) vec4<f32> {
     let x_factor = mouse_pos.x / 720.0;
     let y_factor = mouse_pos.y / 480.0;
-    return vec4<f32>(x_factor, y_factor, 0.0, 1.0); // Color based on mouse position
+    return vec4<f32>(x_factor, y_factor, 0.0, 1.0);
 }
-	`
+`
+}
+
+func main() {
+	// Use OpenGL backend (default). Change to BackendWebGPU to test WGSL shaders.
+	// hlg.SetBackend(hlg.BackendWebGPU)
+
+	hlg.SetWindowSize(screenWidth, screenHeight)
+	hlg.SetTitle("Color by Mouse Position Shader")
+	hlg.SetVSync(true)
+
+	shaderCode := getShaderCode()
 
 	uniforms := map[string]hlg.Uniform{
 		"mouse_pos": {

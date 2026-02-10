@@ -28,6 +28,11 @@ func IsButtonJustPressed(buttonCode input.MouseButton) bool {
 	return hlg.inputState.IsButtonJustPressed(buttonCode)
 }
 
+// IsButtonJustReleased checks if a mouse button was just released
+func IsButtonJustReleased(buttonCode input.MouseButton) bool {
+	return hlg.inputState.IsButtonJustReleased(buttonCode)
+}
+
 // PressButton simulates a mouse button press
 func PressButton(buttonCode input.MouseButton) {
 	hlg.inputState.PressButton(buttonCode)
@@ -43,4 +48,9 @@ func GetCursorPosition() (int, int) {
 
 func SetScrollCallback(cb func(x float64, y float64)) {
 	hlg.inputState.SetScrollCallback(cb)
+}
+
+// GetTypedRunes returns the runes typed this frame
+func GetTypedRunes() []rune {
+	return hlg.inputState.GetTypedRunes()
 }

@@ -14,7 +14,7 @@ func (c Cube) Draw(d displayer, clr color.Color) {
 		return geom.MakePoint(p.X, p.Y)
 	}
 
-	viewDirection := geom.Point3D{0, 0, -1}
+	viewDirection := geom.Point3D{X: 0, Y: 0, Z: -1}
 
 	sides := [][]geom.Point3D{
 		{c[0], c[1], c[2], c[3]},
@@ -37,7 +37,7 @@ func (c Cube) Fill(d displayer, clr color.Color) {
 		return geom.MakePoint(p.X, p.Y)
 	}
 
-	viewDirection := geom.Point3D{0, 0, -1}
+	viewDirection := geom.Point3D{X: 0, Y: 0, Z: -1}
 
 	sides := [][]geom.Point3D{
 		{c[0], c[1], c[2], c[3]},

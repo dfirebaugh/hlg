@@ -1,3 +1,5 @@
+//go:build !js
+
 package shader
 
 import (
@@ -7,22 +9,22 @@ import (
 )
 
 var (
-	//go:embed shapes.wgsl
-	shapeShaderCode string
-
 	//go:embed texture.wgsl
 	textureShaderCode string
 
 	//go:embed primitive_buffer.wgsl
 	primitiveBufferShaderCode string
 
-	ShapeShader           graphics.ShaderHandle
+	//go:embed solid_shape.wgsl
+	solidShapeShaderCode string
+
 	TextureShader         graphics.ShaderHandle
 	PrimitiveBufferShader graphics.ShaderHandle
+	SolidShapeShader      graphics.ShaderHandle
 )
 
 func CompileShaders(sm *ShaderManager) {
-	ShapeShader = sm.CompileShader(shapeShaderCode)
 	TextureShader = sm.CompileShader(textureShaderCode)
 	PrimitiveBufferShader = sm.CompileShader(primitiveBufferShaderCode)
+	SolidShapeShader = sm.CompileShader(solidShapeShaderCode)
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/dfirebaugh/hlg"
 	"github.com/dfirebaugh/hlg/gui"
-	"github.com/dfirebaugh/hlg/gui/components"
 	"golang.org/x/image/colornames"
 )
 
@@ -16,41 +15,27 @@ const (
 )
 
 func main() {
+	// hlg.SetBackend(hlg.BackendWebGPU)
 	hlg.SetWindowSize(screenWidth, screenHeight)
 	hlg.SetScreenSize(screenWidth, screenHeight)
 	hlg.SetTitle("UI Components Example")
 	hlg.EnableFPS()
 
-	buttons := []*components.Button{}
-	for i := 0; i < 16; i++ {
-		x := 32 + (i%4)*200
-		y := 20 + (i/4)*60
-		index := i
-		button := components.NewButton(x, y, 120, 40, 5, fmt.Sprintf("Btn %d", i+1), func() {
-			fmt.Printf("Button %d clicked\n", index+1)
-		})
-		buttons = append(buttons, button)
+	font, err := hlg.LoadDefaultFont()
+	if err != nil {
+		fmt.Printf("Failed to load font: %v\n", err)
+		return
 	}
+	font.SetAsActiveAtlas()
+	hlg.SetDefaultFont(font)
 
-	sliders := []*components.Slider{}
-	for i := 0; i < 10; i++ {
-		x := 32 + (i%5)*160
-		y := 280 + (i/5)*46
-		slider := components.NewSlider(x, y, 100, 10, 0, 100, func(value float32) {
-			fmt.Printf("Slider %d value: %f\n", i+1, value)
-		})
-		sliders = append(sliders, slider)
-	}
+	// Create gui context
+	inputCtx := gui.NewDefaultInputContext()
+	ctx := gui.NewContext(inputCtx)
 
-	toggles := []*components.Toggle{}
-	for i := 0; i < 10; i++ {
-		x := 32 + (i%5)*160
-		y := 360 + (i/5)*40
-		toggle := components.NewToggle(x, y, 40, 20, false, func(isOn bool) {
-			fmt.Printf("Toggle %d state: %t\n", i+1, isOn)
-		})
-		toggles = append(toggles, toggle)
-	}
+	// State for sliders and toggles (imgui style - caller owns state)
+	sliderValues := make([]float32, 10)
+	toggleStates := make([]bool, 10)
 
 	rectColors := []color.Color{
 		colornames.Mediumvioletred,
@@ -60,44 +45,49 @@ func main() {
 	}
 
 	hlg.Run(func() {
-		for _, button := range buttons {
-			button.Update()
-		}
-		for _, slider := range sliders {
-			slider.Update()
-		}
-		for _, toggle := range toggles {
-			toggle.Update()
-		}
+		inputCtx.Update()
 	}, func() {
 		hlg.Clear(colornames.Gainsboro)
-		w, h := hlg.GetWindowSize()
-		drawContext := gui.NewDrawContext(w, h)
 
-		for _, button := range buttons {
-			button.Render(drawContext)
-		}
-		for _, slider := range sliders {
-			slider.Render(drawContext)
-		}
-		for _, toggle := range toggles {
-			toggle.Render(drawContext)
+		ctx.Begin()
+
+		// Buttons
+		for i := range 16 {
+			x := 32 + (i%4)*200
+			y := 20 + (i/4)*60
+			if ctx.Button(fmt.Sprintf("Btn %d", i+1), x, y, 120, 40) {
+				fmt.Printf("Button %d clicked\n", i+1)
+			}
 		}
 
-		for i := 0; i < 8; i++ {
+		// Sliders
+		for i := range 10 {
+			x := 32 + (i%5)*160
+			y := 280 + (i/5)*46
+			if ctx.Slider(fmt.Sprintf("slider_%d", i), &sliderValues[i], 0, 100, x, y, 100, 10) {
+				fmt.Printf("Slider %d value: %f\n", i+1, sliderValues[i])
+			}
+		}
+
+		// Toggles
+		for i := range 10 {
+			x := 32 + (i%5)*160
+			y := 360 + (i/5)*40
+			if ctx.Toggle(fmt.Sprintf("toggle_%d", i), &toggleStates[i], x, y, 40, 20) {
+				fmt.Printf("Toggle %d state: %t\n", i+1, toggleStates[i])
+			}
+		}
+
+		// Colored rectangles with rounded corners and outline
+		for i := range 8 {
 			x := 32 + (i%4)*200
 			y := 460 + (i/4)*60
-			color := rectColors[i%4]
-			drawContext.DrawRectangle(x, y, 120, 60, &gui.DrawOptions{
-				Style: gui.Style{
-					FillColor:    color,
-					OutlineColor: colornames.White,
-					OutlineSize:  2,
-					CornerRadius: 6,
-				},
-			})
+			c := rectColors[i%4]
+			hlg.RoundedRectOutline(x, y, 120, 60, 15, 2, c, colornames.White)
 		}
 
-		hlg.SubmitDrawBuffer(drawContext.Encode())
+		ctx.End()
 	})
+
+	font.Dispose()
 }
